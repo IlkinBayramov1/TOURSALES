@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.*
+*.log
+.vscode/
+secure_uploads/
+dist/
+build/

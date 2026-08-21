@@ -1,0 +1,24 @@
+import express from 'express';
+import { financeController } from './finance.controller.js';
+import { authMiddleware } from '../auth/auth.middleware.js';
+import { roleMiddleware } from '../../middlewares/role.middleware.js';
+import { ROLES } from '../../config/constants.js';
+
+const router = express.Router();
+
+// Bütün maliyyə marşrutları üçün auth vacibdir
+router.use(authMiddleware());
+
+// Balans məlumatları və çıxarış tələbləri (Vendor üçün)
+router.get('/balance', roleMiddleware(ROLES.VENDOR), financeController.getBalances);
+router.post('/payout', roleMiddleware(ROLES.VENDOR), financeController.requestPayout);
+
+// Tranzaksiyalar və Excel ixracı (Vendor və Admin)
+router.get('/transactions', financeController.getTransactions);
+router.get('/transactions/export', financeController.exportTransactions);
+
+// Payout sorğularının siyahısı və təsdiq/rədd edilməsi (SuperAdmin üçün)
+router.get('/payouts', roleMiddleware(ROLES.SUPERADMIN), financeController.getAllPayouts);
+router.patch('/payouts/:payoutId', roleMiddleware(ROLES.SUPERADMIN), financeController.processPayout);
+
+export default router;

@@ -1,0 +1,367 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                 String           @id // U-XXXXXX
+  email              String           @unique
+  password           String
+  name               String?
+  role               String           @default("User") // SuperAdmin, Vendor, User
+  loyaltyPoints      Int              @default(0)
+  companyId          String?          // For Vendor users
+  company            Company?         @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  twoFactorSecret    String?
+  twoFactorEnabled   Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  usages             CampaignUsage[]
+  loyaltyLogs        LoyaltyHistory[]
+  sessions           Session[]
+  waitingLists       WaitingList[]
+  reviews            Review[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Company {
+  id               String                @id // C-XXXXXX
+  name             String
+  phoneNumber      String?
+  email            String?
+  address          String?
+  voen             String?
+  iban             String?
+  bankName         String?
+  status           String                @default("Pending") // Pending, Active, Suspended
+  rating           Float                 @default(0.0)
+  availableBalance Decimal               @default(0.0000) @db.Decimal(19, 4)
+  pendingBalance   Decimal               @default(0.0000) @db.Decimal(19, 4)
+  payoutAccount    String?
+  planId           String?
+  plan             SubscriptionPlan?     @relation(fields: [planId], references: [id], onDelete: SetNull)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  users            User[]
+  tours            Tour[]
+  bookings         Booking[]
+  transactions     Transaction[]
+  payouts          Payout[]
+  campaigns        Campaign[]
+  ads              Ad[]
+  payments         SubscriptionPayment[]
+  ledgerAccounts   LedgerAccount[]
+
+  @@index([status])
+}
+
+model SubscriptionPlan {
+  id                 String                @id // SP-XXXXXX
+  name               String
+  monthlyPrice       Decimal               @db.Decimal(19, 4)
+  domesticCommission Decimal               @db.Decimal(19, 4)
+  foreignCommission  Decimal               @db.Decimal(19, 4)
+  features           String                @db.Text // JSON string of features
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  companies          Company[]
+  payments           SubscriptionPayment[]
+}
+
+model SubscriptionPayment {
+  id          String           @id // SPY-XXXXXX
+  companyId   String
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  planId      String
+  plan        SubscriptionPlan @relation(fields: [planId], references: [id])
+  amount      Decimal          @db.Decimal(19, 4)
+  paymentDate DateTime         @default(now())
+  dueDate     DateTime
+  status      String           @default("Pending") // Paid, Overdue, Pending
+
+  @@index([status])
+}
+
+model Tour {
+  id                    String       @id // T-XXXXXX
+  companyId             String
+  company               Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type                  String       // DOMESTIC, FOREIGN
+  title                 String
+  description           String       @db.Text
+  phoneNumber           String?
+  email                 String?
+  images                String?      @db.Text // JSON string of image paths
+  minParticipants       Int          @default(1)
+  maxParticipants       Int
+  startDate             DateTime
+  includedServices      String?      @db.Text // JSON list
+  excludedServices      String?      @db.Text // JSON list
+  itinerary             String?      @db.Text // JSON list
+  status                String       @default("Active") // Active, Deactive
+  viewCount             Int          @default(0)
+  favoriteCount         Int          @default(0)
+  
+  // Domestic specific
+  transportType         String?      // Bus, Mercedes Sprinter, etc.
+  busCapacity           Int?
+  meetingPointAddress   String?
+  meetingPointLat       Float?
+  meetingPointLng       Float?
+  
+  // Common / Foreign specific
+  hotelName             String?
+  hotelCategory         String?      // 3*, 4*, 5*
+  currency              String       @default("AZN")
+  price                 Decimal      @db.Decimal(19, 4)
+  flightIncluded        Boolean      @default(false)
+  passportVisaRequired  Boolean      @default(false)
+
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  regions               TourRegion[]
+  bookings              Booking[]
+  ads                   Ad[]
+  waitingList           WaitingList[]
+  reviews               Review[]
+
+  @@index([status])
+  @@index([type])
+  @@index([startDate])
+}
+
+model TourRegion {
+  id     Int    @id @default(autoincrement())
+  tourId String
+  tour   Tour   @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  name   String // Rayon adı (Quba, Qusar, Şəki və s.)
+}
+
+model Booking {
+  id               String        @id // TR-XXXXXX
+  tourId           String
+  tour             Tour          @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  companyId        String
+  company          Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  passengerName    String
+  passengerSurname String
+  passengerPassport String?      // Passport details/number
+  contactNumber    String
+  contactEmail     String
+  bookingDate      DateTime      @default(now())
+  seats            Int           @default(1)
+  busSeatNumber    String?       // For domestic bus seat assignment
+  status           String        @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  paymentStatus    String        @default("PENDING") // PAID, PARTIALLY_PAID, PENDING
+  paidAmount       Decimal       @default(0.0000) @db.Decimal(19, 4)
+  remainingAmount  Decimal       @db.Decimal(19, 4)
+  totalAmount      Decimal       @db.Decimal(19, 4)
+  documents        String?       @db.Text // JSON list of secure document file paths
+  bookingChannel   String        @default("PLATFORM") // PLATFORM, MANUAL
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  transactions     Transaction[]
+
+  @@index([contactEmail])
+  @@index([status])
+}
+
+model Transaction {
+  id          String   @id // TX-XXXXXX
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  bookingId   String?
+  booking     Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  type        String   // TICKET_SALE, REFUND, PAYOUT, SUBSCRIPTION
+  amount      Decimal  @db.Decimal(19, 4)
+  commission  Decimal  @default(0.0000) @db.Decimal(19, 4)
+  netAmount   Decimal  @db.Decimal(19, 4)
+  status      String   @default("Pending") // Completed, Pending, Cancelled
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([type])
+}
+
+model Payout {
+  id          String   @id // P-XXXXXX
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  amount      Decimal  @db.Decimal(19, 4)
+  payoutDate  DateTime @default(now())
+  status      String   @default("Pending") // Completed, Pending, Failed
+  bankAccount String
+
+  @@index([status])
+}
+
+model Campaign {
+  id                 String          @id // CP-XXXXXX
+  companyId          String?         // Null if Global Campaign by SuperAdmin
+  company            Company?        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type               String          // DISCOUNT, GIFT, LOYALTY
+  promoCode          String          @unique
+  discountType       String          // PERCENTAGE, FIXED
+  discountValue      Decimal         @db.Decimal(19, 4)
+  usageLimit         Int             @default(0) // 0 means unlimited
+  usedCount          Int             @default(0)
+  startDate          DateTime
+  endDate            DateTime
+  description        String?         @db.Text
+  status             String          @default("Active") // Active, Expired
+  usages             CampaignUsage[]
+}
+
+model CampaignUsage {
+  id         String   @id // CPU-XXXXXX
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usedAt     DateTime @default(now())
+}
+
+model AdPackage {
+  id           String @id // ADP-XXXXXX
+  durationDays Int
+  price        Decimal @db.Decimal(19, 4)
+  features     String @db.Text // JSON string list
+  ads          Ad[]
+}
+
+model Ad {
+  id           String    @id // AD-XXXXXX
+  companyId    String
+  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tourId       String
+  tour         Tour      @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  packageId    String
+  package      AdPackage @relation(fields: [packageId], references: [id])
+  amountPaid   Decimal   @db.Decimal(19, 4)
+  startDate    DateTime
+  endDate      DateTime
+  status       String    @default("Active") // Active, Expired, Cancelled
+  viewCount    Int       @default(0)
+  bookingCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+}
+
+model LoyaltyOffer {
+  id             String    @id // LYO-XXXXXX
+  partnerName    String
+  offerName      String
+  description    String    @db.Text
+  requiredPoints Int
+  maxUsage       Int       @default(0)
+  usedCount      Int       @default(0)
+  category       String    // FOOD, SERVICE, TRAVEL, TRANSPORT
+  startDate      DateTime?
+  endDate        DateTime?
+}
+
+model LoyaltyHistory {
+  id          String   @id // LYH-XXXXXX
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionType  String   // EARNED, SPENT
+  points      Int
+  description String
+  createdAt   DateTime @default(now())
+}
+
+model Session {
+  id        String   @id // S-XXXXXX
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @db.Text
+  device    String?
+  createdAt DateTime @default(now())
+}
+
+model WaitingList {
+  id        String   @id // W-XXXXXX
+  tourId    String
+  tour      Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Review {
+  id        String   @id // R-XXXXXX
+  tourId    String
+  tour      Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int      // 1-5
+  comment   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model FAQ {
+  id        String   @id // FAQ-XXXXXX
+  question  String
+  answer    String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Blog {
+  id        String   @id // B-XXXXXX
+  title     String
+  content   String   @db.Text
+  author    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StaticPage {
+  id        String   @id // SPG-XXXXXX
+  slug      String   @unique // terms, privacy, vb.
+  title     String
+  content   String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+model LedgerAccount {
+  id          String        @id // LA-XXXXXX
+  tenantId    String?       // Multi-tenancy isolation
+  companyId   String?
+  company     Company?      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type        String        // ASSET, LIABILITY, REVENUE, EXPENSE
+  name        String
+  currency    String        @default("AZN")
+  createdAt   DateTime      @default(now())
+  entries     LedgerEntry[]
+
+  @@index([tenantId])
+}
+
+model LedgerEntry {
+  id            String        @id // LE-XXXXXX
+  tenantId      String?
+  journalId     String        // Group entries of a single financial transaction
+  accountId     String
+  account       LedgerAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  bookingId     String?
+  payoutId      String?
+  entryType     String        // DEBIT, CREDIT
+  debit         Decimal       @default(0.0000) @db.Decimal(19, 4)
+  credit        Decimal       @default(0.0000) @db.Decimal(19, 4)
+  currency      String        @default("AZN")
+  exchangeRate  Decimal       @default(1.0000) @db.Decimal(19, 4)
+  referenceType String?       // BOOKING_SALE, PAYOUT_EXECUTION, PLATFORM_COMMISSION, REFUND
+  referenceId   String?
+  description   String?
+  createdAt     DateTime      @default(now())
+
+  @@index([journalId])
+  @@index([bookingId])
+  @@index([tenantId])
+}

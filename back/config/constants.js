@@ -1,0 +1,32 @@
+export const ROLES = {
+  SUPERADMIN: 'SuperAdmin',
+  VENDOR: 'Vendor',
+  USER: 'User'
+};
+
+export const STATUS_CODES = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500
+};
+
+export const BOOKING_STATUS = {
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  CANCELLED: 'CANCELLED'
+};
+
+export const SYSTEM_CONSTANTS = {
+  JWT_EXPIRES_IN: '1d'
+};
+
+export default {
+  ROLES,
+  STATUS_CODES,
+  BOOKING_STATUS,
+  SYSTEM_CONSTANTS
+};
