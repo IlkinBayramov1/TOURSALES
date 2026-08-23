@@ -159,39 +159,10 @@ async function runTests() {
     const updatedTourSurge = await toursService.getById(tourSurge.id);
     console.log(`Dolu tur (90% doluluq, 2 gün qalmış) Qiyməti: ${updatedTourSurge.dynamicPrice} AZN (30% artım gözlənilir: 130 AZN)`);
 
-    // 4. Debt Lock Test
-    console.log('\n--- 3. Debt Lock (Borc Kilidi) Testi ---');
-    // Keçmiş tarixli tur yaradırıq
-    const pastDate = new Date();
-    pastDate.setDate(pastDate.getDate() - 5);
-
-    const tourPast = await toursService.create({
-      type: 'DOMESTIC',
-      title: 'İsmayıllı Lahıc Turu',
-      description: 'Lahıc gəzintisi',
-      phoneNumber: '0551112233',
-      email: 'lahic@toursales.com',
-      minParticipants: 1,
-      maxParticipants: 10,
-      startDate: pastDate,
-      price: 50.0,
-      currency: 'AZN',
-      regions: ['İsmayıllı']
-    }, 'C-TESTER');
-
-    // Müştəri üçün borclu booking yaradırıq (Paid Amount = 10 AZN, Borc = 40 AZN)
-    const debtBooking = await bookingsService.create({
-      tourId: tourPast.id,
-      passengerName: 'Elvin',
-      passengerSurname: 'Mammadov',
-      contactNumber: '0551234567',
-      contactEmail: 'elvin@toursales.com', // Elvinin email-i
-      seats: 1,
-      paidAmount: 10
-    });
-    console.log(`Borclu rezervasiya yaradıldı. Borc məbləği: ${debtBooking.remainingAmount} AZN`);
-
-    // Elvin üçün yeni rezervasiya etməyə cəhd edirik (Debt lock işləməlidir)
+    // 4. Nağd / Onlayn 100% Tam Ödəniş Testi (Sistemdə Borc Yoxdur)
+    console.log('\n--- 3. 100% Nağd/Onlayn Ödəniş Rejimi (Borc Qadağası) Testi ---');
+    
+    // Nisyə/Yarımçıq ödənişlə bron etməyə cəhd edirik (Sistem xəta atmalıdır)
     try {
       await bookingsService.create({
         tourId: tourEarly.id,
@@ -200,22 +171,18 @@ async function runTests() {
         contactNumber: '0551234567',
         contactEmail: 'elvin@toursales.com',
         seats: 1,
-        paidAmount: 80
+        paidAmount: 10 // 80 AZN yerinə 10 AZN ödəmək istəyir (Xəta atmalıdır)
       });
-      console.log('WARNING: Debt lock işləmədi!');
+      console.log('WARNING: Nisyə ödəniş bloklanmadı!');
     } catch (err) {
-      console.log('Debt lock uğurla blokladı:', err.message);
+      console.log('Nisyə/Borc bron cəhdi təhlükəsizlik tərəfindən uğurla bloklandı:', err.message);
     }
+
 
     // 5. GDPR Anonymization Test
     console.log('\n--- 4. GDPR (Anonimləşdirmə / Məni Sil) Testi ---');
-    // İlk öncə borcu ödəyirik ki, GDPR silməyə icazə versin
-    await prisma.booking.update({
-      where: { id: debtBooking.id },
-      data: { remainingAmount: 0 }
-    });
+    console.log('GDPR silmə əməliyyatı başladılır...');
 
-    console.log('Borc sıfırlandı. GDPR silmə əməliyyatı başladılır...');
     await authService.register({
       name: 'Səlim Əliyev',
       email: 'salim@toursales.com',

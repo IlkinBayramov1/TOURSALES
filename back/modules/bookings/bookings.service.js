@@ -77,26 +77,9 @@ class BookingsService {
 
     const targetCompanyId = companyId || tour.companyId;
 
-    // --- DEBT LOCK Yoxlanışı (GDPR ilə silinmişlər istisnadır) ---
     const customer = await prisma.user.findFirst({
       where: { email: data.contactEmail, deletedAt: null }
     });
-    if (customer && !customer.email.includes('@anonymized.com')) {
-      const overdueDebtBooking = await prisma.booking.findFirst({
-        where: {
-          contactEmail: customer.email,
-          remainingAmount: { gt: 0 },
-          deletedAt: null,
-          tour: {
-            startDate: { lt: new Date() },
-            deletedAt: null
-          }
-        }
-      });
-      if (overdueDebtBooking) {
-        throw ApiError.badRequest('Yeni rezervasiya etmək bloklanıb: Sistemdə vaxtı keçmiş ödənilməmiş borcunuz mövcuddur.');
-      }
-    }
 
     // ID Generasiyası
     const id = await generateUniqueId('TR', 'booking');
@@ -110,7 +93,6 @@ class BookingsService {
     const rawPrice = Number(tour.price);
     let activePrice = rawPrice;
     
-    // Initial seat check for pricing calculation
     const initialConfirmedBookings = await prisma.booking.findMany({
       where: { tourId: data.tourId, status: 'CONFIRMED', deletedAt: null }
     });
@@ -126,15 +108,15 @@ class BookingsService {
     }
 
     const totalAmount = activePrice * requestedSeats;
-    const paidAmount = parseFloat(data.paidAmount || 0);
-    const remainingAmount = totalAmount - paidAmount;
-
-    let paymentStatus = 'PENDING';
-    if (paidAmount >= totalAmount) {
-      paymentStatus = 'PAID';
-    } else if (paidAmount > 0) {
-      paymentStatus = 'PARTIALLY_PAID';
+    
+    // SISTEMDƏ BORC YOXDUR: 100% Məbləğ anında nağd/onlayn ödənilməlidir
+    const paidAmount = data.paidAmount ? parseFloat(data.paidAmount) : totalAmount;
+    if (paidAmount < totalAmount) {
+      throw ApiError.badRequest(`Sistemdə nisyə/borc bron rejimi mövcud deyil. Tam ödənilməli məbləğ: ${totalAmount} AZN`);
     }
+
+    const remainingAmount = 0.0;
+    const paymentStatus = 'PAID';
 
     // Daxili turlar üçün avtobus oturacaq nömrəsi
     let busSeatNumber = null;
@@ -154,7 +136,6 @@ class BookingsService {
 
     // --- DOUBLE DEFENSE CONCURRENCY LOCKING INSIDE ATOMIC TRANSACTION ---
     const result = await prisma.$transaction(async (tx) => {
-      // DB Atomic Lock Check: Re-count active confirmed seats inside transaction
       const activeBookings = await tx.booking.findMany({
         where: { tourId: data.tourId, status: 'CONFIRMED', deletedAt: null }
       });
@@ -203,22 +184,19 @@ class BookingsService {
       });
 
       // İkiqat Yazılışlı Maliyyə Baş Kitabında (Financial Ledger) qeydiyyat
-      if (paidAmount > 0) {
-        await ledgerService.recordBookingSale({
-          bookingId: id,
-          companyId: targetCompanyId,
-          totalAmount: paidAmount,
-          commissionAmount: commissionAmount,
-          netAmount: netAmount,
-          description: `${tour.title} turu üçün Bilet Satışı Ledger Yoxlanışı`
-        }, tx);
-      }
+      await ledgerService.recordBookingSale({
+        bookingId: id,
+        companyId: targetCompanyId,
+        totalAmount: paidAmount,
+        commissionAmount: commissionAmount,
+        netAmount: netAmount,
+        description: `${tour.title} turu üçün Tam Ödənişli Bilet Satışı`
+      }, tx);
 
       await tx.company.update({
         where: { id: targetCompanyId },
         data: {
-          availableBalance: { increment: netAmount },
-          pendingBalance: { increment: remainingAmount }
+          availableBalance: { increment: netAmount }
         }
       });
 
@@ -244,7 +222,6 @@ class BookingsService {
       return newBooking;
     });
 
-    // Uğurlu sifariş anında müştəriyə anlıq WebSocket və email bildirişi göndəririk
     notificationsService.send({
       userId: customer?.id || null,
       type: 'BOOKING_CONFIRMED',
@@ -271,7 +248,6 @@ class BookingsService {
       throw ApiError.badRequest('Bu rezervasiya artıq ləğv edilib.');
     }
 
-    // Rol yoxlanışı: Müştəridirsə yalnız öz biletini, Vendor-dursa öz şirkətinin biletini ləğv edə bilər
     if (reqUser) {
       if (reqUser.role === 'User' && booking.contactEmail !== reqUser.email) {
         throw ApiError.forbidden('Yalnız öz rezervasiyanızı ləğv edə bilərsiniz.');
@@ -298,24 +274,20 @@ class BookingsService {
     const paidAmountNum = Number(booking.paidAmount);
     const refundAmount = (paidAmountNum * refundPercent) / 100;
 
-    // Şirkətin abunəlik komissiya dərəcəsi
     const plan = booking.company.plan;
     const commissionRate = plan 
       ? Number(booking.tour.type === 'DOMESTIC' ? plan.domesticCommission : plan.foreignCommission)
       : 10.0;
 
-    // Ləğv edilən məbləğə müvafiq komissiya və xalis məbləğ çıxılır
     const refundCommission = (refundAmount * commissionRate) / 100;
     const refundNet = refundAmount - refundCommission;
 
     await prisma.$transaction(async (tx) => {
-      // 1. Statusu CANCELLED təyin edirik
       await tx.booking.update({
         where: { id: bookingId },
         data: { status: 'CANCELLED', paymentStatus: refundPercent === 100 ? 'REFUNDED' : 'PARTIALLY_REFUNDED' }
       });
 
-      // 2. Əgər geri qaytarılan məbləğ varsa
       if (refundAmount > 0) {
         const refundTxId = await generateUniqueId('TX', 'transaction');
         await tx.transaction.create({
@@ -332,7 +304,6 @@ class BookingsService {
           }
         });
 
-        // Immutable Ledger Reversal Entry
         await ledgerService.recordReversalEntry({
           originalJournalId: bookingId,
           bookingId: bookingId,
@@ -341,7 +312,6 @@ class BookingsService {
           reason: `${booking.tour.title} turu ləğv olunduğu üçün refund reversal`
         }, tx);
 
-        // Şirkət balansından atomik olaraq pul geri çıxılır
         await tx.company.update({
           where: { id: booking.companyId },
           data: {
@@ -350,23 +320,11 @@ class BookingsService {
         });
       }
 
-      // Hər bir halda, ödənilməmiş borc məbləği pendingBalance-dən çıxılır (çünki tur ləğv edildi)
-      if (booking.remainingAmount > 0) {
-        await tx.company.update({
-          where: { id: booking.companyId },
-          data: {
-            pendingBalance: { decrement: booking.remainingAmount }
-          }
-        });
-      }
-
-      // 3. Loyallıq xalını silirik (qazanılan xallar geri hesablanır)
       const user = await tx.user.findFirst({
         where: { email: booking.contactEmail, deletedAt: null }
       });
       if (user) {
         const pointsDeducted = booking.tour.type === 'DOMESTIC' ? 10 : 20;
-        // Xalların mənfi olmaması üçün 0-dan az ola bilməz limit qoyulur
         const finalPoints = Math.max(0, user.loyaltyPoints - pointsDeducted);
         await tx.user.update({
           where: { id: user.id },
@@ -386,7 +344,6 @@ class BookingsService {
       }
     });
 
-    // 4. Waiting List yoxlaması: Boş yer yarandığı üçün növbədəki ilk müştəriyə bildiriş göndəririk
     const nextInLine = await prisma.waitingList.findFirst({
       where: { tourId: booking.tourId },
       orderBy: { createdAt: 'asc' },
