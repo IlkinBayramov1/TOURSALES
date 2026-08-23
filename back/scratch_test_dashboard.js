@@ -476,6 +476,8 @@ async function runTests() {
     console.log(`Rədd Səbəbləri: ${fraudRisk.reasons.join(', ')}`);
 
     console.log('\n==================================================');
+
+
     console.log('   BÜTÜN SAAS VƏ SECURITY SİSTEMLƏRİ UĞURLA TEST EDİLDİ!');
     console.log('==================================================');
   } catch (error) {
