@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { generateSecret, generateURI, verify } from 'otplib';
 import QRCode from 'qrcode';
@@ -8,16 +9,113 @@ import ApiError from '../../core/api.error.js';
 import { generateUniqueId } from '../../utils/id-generator.js';
 
 class AuthService {
-  hashPassword(password) {
-    return crypto.createHash('sha256').update(password).digest('hex');
+  async hashPassword(password) {
+    return bcrypt.hash(password, 10);
   }
 
-  generateToken(user, isTemp = false) {
+  async verifyPassword(user, plainPassword) {
+    if (user.hashAlgorithm === 'SHA256') {
+      const legacySha256 = crypto.createHash('sha256').update(plainPassword).digest('hex');
+      const isMatch = (user.password === legacySha256);
+      
+      if (isMatch) {
+        // Transparent Dual-Hash Migration: Upgrade user password to Bcrypt immediately
+        const newBcryptHash = await bcrypt.hash(plainPassword, 10);
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            password: newBcryptHash,
+            hashAlgorithm: 'BCRYPT'
+          }
+        });
+      }
+      return isMatch;
+    }
+
+    return bcrypt.compare(plainPassword, user.password);
+  }
+
+  generateAccessToken(user, isTemp = false) {
     return jwt.sign(
       { id: user.id, email: user.email, role: user.role, companyId: user.companyId, twoFactorTemp: isTemp },
       env.JWT_SECRET,
-      { expiresIn: isTemp ? '5m' : '1d' }
+      { expiresIn: isTemp ? '5m' : '15m' }
     );
+  }
+
+  async createRefreshSession(userId, ipAddress, userAgent, parentTokenId = null, familyId = null) {
+    const rsId = await generateUniqueId('RS', 'refreshSession');
+    const activeFamilyId = familyId || crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    const refreshToken = jwt.sign(
+      { id: userId, sessionId: rsId, familyId: activeFamilyId },
+      env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+
+    await prisma.refreshSession.create({
+      data: {
+        id: rsId,
+        userId,
+        tokenHash,
+        familyId: activeFamilyId,
+        parentTokenId,
+        expiresAt,
+        ipAddress: ipAddress || 'Unknown',
+        userAgent: userAgent || 'Unknown'
+      }
+    });
+
+    return { refreshToken, expiresAt, familyId: activeFamilyId };
+  }
+
+  async refreshTokens(refreshToken, ipAddress, userAgent) {
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, env.JWT_SECRET);
+    } catch (err) {
+      throw ApiError.unauthorized('Müvəqqəti və ya etibarsız refresh token.');
+    }
+
+    const session = await prisma.refreshSession.findUnique({
+      where: { id: decoded.sessionId }
+    });
+
+    if (!session) {
+      throw ApiError.unauthorized('Sessiya tapılmadı.');
+    }
+
+    // Theft Detection: Token re-use check
+    if (session.revokedAt) {
+      // Security Alert: Token re-used after revocation! Revoke all tokens in this family immediately
+      await prisma.refreshSession.updateMany({
+        where: { familyId: session.familyId, revokedAt: null },
+        data: { revokedAt: new Date(), revokeReason: 'THEFT_REUSE_DETECTED' }
+      });
+      throw ApiError.unauthorized('Təhlükəsizlik xəbərdarlığı: Token təkrar istifadəsi aşkarlandı. Bütün sessiyalar ləğv edildi.');
+    }
+
+    // Revoke current session (Rotate)
+    await prisma.refreshSession.update({
+      where: { id: session.id },
+      data: { revokedAt: new Date(), revokeReason: 'ROTATED' }
+    });
+
+    const user = await prisma.user.findUnique({ where: { id: session.userId } });
+    if (!user || user.deletedAt) {
+      throw ApiError.unauthorized('İstifadəçi tapılmadı və ya silinib.');
+    }
+
+    const newAccessToken = this.generateAccessToken(user);
+    const newRefreshSession = await this.createRefreshSession(user.id, ipAddress, userAgent, session.id, session.familyId);
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshSession.refreshToken
+    };
   }
 
   async createSession(userId, token, device) {
@@ -32,7 +130,7 @@ class AuthService {
     });
   }
 
-  async register(data, device) {
+  async register(data, device, ipAddress, userAgent) {
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email }
     });
@@ -41,7 +139,7 @@ class AuthService {
       throw ApiError.badRequest('Bu email ünvanı artıq qeydiyyatdan keçib.');
     }
 
-    const hashedPassword = this.hashPassword(data.password);
+    const hashedPassword = await this.hashPassword(data.password);
     const userId = await generateUniqueId('U', 'user');
 
     let companyId = null;
@@ -62,46 +160,49 @@ class AuthService {
         id: userId,
         email: data.email,
         password: hashedPassword,
+        hashAlgorithm: 'BCRYPT',
         name: data.name,
         role: data.role || 'User',
         companyId: companyId
       }
     });
 
-    const token = this.generateToken(user);
-    await this.createSession(user.id, token, device);
-    
+    const accessToken = this.generateAccessToken(user);
+    const refreshSession = await this.createRefreshSession(user.id, ipAddress, userAgent);
+    await this.createSession(user.id, accessToken, device);
+
     const { password, twoFactorSecret, ...userWithoutPassword } = user;
-    return { user: userWithoutPassword, token };
+    return { user: userWithoutPassword, accessToken, refreshToken: refreshSession.refreshToken };
   }
 
-  async login(email, password, device) {
+  async login(email, password, device, ipAddress, userAgent) {
     const user = await prisma.user.findUnique({
       where: { email }
     });
 
-    if (!user) {
+    if (!user || user.deletedAt) {
       throw ApiError.unauthorized('Email və ya şifrə yanlışdır.');
     }
 
-    const hashedPassword = this.hashPassword(password);
-    if (user.password !== hashedPassword) {
+    const isPasswordValid = await this.verifyPassword(user, password);
+    if (!isPasswordValid) {
       throw ApiError.unauthorized('Email və ya şifrə yanlışdır.');
     }
 
     if (user.twoFactorEnabled) {
-      const tempToken = this.generateToken(user, true);
+      const tempToken = this.generateAccessToken(user, true);
       return { twoFactorRequired: true, tempToken };
     }
 
-    const token = this.generateToken(user);
-    await this.createSession(user.id, token, device);
+    const accessToken = this.generateAccessToken(user);
+    const refreshSession = await this.createRefreshSession(user.id, ipAddress, userAgent);
+    await this.createSession(user.id, accessToken, device);
 
     const { password: _, twoFactorSecret: __, ...userWithoutPassword } = user;
-    return { user: userWithoutPassword, token };
+    return { user: userWithoutPassword, accessToken, refreshToken: refreshSession.refreshToken };
   }
 
-  async verify2FAAndLogin(tempToken, code, device) {
+  async verify2FAAndLogin(tempToken, code, device, ipAddress, userAgent) {
     let decoded;
     try {
       decoded = jwt.verify(tempToken, env.JWT_SECRET);
@@ -117,7 +218,7 @@ class AuthService {
       where: { id: decoded.id }
     });
 
-    if (!user || !user.twoFactorSecret) {
+    if (!user || !user.twoFactorSecret || user.deletedAt) {
       throw ApiError.badRequest('2FA konfiqurasiyası tapılmadı.');
     }
 
@@ -126,16 +227,17 @@ class AuthService {
       throw ApiError.unauthorized('2FA kodu yanlışdır.');
     }
 
-    const token = this.generateToken(user);
-    await this.createSession(user.id, token, device);
+    const accessToken = this.generateAccessToken(user);
+    const refreshSession = await this.createRefreshSession(user.id, ipAddress, userAgent);
+    await this.createSession(user.id, accessToken, device);
 
     const { password: _, twoFactorSecret: __, ...userWithoutPassword } = user;
-    return { user: userWithoutPassword, token };
+    return { user: userWithoutPassword, accessToken, refreshToken: refreshSession.refreshToken };
   }
 
   async setup2FA(userId) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw ApiError.notFound('İstifadəçi tapılmadı.');
+    if (!user || user.deletedAt) throw ApiError.notFound('İstifadəçi tapılmadı.');
 
     const secret = generateSecret();
     const otpauth = generateURI({
@@ -155,7 +257,7 @@ class AuthService {
 
   async enable2FA(userId, code) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !user.twoFactorSecret) {
+    if (!user || !user.twoFactorSecret || user.deletedAt) {
       throw ApiError.badRequest('İlk öncə 2FA-nı quraşdırmalısınız.');
     }
 
@@ -174,9 +276,10 @@ class AuthService {
 
   async disable2FA(userId, password) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw ApiError.notFound('İstifadəçi tapılmadı.');
+    if (!user || user.deletedAt) throw ApiError.notFound('İstifadəçi tapılmadı.');
 
-    if (user.password !== this.hashPassword(password)) {
+    const isPasswordValid = await this.verifyPassword(user, password);
+    if (!isPasswordValid) {
       throw ApiError.badRequest('Şifrə yanlışdır.');
     }
 
@@ -213,6 +316,19 @@ class AuthService {
         token: { not: currentToken }
       }
     });
+
+    // Also revoke refresh sessions
+    await prisma.refreshSession.updateMany({
+      where: {
+        userId,
+        revokedAt: null
+      },
+      data: {
+        revokedAt: new Date(),
+        revokeReason: 'USER_LOGOUT_OTHER_DEVICES'
+      }
+    });
+
     return { success: true };
   }
 }

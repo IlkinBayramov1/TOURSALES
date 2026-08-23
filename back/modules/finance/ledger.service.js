@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../../config/db.js';
 import { generateUniqueId } from '../../utils/id-generator.js';
 import ApiError from '../../core/api.error.js';
@@ -26,15 +27,16 @@ class LedgerService {
     return companyAccounts;
   }
 
-  // Atomik İkiqat Yazılış (Double-Entry Posting)
-  // Əsas Prinsip: Total Debit MUST equal Total Credit
+  // Atomik İkiqat Yazılış (Double-Entry Posting) with Prisma Decimal Precision
+  // Total Debit MUST equal Total Credit (Decimal.equals)
   async recordBookingSale({ bookingId, companyId, totalAmount, commissionAmount, netAmount, description }, tx = prisma) {
     const journalId = await generateUniqueId('JRN', 'ledgerEntry');
-    const totalAmt = Number(totalAmount);
-    const commAmt = Number(commissionAmount);
-    const netAmt = Number(netAmount);
+    const totalDec = new Prisma.Decimal(totalAmount);
+    const commDec = new Prisma.Decimal(commissionAmount);
+    const netDec = new Prisma.Decimal(netAmount);
 
-    if (Math.abs(totalAmt - (commAmt + netAmt)) > 0.001) {
+    // Strict Decimal validation: totalDec === commDec + netDec
+    if (!totalDec.equals(commDec.add(netDec))) {
       throw ApiError.badRequest('Ledger balans uyğunsuzluğu: Toplam Debit Kreditə bərabər deyil.');
     }
 
@@ -50,12 +52,12 @@ class LedgerService {
         accountId: vendorPayableAccount.id,
         bookingId,
         entryType: 'DEBIT',
-        debit: totalAmt,
-        credit: 0.0,
+        debit: totalDec,
+        credit: new Prisma.Decimal(0),
         currency: 'AZN',
         referenceType: 'BOOKING_SALE',
         referenceId: bookingId,
-        description: description || `Bilet satışı: Total ${totalAmt} AZN`
+        description: description || `Bilet satışı: Total ${totalDec.toString()} AZN`
       }
     });
 
@@ -68,12 +70,12 @@ class LedgerService {
         accountId: vendorPayableAccount.id,
         bookingId,
         entryType: 'CREDIT',
-        debit: 0.0,
-        credit: commAmt,
+        debit: new Prisma.Decimal(0),
+        credit: commDec,
         currency: 'AZN',
         referenceType: 'PLATFORM_COMMISSION',
         referenceId: bookingId,
-        description: `Platforma komissiyası: ${commAmt} AZN`
+        description: `Platforma komissiyası: ${commDec.toString()} AZN`
       }
     });
 
@@ -86,16 +88,62 @@ class LedgerService {
         accountId: vendorPayableAccount.id,
         bookingId,
         entryType: 'CREDIT',
-        debit: 0.0,
-        credit: netAmt,
+        debit: new Prisma.Decimal(0),
+        credit: netDec,
         currency: 'AZN',
         referenceType: 'VENDOR_PAYABLE',
         referenceId: bookingId,
-        description: `Vendor xalis gəliri: ${netAmt} AZN`
+        description: `Vendor xalis gəliri: ${netDec.toString()} AZN`
       }
     });
 
     return { journalId, status: 'POSTED' };
+  }
+
+  // Reversal Posting for Refunds or Adjustments (Strictly Immutable Ledger)
+  async recordReversalEntry({ originalJournalId, bookingId, companyId, refundAmount, reason }, tx = prisma) {
+    const journalId = await generateUniqueId('JRN', 'ledgerEntry');
+    const refundDec = new Prisma.Decimal(refundAmount);
+    const companyAccounts = await this.getOrCreateCompanyAccounts(companyId, tx);
+    const vendorPayableAccount = companyAccounts.find(a => a.type === 'LIABILITY');
+
+    // Debit Vendor Payable Liability / Refund Adjustment
+    const entry1Id = await generateUniqueId('LE', 'ledgerEntry');
+    await tx.ledgerEntry.create({
+      data: {
+        id: entry1Id,
+        journalId,
+        accountId: vendorPayableAccount.id,
+        bookingId,
+        entryType: 'DEBIT',
+        debit: refundDec,
+        credit: new Prisma.Decimal(0),
+        currency: 'AZN',
+        referenceType: 'REFUND_REVERSAL',
+        referenceId: originalJournalId,
+        description: reason || `Geri qaytarılma (Refund Reversal): ${refundDec.toString()} AZN`
+      }
+    });
+
+    // Credit Customer Refund Account
+    const entry2Id = await generateUniqueId('LE', 'ledgerEntry');
+    await tx.ledgerEntry.create({
+      data: {
+        id: entry2Id,
+        journalId,
+        accountId: vendorPayableAccount.id,
+        bookingId,
+        entryType: 'CREDIT',
+        debit: new Prisma.Decimal(0),
+        credit: refundDec,
+        currency: 'AZN',
+        referenceType: 'REFUND_EXECUTION',
+        referenceId: originalJournalId,
+        description: `Müştəriyə qaytarılan məbləğ: ${refundDec.toString()} AZN`
+      }
+    });
+
+    return { journalId, status: 'REVERSED' };
   }
 
   // Ledger üzrə maliyyə audit tarixçəsi

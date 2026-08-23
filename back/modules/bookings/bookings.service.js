@@ -9,7 +9,10 @@ class BookingsService {
   async getAll(filters = {}, companyId = null) {
     const { tourType, paymentStatus, channel, startDate, endDate, search } = filters;
 
-    const where = {};
+    const where = {
+      deletedAt: null
+    };
+
     if (companyId) {
       where.companyId = companyId;
     }
@@ -20,7 +23,7 @@ class BookingsService {
       where.bookingChannel = channel;
     }
     if (tourType) {
-      where.tour = { type: tourType };
+      where.tour = { type: tourType, deletedAt: null };
     }
     if (startDate || endDate) {
       where.bookingDate = {};
@@ -47,8 +50,8 @@ class BookingsService {
   }
 
   async getById(id, companyId = null) {
-    const booking = await prisma.booking.findUnique({
-      where: { id },
+    const booking = await prisma.booking.findFirst({
+      where: { id, deletedAt: null },
       include: { tour: true, company: true }
     });
 
@@ -60,8 +63,13 @@ class BookingsService {
   }
 
   async create(data, companyId = null, bookingChannel = 'PLATFORM', files = []) {
-    const tour = await prisma.tour.findUnique({
-      where: { id: data.tourId },
+    const requestedSeats = parseInt(data.seats, 10);
+    if (isNaN(requestedSeats) || requestedSeats <= 0) {
+      throw ApiError.badRequest('Oturacaq sayı müsbət ədəd olmalıdır.');
+    }
+
+    const tour = await prisma.tour.findFirst({
+      where: { id: data.tourId, deletedAt: null },
       include: { company: { include: { plan: true } } }
     });
 
@@ -70,33 +78,24 @@ class BookingsService {
     const targetCompanyId = companyId || tour.companyId;
 
     // --- DEBT LOCK Yoxlanışı (GDPR ilə silinmişlər istisnadır) ---
-    const customer = await prisma.user.findUnique({
-      where: { email: data.contactEmail }
+    const customer = await prisma.user.findFirst({
+      where: { email: data.contactEmail, deletedAt: null }
     });
     if (customer && !customer.email.includes('@anonymized.com')) {
       const overdueDebtBooking = await prisma.booking.findFirst({
         where: {
           contactEmail: customer.email,
           remainingAmount: { gt: 0 },
+          deletedAt: null,
           tour: {
-            startDate: { lt: new Date() }
+            startDate: { lt: new Date() },
+            deletedAt: null
           }
         }
       });
       if (overdueDebtBooking) {
         throw ApiError.badRequest('Yeni rezervasiya etmək bloklanıb: Sistemdə vaxtı keçmiş ödənilməmiş borcunuz mövcuddur.');
       }
-    }
-
-    // Yer doluluğunu yoxlayırıq
-    const confirmedBookings = await prisma.booking.findMany({
-      where: { tourId: data.tourId, status: 'CONFIRMED' }
-    });
-    const soldSeats = confirmedBookings.reduce((sum, b) => sum + b.seats, 0);
-    const requestedSeats = parseInt(data.seats, 10);
-
-    if (soldSeats + requestedSeats > tour.maxParticipants) {
-      throw ApiError.badRequest(`Kifayət qədər boş yer yoxdur. Qalan yer sayı: ${tour.maxParticipants - soldSeats}`);
     }
 
     // ID Generasiyası
@@ -110,10 +109,17 @@ class BookingsService {
 
     const rawPrice = Number(tour.price);
     let activePrice = rawPrice;
+    
+    // Initial seat check for pricing calculation
+    const initialConfirmedBookings = await prisma.booking.findMany({
+      where: { tourId: data.tourId, status: 'CONFIRMED', deletedAt: null }
+    });
+    const initialSoldSeats = initialConfirmedBookings.reduce((sum, b) => sum + b.seats, 0);
+
     if (daysLeft >= 30) {
       activePrice = Math.round(rawPrice * 0.8 * 100) / 100; // 20% endirim (Erkən)
     } else {
-      const occupancyPercent = tour.maxParticipants > 0 ? (soldSeats / tour.maxParticipants) * 100 : 0;
+      const occupancyPercent = tour.maxParticipants > 0 ? (initialSoldSeats / tour.maxParticipants) * 100 : 0;
       if (daysLeft <= 3 && daysLeft >= 0 && occupancyPercent >= 90) {
         activePrice = Math.round(rawPrice * 1.3 * 100) / 100; // 30% artım (Surge)
       }
@@ -146,7 +152,19 @@ class BookingsService {
     const commissionAmount = (paidAmount * commissionRate) / 100;
     const netAmount = paidAmount - commissionAmount;
 
+    // --- DOUBLE DEFENSE CONCURRENCY LOCKING INSIDE ATOMIC TRANSACTION ---
     const result = await prisma.$transaction(async (tx) => {
+      // DB Atomic Lock Check: Re-count active confirmed seats inside transaction
+      const activeBookings = await tx.booking.findMany({
+        where: { tourId: data.tourId, status: 'CONFIRMED', deletedAt: null }
+      });
+      const currentSoldSeats = activeBookings.reduce((sum, b) => sum + b.seats, 0);
+
+      if (currentSoldSeats + requestedSeats > tour.maxParticipants) {
+        const available = Math.max(0, tour.maxParticipants - currentSoldSeats);
+        throw ApiError.badRequest(`Kifayət qədər boş yer yoxdur (Paralel sifariş). Qalan yer sayı: ${available}`);
+      }
+
       const newBooking = await tx.booking.create({
         data: {
           id,
@@ -239,8 +257,8 @@ class BookingsService {
   }
 
   async cancelBooking(bookingId, reqUser = null) {
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
+    const booking = await prisma.booking.findFirst({
+      where: { id: bookingId, deletedAt: null },
       include: { 
         tour: true, 
         company: { include: { plan: true } }
@@ -314,6 +332,15 @@ class BookingsService {
           }
         });
 
+        // Immutable Ledger Reversal Entry
+        await ledgerService.recordReversalEntry({
+          originalJournalId: bookingId,
+          bookingId: bookingId,
+          companyId: booking.companyId,
+          refundAmount: refundAmount,
+          reason: `${booking.tour.title} turu ləğv olunduğu üçün refund reversal`
+        }, tx);
+
         // Şirkət balansından atomik olaraq pul geri çıxılır
         await tx.company.update({
           where: { id: booking.companyId },
@@ -334,8 +361,8 @@ class BookingsService {
       }
 
       // 3. Loyallıq xalını silirik (qazanılan xallar geri hesablanır)
-      const user = await tx.user.findUnique({
-        where: { email: booking.contactEmail }
+      const user = await tx.user.findFirst({
+        where: { email: booking.contactEmail, deletedAt: null }
       });
       if (user) {
         const pointsDeducted = booking.tour.type === 'DOMESTIC' ? 10 : 20;
@@ -366,7 +393,7 @@ class BookingsService {
       include: { user: true }
     });
 
-    if (nextInLine) {
+    if (nextInLine && nextInLine.user && !nextInLine.user.deletedAt) {
       notificationsService.send({
         userId: nextInLine.userId,
         type: 'WAITING_LIST_ALERT',
@@ -402,8 +429,8 @@ class BookingsService {
       passengerName: `${b.passengerName} ${b.passengerSurname}`,
       contactNumber: b.contactNumber,
       contactEmail: b.contactEmail,
-      tourTitle: b.tour.title,
-      tourId: b.tour.id,
+      tourTitle: b.tour ? b.tour.title : 'N/A',
+      tourId: b.tourId,
       bookingDate: b.bookingDate.toISOString().split('T')[0],
       paymentStatus: b.paymentStatus,
       seats: b.seats,

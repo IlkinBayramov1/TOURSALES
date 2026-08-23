@@ -76,7 +76,7 @@ async function runTests() {
 
     // 2FA Setup
     const setup2FA = await authService.setup2FA(registered.user.id);
-    console.log('2FA Setup OTPAuth URL generasiya olundu:', setup2FA.otpauthUrl);
+    console.log('2FA Setup OTPAuth URL generasiya olundu:', setup2FA.otpauth);
 
     // 2FA Aktivləşdirmə
     const validCode = await generate({ secret: setup2FA.secret });
@@ -90,17 +90,18 @@ async function runTests() {
     // 2FA verify ilə tam giriş
     const codeForLogin = await generate({ secret: setup2FA.secret });
     const verifiedLogin = await authService.verify2FAAndLogin(loginResult.tempToken, codeForLogin, 'Safari/macOS');
-    console.log('2FA təsdiqindən sonra gələn Session Token:', verifiedLogin.token ? 'UĞURLU' : 'UĞURSUZ');
+    console.log('2FA təsdiqindən sonra gələn Session Access Token:', verifiedLogin.accessToken ? 'UĞURLU' : 'UĞURSUZ');
 
     // Sessiyaların siyahılanması
     let sessions = await authService.getSessions(registered.user.id);
     console.log(`Aktiv sessiya sayı: ${sessions.length}`);
-    sessions.forEach(s => console.log(` - ID: ${s.id} | Cihaz: ${s.device} | Son Aktivlik: ${s.lastActivity}`));
+    sessions.forEach(s => console.log(` - ID: ${s.id} | Cihaz: ${s.device} | Tarix: ${s.createdAt}`));
 
     // Digər sessiyaları sonlandırma (iPhone qalmalı, Safari silinməli)
-    await authService.killOtherSessions(registered.user.id, verifiedLogin.token);
+    await authService.killOtherSessions(registered.user.id, verifiedLogin.accessToken);
     sessions = await authService.getSessions(registered.user.id);
     console.log(`Digər sessiyalar sonlandırıldıqdan sonra aktiv sessiya sayı: ${sessions.length}`);
+
 
     // 3. Dynamic Pricing Test
     console.log('\n--- 2. Dinamik Qiymətləndirmə Testi ---');
@@ -366,25 +367,26 @@ async function runTests() {
       bookingId: bookingA.id,
       amount: 80,
       currency: 'AZN',
-      provider: 'LOCAL_GATEWAY'
+      provider: 'BIRBANK'
     });
     console.log(`Ödəniş URL Generasiyası [BirBank/Kapital]: ${initPay.paymentUrl}`);
     console.log(`Provayder Transaction ID: ${initPay.providerTransactionId}`);
 
     const webhookKey = `WH_IDEMP_${Date.now()}`;
     const whResult1 = await paymentOrchestrator.handleWebhook({
-      provider: 'LOCAL_GATEWAY',
+      provider: 'BIRBANK',
       idempotencyKey: webhookKey,
       payload: { bookingId: bookingA.id, amount: 80, status: 'SUCCESS' }
     });
     console.log(`1-ci Webhook İşlənməsi: Status: ${whResult1.status}`);
 
     const whResult2 = await paymentOrchestrator.handleWebhook({
-      provider: 'LOCAL_GATEWAY',
+      provider: 'BIRBANK',
       idempotencyKey: webhookKey,
       payload: { bookingId: bookingA.id, amount: 80, status: 'SUCCESS' }
     });
     console.log(`2-ci Təkrar Webhook İşlənməsi (Idempotency Check): Status: ${whResult2.status}`);
+
 
     // 10. Seat Matrix & Concurrency Locking Test (Phase 4 & 5)
     console.log('\n--- 9. Visual Bus Seat Matrix & Real-Time Seat Lock (Phase 4 & 5) Testi ---');
@@ -408,22 +410,23 @@ async function runTests() {
 
     // 11. Voucher PDF & Cryptographic QR Code Verification Test (Phase 6)
     console.log('\n--- 10. Voucher PDF & Cryptographic QR Code Verification (Phase 6) Testi ---');
-    const voucherInfo = await voucherService.getVoucherDetails(bookingA.id);
-    console.log(`Voucher Generasiyası: ID: ${voucherInfo.voucherId}`);
-    console.log(`QR Token (HMAC-SHA256): ${voucherInfo.qrToken.substring(0, 35)}...`);
+    const qrToken = voucherService.generateQrToken(bookingA.id);
+    console.log(`Voucher QR Generasiyası Bilet ID: ${bookingA.id}`);
+    console.log(`QR Token (HMAC-SHA256): ${qrToken.substring(0, 35)}...`);
     
     // Legitim QR kodun doğrulanması
-    const verification = await voucherService.verifyVoucherToken(voucherInfo.qrToken);
+    const verification = await voucherService.verifyVoucherToken(qrToken);
     console.log(`Doğrulanmış Bilet Müştərisi: ${verification.passenger}`);
     console.log(`Bilet Doğrulama Nəticəsi: ${verification.valid ? 'UĞURLU VƏ İMZALANMIŞ' : 'XƏTA'}`);
 
     // Saxtalaşdırılmış (Tampered) QR Token yoxlanışı
-    const tamperedToken = voucherInfo.qrToken.slice(0, -5) + 'XXXXX';
+    const tamperedToken = qrToken.slice(0, -5) + 'XXXXX';
     try {
       await voucherService.verifyVoucherToken(tamperedToken);
     } catch (err) {
       console.log(`Saxta QR Kodunun Təhlükəsizlik tərəfindən bloklanması: ${err.message}`);
     }
+
 
     // 12. Advanced Commission & Payout System Test (Phase 7)
     console.log('\n--- 11. Advanced Commission & Payout System (Phase 7) Testi ---');

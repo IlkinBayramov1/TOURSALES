@@ -14,6 +14,8 @@ import superadminRoutes from '../../modules/superadmin/superadmin.routes.js';
 import reviewsRoutes from '../../modules/reviews/reviews.routes.js';
 import cmsRoutes from '../../modules/cms/cms.routes.js';
 import healthRoutes from '../../modules/health/health.routes.js';
+import notificationsRoutes from '../../modules/notifications/notifications.routes.js';
+import vouchersRoutes from '../../modules/vouchers/vouchers.routes.js';
 
 const router = express.Router();
 
@@ -32,5 +34,8 @@ router.use('/vendor', vendorRoutes);
 router.use('/superadmin', superadminRoutes);
 router.use('/reviews', reviewsRoutes);
 router.use('/cms', cmsRoutes);
+router.use('/notifications', notificationsRoutes);
+router.use('/vouchers', vouchersRoutes);
 
 export default router;
+

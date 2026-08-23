@@ -16,7 +16,7 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('[CRITICAL] Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-const PORT = env.PORT || 5005;
+const PORT = env.PORT || 5000;
 const server = http.createServer(app);
 
 // WebSocket (Socket.io) serverini başladırıq

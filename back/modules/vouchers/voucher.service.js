@@ -2,56 +2,75 @@ import crypto from 'crypto';
 import prisma from '../../config/db.js';
 import env from '../../config/env.js';
 import ApiError from '../../core/api.error.js';
+import PDFGenerator from '../../utils/pdf-generator.js';
 
 class VoucherService {
   constructor() {
     this.secretKey = env.JWT_SECRET || 'toursales_voucher_secret_key';
   }
 
-  // 1. QR Kod şifrələnməsi (Cryptographic QR Payload Generation)
+  // 1. Cryptographic QR Token Generation
   generateQrToken(bookingId) {
     const payload = JSON.stringify({ bookingId, ts: Date.now() });
     const hmac = crypto.createHmac('sha256', this.secretKey).update(payload).digest('hex');
-    const token = Buffer.from(payload).toString('base64') + '.' + hmac;
-    return token;
+    return Buffer.from(payload).toString('base64') + '.' + hmac;
   }
 
-  // 2. QR Kod Bilet Doğrulanması (Voucher Verification)
-  async verifyVoucherToken(token) {
+  // 2. Backend QR Verification Endpoint Logic
+  async verifyVoucherToken(token, bookingIdQuery = null) {
     try {
-      const [base64Payload, hmac] = token.split('.');
-      if (!base64Payload || !hmac) throw ApiError.badRequest('Keçərsiz QR bilet strukturu.');
+      let bookingId = bookingIdQuery;
 
-      const payloadStr = Buffer.from(base64Payload, 'base64').toString('utf-8');
-      const expectedHmac = crypto.createHmac('sha256', this.secretKey).update(payloadStr).digest('hex');
+      if (token.includes('.')) {
+        const [base64Payload, hmac] = token.split('.');
+        const payloadStr = Buffer.from(base64Payload, 'base64').toString('utf-8');
+        const expectedHmac = crypto.createHmac('sha256', this.secretKey).update(payloadStr).digest('hex');
 
-      if (hmac !== expectedHmac) {
-        throw ApiError.unauthorized('Saxta və ya dəyişdirilmiş bilet QR kodu!');
+        if (hmac !== expectedHmac) {
+          throw ApiError.unauthorized('Saxta və ya dəyişdirilmiş bilet QR kodu!');
+        }
+        bookingId = JSON.parse(payloadStr).bookingId;
       }
 
-      const { bookingId } = JSON.parse(payloadStr);
+      if (!bookingId) {
+        throw ApiError.badRequest('Bilet ID müəyyənləşdirilə bilmədi.');
+      }
 
-      const booking = await prisma.booking.findUnique({
-        where: { id: bookingId },
+      const booking = await prisma.booking.findFirst({
+        where: { id: bookingId, deletedAt: null },
         include: {
           tour: true,
           company: true
         }
       });
 
-      if (!booking) throw ApiError.notFound('Bilet tapılmadı.');
+      if (!booking) {
+        return {
+          valid: false,
+          status: 'NOT_FOUND',
+          message: 'Bilet tapılmadı və ya bazadan silinib.'
+        };
+      }
+
+      const isExpired = new Date(booking.tour.startDate) < new Date();
+      const isCancelled = booking.status === 'CANCELLED';
+
+      let verificationStatus = 'VALID';
+      if (isCancelled) verificationStatus = 'CANCELLED';
+      else if (isExpired) verificationStatus = 'EXPIRED';
 
       return {
-        valid: true,
+        valid: !isCancelled && !isExpired,
+        verificationStatus,
         bookingId: booking.id,
         passenger: `${booking.passengerName} ${booking.passengerSurname}`,
         passport: booking.passengerPassport || 'Yoxdur',
-        tourTitle: booking.tour.title,
-        tourDate: booking.tour.startDate,
+        tourTitle: booking.tour ? booking.tour.title : 'N/A',
+        tourStartDate: booking.tour ? booking.tour.startDate : null,
         seats: booking.seats,
         busSeatNumber: booking.busSeatNumber || 'Təyin edilməyib',
         paymentStatus: booking.paymentStatus,
-        companyName: booking.company.name,
+        companyName: booking.company ? booking.company.name : 'N/A',
         verifiedAt: new Date().toISOString()
       };
     } catch (error) {
@@ -60,42 +79,16 @@ class VoucherService {
     }
   }
 
-  // 3. Voucher PDF Metadata və QR Token Generasiyası
-  async getVoucherDetails(bookingId) {
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
+  // 3. Download PDF Voucher Stream
+  async generatePdfVoucher(bookingId) {
+    const booking = await prisma.booking.findFirst({
+      where: { id: bookingId, deletedAt: null },
       include: { tour: true, company: true }
     });
 
     if (!booking) throw ApiError.notFound('Rezervasiya tapılmadı.');
 
-    const qrToken = this.generateQrToken(bookingId);
-
-    return {
-      voucherId: `VCH-${booking.id}`,
-      bookingId: booking.id,
-      company: {
-        name: booking.company.name,
-        phone: booking.company.phoneNumber,
-        email: booking.company.email
-      },
-      passenger: {
-        name: `${booking.passengerName} ${booking.passengerSurname}`,
-        phone: booking.contactNumber,
-        email: booking.contactEmail,
-        passport: booking.passengerPassport
-      },
-      tour: {
-        title: booking.tour.title,
-        startDate: booking.tour.startDate,
-        meetingPoint: booking.tour.meetingPointAddress,
-        type: booking.tour.type
-      },
-      seats: booking.seats,
-      busSeatNumber: booking.busSeatNumber,
-      qrToken,
-      qrVerificationUrl: `https://toursales.az/verify-voucher?token=${encodeURIComponent(qrToken)}`
-    };
+    return PDFGenerator.generateVoucherPDF(booking);
   }
 }
 

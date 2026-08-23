@@ -2,71 +2,94 @@ import prisma from '../../config/db.js';
 import { generateUniqueId } from '../../utils/id-generator.js';
 import ApiError from '../../core/api.error.js';
 import ledgerService from '../finance/ledger.service.js';
+import {
+  StripeAdapter,
+  BirBankAdapter,
+  KapitalAdapter,
+  EManatAdapter,
+  MilliONAdapter
+} from './payment.provider.js';
 
 class PaymentOrchestrator {
   constructor() {
-    this.processedWebhooks = new Set(); // Idempotency Key Cache
+    this.providers = new Map();
+    this.registerProvider(new StripeAdapter());
+    this.registerProvider(new BirBankAdapter());
+    this.registerProvider(new KapitalAdapter());
+    this.registerProvider(new EManatAdapter());
+    this.registerProvider(new MilliONAdapter());
   }
 
-  // 1. Ödəniş başlatma (Payment Initiation)
-  async initiatePayment(data) {
-    const { bookingId, amount, currency = 'AZN', provider = 'LOCAL_GATEWAY', returnUrl, cancelUrl } = data;
+  registerProvider(adapter) {
+    this.providers.set(adapter.name.toUpperCase(), adapter);
+  }
 
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
+  getProvider(providerName) {
+    const adapter = this.providers.get((providerName || '').toUpperCase());
+    if (!adapter) {
+      throw ApiError.badRequest(`Dəstəklənməyən ödəniş provayderi: ${providerName}`);
+    }
+    return adapter;
+  }
+
+  // 1. Ödəniş başlatma (Payment Initiation via Adapter)
+  async initiatePayment(data) {
+    const { bookingId, amount, currency = 'AZN', provider = 'BIRBANK', returnUrl, cancelUrl } = data;
+
+    const booking = await prisma.booking.findFirst({
+      where: { id: bookingId, deletedAt: null },
       include: { tour: true }
     });
 
     if (!booking) throw ApiError.notFound('Rezervasiya tapılmadı.');
 
+    const adapter = this.getProvider(provider);
     const paymentId = await generateUniqueId('PAY', 'transaction');
 
-    let paymentUrl = '';
-    let providerTransactionId = `${provider}_TX_${Date.now()}`;
-
-    // Provider seçimi (Abstraction Layer)
-    switch (provider.toUpperCase()) {
-      case 'LOCAL_GATEWAY': // BirBank / Kapital Bank API
-        paymentUrl = `https://checkout.birbank.az/pay?token=${paymentId}&amount=${amount}`;
-        break;
-
-      case 'STRIPE': // Stripe Checkout
-        paymentUrl = `https://checkout.stripe.com/pay/${paymentId}`;
-        break;
-
-      case 'PAYPAL': // PayPal Express Checkout
-        paymentUrl = `https://www.paypal.com/checkoutnow?token=${paymentId}`;
-        break;
-
-      default:
-        throw ApiError.badRequest(`Dəstəklənməyən ödəniş provayderi: ${provider}`);
-    }
+    const paymentResult = await adapter.createPayment({
+      bookingId,
+      amount,
+      currency,
+      returnUrl,
+      cancelUrl
+    });
 
     return {
       paymentId,
       bookingId,
       amount,
       currency,
-      provider,
-      providerTransactionId,
+      provider: adapter.name,
+      providerTransactionId: paymentResult.providerTransactionId,
       status: 'PENDING',
-      paymentUrl,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 dəqiqə reservation timeout
+      paymentUrl: paymentResult.paymentUrl,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000)
     };
   }
 
-  // 2. Webhook İdarəçiliyi və İdempotent İşləmə (Webhook Idempotency Layer)
-  async handleWebhook({ provider, idempotencyKey, payload }) {
-    if (this.processedWebhooks.has(idempotencyKey)) {
+  // 2. Webhook İdarəçiliyi və DB-based Idempotency Layer
+  async handleWebhook({ provider, idempotencyKey, headers = {}, payload = {} }) {
+    const adapter = this.getProvider(provider);
+
+    // Verify provider-specific signature
+    adapter.verifyWebhook(headers, payload);
+
+    // Check DB-level Idempotency (Persistent Replay Protection)
+    const existingLog = await prisma.webhookLog.findUnique({
+      where: { idempotencyKey }
+    });
+
+    if (existingLog) {
       console.log(`[Webhook Warning] Təkrar webhook alındı (Idempotency Key: ${idempotencyKey}). Əməliyyat rədd edildi.`);
       return { status: 'SKIPPED_DUPLICATE', idempotencyKey };
     }
 
     const { bookingId, amount, status } = payload;
+    let processingStatus = 'PROCESSED';
 
     if (status === 'SUCCESS' || status === 'PAID') {
-      const booking = await prisma.booking.findUnique({
-        where: { id: bookingId },
+      const booking = await prisma.booking.findFirst({
+        where: { id: bookingId, deletedAt: null },
         include: { tour: { include: { company: { include: { plan: true } } } } }
       });
 
@@ -96,16 +119,25 @@ class PaymentOrchestrator {
             totalAmount: paidAmount,
             commissionAmount,
             netAmount,
-            description: `${provider} Ödənişi Webhook İdempotent Təsdiqi`
+            description: `${adapter.name} Ödənişi Webhook İdempotent Təsdiqi`
           }, tx);
         });
       }
     }
 
-    // Idempotency set-ə əlavə edirik ki, təkrar emal olunmasın
-    this.processedWebhooks.add(idempotencyKey);
+    // Persistent Webhook Log save
+    const whlId = await generateUniqueId('WHL', 'webhookLog');
+    await prisma.webhookLog.create({
+      data: {
+        id: whlId,
+        provider: adapter.name,
+        idempotencyKey,
+        payload: JSON.stringify(payload),
+        status: processingStatus
+      }
+    });
 
-    return { status: 'PROCESSED', idempotencyKey };
+    return { status: processingStatus, idempotencyKey };
   }
 }
 

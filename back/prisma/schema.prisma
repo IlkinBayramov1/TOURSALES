@@ -11,6 +11,7 @@ model User {
   id                 String           @id // U-XXXXXX
   email              String           @unique
   password           String
+  hashAlgorithm      String           @default("SHA256") // SHA256, BCRYPT, ARGON2ID
   name               String?
   role               String           @default("User") // SuperAdmin, Vendor, User
   loyaltyPoints      Int              @default(0)
@@ -18,16 +19,39 @@ model User {
   company            Company?         @relation(fields: [companyId], references: [id], onDelete: SetNull)
   twoFactorSecret    String?
   twoFactorEnabled   Boolean          @default(false)
+  deletedAt          DateTime?
+  deletedBy          String?
+  deleteReason       String?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   usages             CampaignUsage[]
   loyaltyLogs        LoyaltyHistory[]
   sessions           Session[]
+  refreshSessions    RefreshSession[]
   waitingLists       WaitingList[]
   reviews            Review[]
 
   @@index([email])
   @@index([role])
+  @@index([companyId])
+}
+
+model RefreshSession {
+  id            String    @id // RS-XXXXXX
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash     String    @db.Text
+  familyId      String
+  parentTokenId String?
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  revokeReason  String?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([familyId])
 }
 
 model Company {
@@ -46,6 +70,9 @@ model Company {
   payoutAccount    String?
   planId           String?
   plan             SubscriptionPlan?     @relation(fields: [planId], references: [id], onDelete: SetNull)
+  deletedAt        DateTime?
+  deletedBy        String?
+  deleteReason     String?
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
   users            User[]
@@ -59,6 +86,7 @@ model Company {
   ledgerAccounts   LedgerAccount[]
 
   @@index([status])
+  @@index([planId])
 }
 
 model SubscriptionPlan {
@@ -85,6 +113,8 @@ model SubscriptionPayment {
   dueDate     DateTime
   status      String           @default("Pending") // Paid, Overdue, Pending
 
+  @@index([companyId])
+  @@index([planId])
   @@index([status])
 }
 
@@ -122,6 +152,9 @@ model Tour {
   price                 Decimal      @db.Decimal(19, 4)
   flightIncluded        Boolean      @default(false)
   passportVisaRequired  Boolean      @default(false)
+  deletedAt             DateTime?
+  deletedBy             String?
+  deleteReason          String?
 
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
@@ -131,6 +164,7 @@ model Tour {
   waitingList           WaitingList[]
   reviews               Review[]
 
+  @@index([companyId])
   @@index([status])
   @@index([type])
   @@index([startDate])
@@ -141,6 +175,8 @@ model TourRegion {
   tourId String
   tour   Tour   @relation(fields: [tourId], references: [id], onDelete: Cascade)
   name   String // Rayon adı (Quba, Qusar, Şəki və s.)
+
+  @@index([tourId])
 }
 
 model Booking {
@@ -164,10 +200,15 @@ model Booking {
   totalAmount      Decimal       @db.Decimal(19, 4)
   documents        String?       @db.Text // JSON list of secure document file paths
   bookingChannel   String        @default("PLATFORM") // PLATFORM, MANUAL
+  deletedAt        DateTime?
+  deletedBy        String?
+  deleteReason     String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   transactions     Transaction[]
 
+  @@index([tourId])
+  @@index([companyId])
   @@index([contactEmail])
   @@index([status])
 }
@@ -186,6 +227,8 @@ model Transaction {
   description String?
   createdAt   DateTime @default(now())
 
+  @@index([companyId])
+  @@index([bookingId])
   @@index([type])
 }
 
@@ -198,6 +241,7 @@ model Payout {
   status      String   @default("Pending") // Completed, Pending, Failed
   bankAccount String
 
+  @@index([companyId])
   @@index([status])
 }
 
@@ -216,6 +260,8 @@ model Campaign {
   description        String?         @db.Text
   status             String          @default("Active") // Active, Expired
   usages             CampaignUsage[]
+
+  @@index([companyId])
 }
 
 model CampaignUsage {
@@ -225,6 +271,9 @@ model CampaignUsage {
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   usedAt     DateTime @default(now())
+
+  @@index([campaignId])
+  @@index([userId])
 }
 
 model AdPackage {
@@ -250,6 +299,9 @@ model Ad {
   viewCount    Int       @default(0)
   bookingCount Int       @default(0)
   createdAt    DateTime  @default(now())
+
+  @@index([companyId])
+  @@index([tourId])
 }
 
 model LoyaltyOffer {
@@ -273,6 +325,8 @@ model LoyaltyHistory {
   points      Int
   description String
   createdAt   DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Session {
@@ -282,6 +336,8 @@ model Session {
   token     String   @db.Text
   device    String?
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model WaitingList {
@@ -291,6 +347,9 @@ model WaitingList {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+
+  @@index([tourId])
+  @@index([userId])
 }
 
 model Review {
@@ -302,6 +361,9 @@ model Review {
   rating    Int      // 1-5
   comment   String   @db.Text
   createdAt DateTime @default(now())
+
+  @@index([tourId])
+  @@index([userId])
 }
 
 model FAQ {
@@ -341,6 +403,7 @@ model LedgerAccount {
   entries     LedgerEntry[]
 
   @@index([tenantId])
+  @@index([companyId])
 }
 
 model LedgerEntry {
@@ -364,4 +427,31 @@ model LedgerEntry {
   @@index([journalId])
   @@index([bookingId])
   @@index([tenantId])
+  @@index([accountId])
+}
+
+model AuditLog {
+  id          String   @id // AUD-XXXXXX
+  tenantId    String?
+  entityName  String
+  entityId    String
+  action      String   // CREATE, UPDATE, DELETE, CANCEL
+  performedBy String?
+  oldValues   String?  @db.Text
+  newValues   String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([entityName, entityId])
+}
+
+model WebhookLog {
+  id             String   @id // WHL-XXXXXX
+  provider       String   // Stripe, BirBank, Kapital, EManat, MilliON
+  idempotencyKey String   @unique
+  payload        String   @db.Text
+  status         String   // PROCESSED, FAILED, SKIPPED_DUPLICATE
+  createdAt      DateTime @default(now())
+
+  @@index([provider])
 }
