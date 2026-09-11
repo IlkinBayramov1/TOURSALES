@@ -6,6 +6,7 @@ import QRCode from 'qrcode';
 import prisma from '../../config/db.js';
 import env from '../../config/env.js';
 import ApiError from '../../core/api.error.js';
+import { SYSTEM_CONSTANTS } from '../../config/constants.js';
 import { generateUniqueId } from '../../utils/id-generator.js';
 
 class AuthService {
@@ -39,7 +40,7 @@ class AuthService {
     return jwt.sign(
       { id: user.id, email: user.email, role: user.role, companyId: user.companyId, twoFactorTemp: isTemp },
       env.JWT_SECRET,
-      { expiresIn: isTemp ? '5m' : '15m' }
+      { expiresIn: isTemp ? '5m' : (SYSTEM_CONSTANTS.JWT_EXPIRES_IN || '1d') }
     );
   }
 
@@ -111,6 +112,7 @@ class AuthService {
 
     const newAccessToken = this.generateAccessToken(user);
     const newRefreshSession = await this.createRefreshSession(user.id, ipAddress, userAgent, session.id, session.familyId);
+    await this.createSession(user.id, newAccessToken, userAgent || 'Browser');
 
     return {
       accessToken: newAccessToken,
@@ -329,6 +331,15 @@ class AuthService {
       }
     });
 
+    return { success: true };
+  }
+
+  async logoutCurrentSession(userId, token) {
+    if (token) {
+      await prisma.session.deleteMany({
+        where: { userId, token }
+      });
+    }
     return { success: true };
   }
 }

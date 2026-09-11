@@ -1,0 +1,175 @@
+/* ==========================================================================
+   B2C FOOTER - 2026 SAAS MARKETPLACE FOOTER
+   ========================================================================== */
+
+.web-footer {
+  background-color: #0f172a;
+  color: #f8fafc;
+  padding: 80px 0 32px 0;
+  margin-top: 80px;
+}
+
+.web-footer-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.web-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  gap: 60px;
+  margin-bottom: 60px;
+}
+
+.web-footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.web-footer-pin {
+  color: var(--brand-accent, #ff385c);
+}
+
+.web-footer-logo span {
+  color: var(--brand-accent, #ff385c);
+}
+
+.web-footer-desc {
+  font-size: 14px;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 320px;
+}
+
+.web-trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.web-text-success {
+  color: #10b981;
+}
+
+.web-footer-col-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 24px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.web-footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.web-footer-links a {
+  text-decoration: none;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.web-footer-links a:hover {
+  color: #ffffff;
+}
+
+.web-contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.web-contact-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.web-contact-list li svg {
+  color: #64748b;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.web-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.web-footer-copyright {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.web-footer-socials {
+  display: flex;
+  gap: 12px;
+}
+
+.web-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  border-radius: 50%;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.web-social-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 900px) {
+  .web-footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .web-footer-grid {
+    grid-template-columns: 1fr;
+  }
+  .web-footer-bottom {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+}

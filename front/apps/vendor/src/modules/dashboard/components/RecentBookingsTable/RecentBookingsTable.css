@@ -1,0 +1,38 @@
+.vendor-recent-bookings-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.vendor-table-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary, #0f172a);
+}
+
+.vendor-table-section-title h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.vendor-booking-num {
+  color: var(--primary-600, #2563eb);
+}
+
+.vendor-booking-passengers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.vendor-seats-tag {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #64748b);
+}
+
+.vendor-amount-text {
+  font-size: 0.9375rem;
+  color: var(--text-primary, #0f172a);
+}

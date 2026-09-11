@@ -1,0 +1,15 @@
+.web-tour-itinerary-timeline-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.web-itinerary-intro {
+  margin-bottom: 0.5rem;
+}
+
+.web-itinerary-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}

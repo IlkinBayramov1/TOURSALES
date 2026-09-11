@@ -1,0 +1,85 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - TOUR CATALOG PAGE LAYOUT
+   ========================================================================== */
+
+.web-catalog-container-page {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 32px 32px 100px 32px;
+  color: #0f172a;
+}
+
+.web-catalog-layout-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.web-catalog-filter-sidebar {
+  position: sticky;
+  top: 100px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.web-catalog-filter-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.web-catalog-filter-sidebar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 6px;
+}
+
+.web-catalog-results-area {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.web-tour-grid-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 28px;
+}
+
+.web-catalog-pagination-wrap {
+  margin-top: 48px;
+  display: flex;
+  justify-content: center;
+}
+
+.web-catalog-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.web-catalog-error-state {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 24px;
+  border-radius: 16px;
+  text-align: center;
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .web-catalog-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .web-catalog-filter-sidebar {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+}

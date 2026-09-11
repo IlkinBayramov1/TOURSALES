@@ -1,0 +1,33 @@
+.web-passenger-form-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.web-passenger-card {
+  padding: 1.5rem;
+}
+
+.web-passenger-card-header {
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-glass);
+  padding-bottom: 0.75rem;
+}
+
+.web-passenger-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.web-passenger-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .web-passenger-inputs-grid {
+    grid-template-columns: 1fr;
+  }
+}

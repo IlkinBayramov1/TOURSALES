@@ -1,0 +1,345 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - TOUR FILTER SIDEBAR
+   ========================================================================== */
+
+.web-tour-filter-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.web-tour-filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.web-tour-filter-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.web-tour-filter-reset {
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #635bff;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.web-tour-filter-reset:hover {
+  background: #f1f5f9;
+  color: #4e44e6;
+}
+
+.web-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.web-filter-group:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.web-filter-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Search input */
+.web-filter-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.web-filter-search-icon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.web-filter-text-input {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.web-filter-text-input:focus {
+  border-color: #635bff;
+  box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.12);
+}
+
+/* Pills */
+.web-filter-pill-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.web-filter-pill {
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.web-filter-pill:hover {
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.web-filter-pill.active {
+  background: #635bff;
+  border-color: #635bff;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(99, 91, 255, 0.25);
+}
+
+/* Select */
+.web-filter-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.web-filter-select {
+  width: 100%;
+  padding: 10px 32px 10px 14px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.web-filter-select:focus {
+  border-color: #635bff;
+}
+
+.web-filter-select-arrow {
+  position: absolute;
+  right: 14px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+/* Price Range Inputs */
+.web-price-inputs-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.web-price-input-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.web-price-input-wrap span {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.web-price-input-wrap input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+}
+
+.web-price-input-wrap input:focus {
+  border-color: #635bff;
+}
+
+.web-price-sep {
+  color: #94a3b8;
+  font-weight: 700;
+  margin-top: 16px;
+}
+
+/* Range Track Simulation */
+.web-range-slider-track {
+  height: 6px;
+  background-color: #f1f5f9;
+  border-radius: 6px;
+  position: relative;
+  margin: 8px 6px 4px;
+}
+
+.web-range-slider-fill {
+  position: absolute;
+  height: 100%;
+  background-color: #635bff;
+  border-radius: 6px;
+}
+
+.web-range-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  background-color: #ffffff;
+  border: 2px solid #635bff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* Checkbox & Radio lists */
+.web-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.web-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  position: relative;
+}
+
+.web-checkbox-label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.web-custom-checkbox {
+  height: 20px;
+  width: 20px;
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.web-checkbox-label:hover .web-custom-checkbox {
+  border-color: #635bff;
+}
+
+.web-checkbox-label input:checked ~ .web-custom-checkbox {
+  background-color: #635bff;
+  border-color: #635bff;
+}
+
+.web-checkbox-label input:checked ~ .web-custom-checkbox::after {
+  content: '';
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+.web-checkbox-text {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+  flex: 1;
+}
+
+.web-checkbox-label input:checked ~ .web-checkbox-text {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.web-checkbox-count {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Custom Radio */
+.web-custom-radio {
+  height: 20px;
+  width: 20px;
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.web-checkbox-label:hover .web-custom-radio {
+  border-color: #635bff;
+}
+
+.web-checkbox-label input:checked ~ .web-custom-radio {
+  border-color: #635bff;
+  border-width: 5px;
+}
+
+.web-rating-stars-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.web-rating-text-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-left: 6px;
+}

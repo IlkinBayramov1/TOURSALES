@@ -1,5 +1,7 @@
 import { asyncHandler } from '../../core/utils.js';
 import { toursService } from './tours.service.js';
+import { seatService } from './seat.service.js';
+import { pricingEngine } from './pricing.engine.js';
 import ApiError from '../../core/api.error.js';
 import { ROLES } from '../../config/constants.js';
 
@@ -90,6 +92,40 @@ class ToursController {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=tours.xlsx');
     return res.send(buffer);
+  });
+
+  // Oturacaq Matrisi və Canlı Kilidləmə (Seat Service)
+  getSeatMatrix = asyncHandler(async (req, res) => {
+    const result = await seatService.getSeatMatrix(req.params.id);
+    return res.json({ status: 'success', msg: 'Oturacaq matrisi gətirildi', data: result });
+  });
+
+  lockSeat = asyncHandler(async (req, res) => {
+    const { seatNumber } = req.body;
+    if (!seatNumber) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
+    const result = await seatService.lockSeat(req.params.id, seatNumber, req.user.id);
+    return res.json({ status: 'success', msg: 'Oturacaq uğurla kilidləndi', data: result });
+  });
+
+  releaseSeat = asyncHandler(async (req, res) => {
+    const { seatNumber } = req.body;
+    if (!seatNumber) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
+    const result = await seatService.releaseSeat(req.params.id, seatNumber, req.user.id);
+    return res.json({ status: 'success', msg: 'Oturacaq kilidi azad edildi', data: result });
+  });
+
+  // Dinamik Qiymət Hesablama (Pricing Engine)
+  calculatePrice = asyncHandler(async (req, res) => {
+    const { seats = 1, promoCode = null, targetCurrency = 'AZN' } = req.body;
+    const loyaltyPoints = req.user?.loyaltyPoints || 0;
+    const result = await pricingEngine.calculateFinalPrice({
+      tourId: req.params.id,
+      seats: parseInt(seats, 10),
+      loyaltyPoints,
+      promoCode,
+      targetCurrency
+    });
+    return res.json({ status: 'success', msg: 'Dinamik qiymət uğurla hesablandı', data: result });
   });
 }
 

@@ -16,6 +16,10 @@ import cmsRoutes from '../../modules/cms/cms.routes.js';
 import healthRoutes from '../../modules/health/health.routes.js';
 import notificationsRoutes from '../../modules/notifications/notifications.routes.js';
 import vouchersRoutes from '../../modules/vouchers/vouchers.routes.js';
+import paymentsRoutes from '../../modules/payments/payments.routes.js';
+import commonRoutes from '../../modules/common/common.routes.js';
+import companyRoutes from '../../modules/company/company.routes.js';
+import crmRoutes from '../../modules/crm/crm.routes.js';
 
 const router = express.Router();
 
@@ -36,6 +40,18 @@ router.use('/reviews', reviewsRoutes);
 router.use('/cms', cmsRoutes);
 router.use('/notifications', notificationsRoutes);
 router.use('/vouchers', vouchersRoutes);
+router.use('/payments', paymentsRoutes);
+router.use('/common', commonRoutes);
+router.use('/company', companyRoutes);
+router.use('/crm', crmRoutes);
+
+// Admin Portal compatibility aliases
+router.use('/admin/auth', authRoutes);
+router.use('/admin/dashboard', superadminRoutes);
+router.use('/admin/companies', companiesRoutes);
+router.use('/admin/subscriptions', subscriptionsRoutes);
+router.use('/admin/finance', financeRoutes);
+router.use('/admin/cms', cmsRoutes);
 
 export default router;
 

@@ -1,0 +1,422 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - B2B VENDOR DASHBOARD
+   ========================================================================== */
+
+.vendor-dashboard-container {
+  padding: 0;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Topbar */
+.vendor-dashboard-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.vendor-dash-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+}
+
+.vendor-dash-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.vendor-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vendor-date-selector {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.vendor-date-icon {
+  color: #94a3b8;
+  margin-right: 8px;
+}
+
+.vendor-date-select {
+  border: none;
+  background: transparent;
+  padding: 10px 8px 10px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.vendor-btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.vendor-btn-export:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* Loading */
+.vendor-dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Content Grid */
+.vendor-dash-content-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* 1. KPI Cards */
+.vendor-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.vendor-kpi-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.vendor-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -6px rgba(15, 23, 42, 0.08);
+}
+
+.vendor-kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.vendor-kpi-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.vendor-kpi-iconbox {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.box-blue {
+  background-color: #eff6ff;
+  color: #3b82f6;
+}
+
+.box-green {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+.box-purple {
+  background-color: #ede9fe;
+  color: #635bff;
+}
+
+.box-orange {
+  background-color: #fff7ed;
+  color: #f97316;
+}
+
+.vendor-kpi-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+}
+
+.vendor-currency {
+  font-size: 18px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.vendor-kpi-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trend-up {
+  color: #059669;
+}
+
+.trend-down {
+  color: #e11d48;
+}
+
+.trend-neutral {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.trend-text {
+  color: #94a3b8;
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+/* 2. Recharts Middle Grid */
+.vendor-middle-chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+}
+
+/* 3. Bottom Content Grid */
+.vendor-bottom-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.vendor-destinations-card,
+.vendor-activity-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.vendor-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.vendor-card-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.vendor-card-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
+
+.vendor-live-pill {
+  background: #d1fae5;
+  color: #059669;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Destinations bar list */
+.vendor-bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vendor-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vendor-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vendor-bar-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vendor-bar-type-icon {
+  color: #94a3b8;
+}
+
+.vendor-bar-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.vendor-bar-revenue {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.vendor-bar-track {
+  height: 8px;
+  background-color: #f1f5f9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.vendor-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+.vendor-bar-subtext {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* Activity stream */
+.vendor-activity-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vendor-stream-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.vendor-stream-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-success {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+.icon-warning {
+  background-color: #fff7ed;
+  color: #f97316;
+}
+
+.icon-primary {
+  background-color: #eef2ff;
+  color: #635bff;
+}
+
+.vendor-stream-content {
+  flex: 1;
+}
+
+.vendor-stream-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.vendor-stream-time {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.vendor-stream-desc {
+  font-size: 13px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* 4. Recent Bookings */
+.vendor-recent-bookings-block {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+@media (max-width: 1200px) {
+  .vendor-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .vendor-middle-chart-grid {
+    grid-template-columns: 1fr;
+  }
+  .vendor-bottom-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .vendor-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .vendor-dashboard-container {
+    padding: 20px 16px;
+  }
+}

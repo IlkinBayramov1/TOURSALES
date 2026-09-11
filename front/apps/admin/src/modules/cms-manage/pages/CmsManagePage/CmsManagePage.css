@@ -1,0 +1,47 @@
+.cms-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.cms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cms-header h1 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.cms-header p {
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.cms-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+
+.cms-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cms-tab-btn.active {
+  background-color: var(--color-primary);
+  color: white;
+}

@@ -1,0 +1,143 @@
+.web-account-sidebar {
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: var(--radius-2xl, 1.25rem);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+}
+
+.web-account-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+}
+
+.web-account-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--primary-100, #dbeafe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--primary-200, #bfdbfe);
+}
+
+.web-account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.web-avatar-placeholder {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-700, #1d4ed8);
+}
+
+.web-account-user-info {
+  overflow: hidden;
+}
+
+.web-account-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0 0 0.125rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.web-account-email {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #64748b);
+  margin: 0 0 0.375rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.web-account-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--primary-600, #2563eb);
+  background: var(--primary-50, #eff6ff);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.web-account-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.web-account-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg, 0.75rem);
+  color: var(--text-secondary, #475569);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.web-account-nav-item:hover {
+  background: var(--bg-secondary, #f8fafc);
+  color: var(--primary-600, #2563eb);
+}
+
+.web-account-nav-item.active {
+  background: var(--primary-50, #eff6ff);
+  color: var(--primary-700, #1d4ed8);
+  font-weight: 600;
+}
+
+.web-nav-icon {
+  margin-right: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.web-nav-label {
+  flex: 1;
+}
+
+.web-nav-chevron {
+  opacity: 0.4;
+  transition: transform 0.2s ease;
+}
+
+.web-account-nav-item:hover .web-nav-chevron,
+.web-account-nav-item.active .web-nav-chevron {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.web-account-logout-btn {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--border-light, #f1f5f9);
+  padding-top: 1rem;
+  color: var(--danger-600, #dc2626);
+}
+
+.web-account-logout-btn:hover {
+  background: var(--danger-50, #fef2f2);
+  color: var(--danger-700, #b91c1c);
+}

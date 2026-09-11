@@ -1,0 +1,372 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - SUPERADMIN DASHBOARD
+   ========================================================================== */
+
+.admin-dashboard-page {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: #0f172a;
+}
+
+.admin-page-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+}
+
+.admin-page-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* 1. Global KPI Metrics */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.admin-kpi-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.admin-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -6px rgba(15, 23, 42, 0.08);
+}
+
+.admin-kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.admin-kpi-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.admin-kpi-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.box-blue { background-color: #eff6ff; color: #635bff; }
+.box-emerald { background-color: #ecfdf5; color: #10b981; }
+.box-purple { background-color: #ede9fe; color: #8b5cf6; }
+.box-orange { background-color: #fff7ed; color: #f97316; }
+
+.admin-kpi-val {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+}
+
+.admin-kpi-val span {
+  font-size: 18px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.admin-kpi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trend-up { color: #059669; }
+.trend-neutral { color: #64748b; font-weight: 500; }
+
+/* 2. Urgent Action Banners */
+.admin-alerts-banner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.alert-action-card {
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.alert-action-card.warning {
+  border-left: 5px solid #f59e0b;
+}
+
+.alert-action-card.danger {
+  border-left: 5px solid #ef4444;
+}
+
+.alert-badge-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.alert-badge-pill.warning { background: #fef3c7; color: #d97706; }
+.alert-badge-pill.danger { background: #fee2e2; color: #dc2626; }
+
+.alert-action-info h4 {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  color: #0f172a;
+}
+
+.alert-action-info p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  max-width: 360px;
+}
+
+/* 3. Recharts Dual AreaChart */
+.admin-chart-section-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.admin-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-chart-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.admin-chart-sub {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.admin-chart-legend-pills {
+  display: flex;
+  gap: 16px;
+}
+
+.legend-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.gmv { background-color: #635bff; }
+.legend-dot.comm { background-color: #10b981; }
+
+.admin-recharts-wrap {
+  width: 100%;
+  height: 280px;
+}
+
+.admin-chart-tooltip {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-tooltip-month {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.admin-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.dot-gmv { width: 8px; height: 8px; border-radius: 50%; background: #635bff; }
+.dot-comm { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+
+/* 4. Top Operators Leaderboard */
+.admin-leaderboard-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.admin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-card-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.admin-card-sub {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.admin-link-all {
+  color: #635bff;
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.admin-link-all:hover {
+  text-decoration: underline;
+}
+
+.admin-leaderboard-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-leaderboard-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-leaderboard-table td {
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.admin-op-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-op-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #ede9fe;
+  color: #635bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-op-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.text-gmv {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.text-comm {
+  color: #059669;
+  font-weight: 800;
+}
+
+.admin-verified-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #d1fae5;
+  color: #059669;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .admin-alerts-banner {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-dashboard-page {
+    padding: 20px 16px;
+  }
+}

@@ -1,0 +1,61 @@
+.vendor-bookings-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.vendor-bookings-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.vendor-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-full, 9999px);
+  border: 1px solid var(--border-light, #cbd5e1);
+  background: var(--surface-card, #ffffff);
+  color: var(--text-secondary, #475569);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vendor-view-btn:hover {
+  background: var(--bg-tertiary, #f8fafc);
+  color: var(--text-primary, #0f172a);
+}
+
+.vendor-view-btn.active {
+  background: var(--primary-600, #2563eb);
+  color: #ffffff;
+  border-color: var(--primary-600, #2563eb);
+}
+
+.vendor-scanner-launch-btn {
+  margin-left: auto;
+}
+
+.vendor-booking-title {
+  color: var(--text-primary, #0f172a);
+}
+
+.vendor-seat-tags {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.vendor-seat-pill {
+  background: #f1f5f9;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+}

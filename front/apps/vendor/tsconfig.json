@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@toursales/types": ["../../packages/types/src/index.ts"],
+      "@toursales/types/*": ["../../packages/types/src/*"],
+      "@toursales/ui": ["../../packages/ui/src/index.ts"],
+      "@toursales/ui/*": ["../../packages/ui/src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

@@ -10,9 +10,11 @@ const router = express.Router();
 router.post('/register', authRateLimiter, validateRegister, authController.register);
 router.post('/login', authRateLimiter, validateLogin, authController.login);
 router.post('/login/2fa', authRateLimiter, authController.verify2FA);
+router.post('/refresh-token', authRateLimiter, authController.refreshToken);
 
 // Qorumalı marşrutlar (autentifikasiya tələb edənlər)
 router.get('/me', authMiddleware(), authController.getMe);
+router.post('/logout', authMiddleware(), authController.logout);
 
 // 2FA marşrutları
 router.get('/2fa/setup', authMiddleware(), authController.setup2FA);

@@ -1,0 +1,51 @@
+.web-price-breakdown-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.web-price-placeholder {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1rem;
+}
+
+.web-breakdown-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.web-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.web-breakdown-row.discount {
+  color: var(--success-400);
+  font-weight: 600;
+}
+
+.web-breakdown-divider {
+  height: 1px;
+  background: var(--border-glass);
+  margin: 0.25rem 0;
+}
+
+.web-breakdown-row.total {
+  font-size: 1.15rem;
+  color: var(--text-primary);
+  margin-top: 0.25rem;
+}
+
+.total-amount {
+  color: var(--primary-400);
+  font-size: 1.35rem;
+}

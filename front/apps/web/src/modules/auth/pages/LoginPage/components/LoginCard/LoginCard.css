@@ -1,0 +1,7 @@
+.auth-login-card {
+  max-width: 460px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+  border-radius: var(--radius-xl);
+}

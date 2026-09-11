@@ -1,0 +1,133 @@
+.web-campaign-banner {
+  position: relative;
+  border-radius: var(--radius-2xl, 1.25rem);
+  overflow: hidden;
+  min-height: 260px;
+  display: flex;
+  align-items: flex-end;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
+.web-campaign-banner-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.4s ease;
+}
+
+.web-campaign-banner:hover .web-campaign-banner-bg {
+  transform: scale(1.03);
+}
+
+.web-campaign-banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.2) 0%,
+    rgba(15, 23, 42, 0.85) 60%,
+    rgba(15, 23, 42, 0.95) 100%
+  );
+}
+
+.web-campaign-banner-content {
+  position: relative;
+  z-index: 2;
+  padding: 2rem;
+  width: 100%;
+  color: #ffffff;
+}
+
+.web-campaign-top-tags {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.web-campaign-dates {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.web-campaign-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.25;
+  color: #ffffff;
+}
+
+.web-campaign-subtitle {
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 1.5rem 0;
+  max-width: 600px;
+  line-height: 1.4;
+}
+
+.web-campaign-action-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.web-campaign-promo-box {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.web-campaign-promo-box:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #ffffff;
+}
+
+.web-promo-text {
+  font-family: monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  margin-right: 0.5rem;
+}
+
+.web-promo-copy-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+}
+
+.web-campaign-cta-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.web-terms-btn {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+}
+
+.web-terms-btn:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: #ffffff !important;
+}

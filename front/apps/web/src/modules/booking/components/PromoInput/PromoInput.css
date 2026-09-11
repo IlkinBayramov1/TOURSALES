@@ -1,0 +1,49 @@
+.web-promo-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.web-promo-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.web-promo-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.web-promo-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--text-muted);
+}
+
+.web-promo-input {
+  width: 100%;
+  padding: 0.55rem 0.85rem 0.55rem 2.4rem;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.web-promo-input:focus {
+  border-color: var(--primary-500);
+}
+
+.web-promo-applied {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--success-400);
+  font-size: 0.8rem;
+  font-weight: 600;
+}

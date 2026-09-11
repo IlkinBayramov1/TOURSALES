@@ -12,7 +12,10 @@ router.use(authMiddleware());
 
 // Vendor-un öz profilinə aid marşrutlar
 router.get('/my-profile', companiesController.getMyProfile);
+router.get('/my-company', companiesController.getMyProfile);
+router.get('/my-company/stats', companiesController.getMyProfile);
 router.put('/my-profile', validateCompany, companiesController.updateMyProfile);
+router.put('/my-company', validateCompany, companiesController.updateMyProfile);
 
 // SuperAdmin üçün marşrutlar
 router.get('/', roleMiddleware(ROLES.SUPERADMIN), companiesController.getAll);

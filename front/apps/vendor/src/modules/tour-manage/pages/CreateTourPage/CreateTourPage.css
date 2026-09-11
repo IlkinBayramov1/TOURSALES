@@ -1,0 +1,28 @@
+.vendor-create-tour-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.vendor-form-back-bar {
+  margin-bottom: 1.5rem;
+}
+
+.vendor-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary, #64748b);
+  transition: color 0.15s ease;
+}
+
+.vendor-back-link:hover {
+  color: var(--primary-600, #2563eb);
+}
+
+.vendor-wizard-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}

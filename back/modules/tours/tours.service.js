@@ -65,18 +65,75 @@ class ToursService {
     });
 
     const result = tours.map((tour) => {
-      const soldSeats = tour.bookings.reduce((sum, b) => sum + b.seats, 0);
+      const soldSeats = tour.bookings?.reduce((sum, b) => sum + b.seats, 0) || 0;
       const dynamicPrice = this.calculateDynamicPrice(tour, soldSeats);
-      const { bookings, ...tourData } = tour;
-      return {
-        ...tourData,
-        soldSeats,
-        dynamicPrice
-      };
+      return this._formatTourForClient(tour, soldSeats, dynamicPrice);
     });
 
     cacheService.set(cacheKey, result, 300); // 5 dəqiqəlik keş
     return result;
+  }
+
+  _formatTourForClient(tour, soldSeats = 0, dynamicPrice = null) {
+    const { bookings, ...tourData } = tour;
+
+    let parsedImages = [];
+    try {
+      parsedImages = typeof tour.images === 'string' ? JSON.parse(tour.images) : (Array.isArray(tour.images) ? tour.images : []);
+    } catch {
+      parsedImages = tour.images ? [tour.images] : [];
+    }
+
+    let parsedInclusions = [];
+    try {
+      parsedInclusions = typeof tour.includedServices === 'string' ? JSON.parse(tour.includedServices) : (Array.isArray(tour.includedServices) ? tour.includedServices : []);
+    } catch {
+      parsedInclusions = [];
+    }
+
+    let parsedExclusions = [];
+    try {
+      parsedExclusions = typeof tour.excludedServices === 'string' ? JSON.parse(tour.excludedServices) : (Array.isArray(tour.excludedServices) ? tour.excludedServices : []);
+    } catch {
+      parsedExclusions = [];
+    }
+
+    let parsedItinerary = [];
+    try {
+      parsedItinerary = typeof tour.itinerary === 'string' ? JSON.parse(tour.itinerary) : (Array.isArray(tour.itinerary) ? tour.itinerary : []);
+    } catch {
+      parsedItinerary = [];
+    }
+
+    const primaryRegion = tour.regions?.[0]?.name || tour.hotelName || 'Qarabağ';
+    const capacity = tour.busCapacity || tour.maxParticipants || 48;
+    const availableSeats = Math.max(0, capacity - soldSeats);
+    const numericPrice = parseFloat(tour.price) || 0;
+
+    return {
+      ...tourData,
+      price: numericPrice,
+      basePrice: numericPrice,
+      capacity,
+      maxParticipants: capacity,
+      availableSeats,
+      soldSeats,
+      dynamicPrice: dynamicPrice || numericPrice,
+      meetingPoint: tour.meetingPointAddress || '',
+      region: primaryRegion,
+      images: parsedImages,
+      inclusions: parsedInclusions,
+      exclusions: parsedExclusions,
+      itinerary: parsedItinerary,
+      status: (tour.status || 'Active').toUpperCase(),
+      hotelName: tour.hotelName || '',
+      hotelCategory: tour.hotelCategory || '',
+      flightIncluded: !!tour.flightIncluded,
+      passportVisaRequired: !!tour.passportVisaRequired,
+      hasFlight: !!tour.flightIncluded,
+      hasVisaSupport: !!tour.passportVisaRequired,
+      companyName: tour.company?.name || ''
+    };
   }
 
   async getById(id) {
@@ -94,14 +151,9 @@ class ToursService {
       }
     });
 
-    const soldSeats = tour.bookings.reduce((sum, b) => sum + b.seats, 0);
+    const soldSeats = tour.bookings?.reduce((sum, b) => sum + b.seats, 0) || 0;
     const dynamicPrice = this.calculateDynamicPrice(tour, soldSeats);
-    const { bookings, ...tourData } = tour;
-    return {
-      ...tourData,
-      soldSeats,
-      dynamicPrice
-    };
+    return this._formatTourForClient(tour, soldSeats, dynamicPrice);
   }
 
   async create(data, companyId) {
@@ -112,32 +164,35 @@ class ToursService {
       companyId,
       type: data.type,
       title: data.title,
-      description: data.description,
-      phoneNumber: data.phoneNumber,
-      email: data.email,
-      images: JSON.stringify(data.images || []),
+      description: data.description || '',
+      phoneNumber: data.phoneNumber || '',
+      email: data.email || '',
+      images: JSON.stringify(Array.isArray(data.images) ? data.images : (data.images ? [data.images] : [])),
       minParticipants: parseInt(data.minParticipants || 1, 10),
-      maxParticipants: parseInt(data.maxParticipants, 10),
+      maxParticipants: parseInt(data.maxParticipants || data.capacity || 40, 10),
       startDate: new Date(data.startDate),
-      includedServices: JSON.stringify(data.includedServices || []),
-      excludedServices: JSON.stringify(data.excludedServices || []),
+      includedServices: JSON.stringify(data.includedServices || data.inclusions || []),
+      excludedServices: JSON.stringify(data.excludedServices || data.exclusions || []),
       itinerary: JSON.stringify(data.itinerary || []),
       status: data.status || 'Active',
-      price: parseFloat(data.price),
+      price: parseFloat(data.price !== undefined ? data.price : (data.basePrice || 0)),
       currency: data.currency || 'AZN',
-      hotelName: data.hotelName || null,
+      hotelName: data.hotelName || data.destinationCountry || null,
       hotelCategory: data.hotelCategory || null
     };
 
     if (data.type === 'DOMESTIC') {
-      tourData.transportType = data.transportType;
-      tourData.busCapacity = data.busCapacity ? parseInt(data.busCapacity, 10) : null;
-      tourData.meetingPointAddress = data.meetingPointAddress;
+      tourData.transportType = data.transportType || data.busType || 'BUS';
+      tourData.busCapacity = data.busCapacity ? parseInt(data.busCapacity, 10) : (data.capacity ? parseInt(data.capacity, 10) : null);
+      tourData.meetingPointAddress = data.meetingPointAddress || data.meetingPoint || 'Gənclik m/s';
       tourData.meetingPointLat = data.meetingPointLat ? parseFloat(data.meetingPointLat) : null;
       tourData.meetingPointLng = data.meetingPointLng ? parseFloat(data.meetingPointLng) : null;
     } else if (data.type === 'FOREIGN') {
-      tourData.flightIncluded = !!data.flightIncluded;
-      tourData.passportVisaRequired = !!data.passportVisaRequired;
+      tourData.flightIncluded = !!(data.flightIncluded ?? data.hasFlight);
+      tourData.passportVisaRequired = !!(data.passportVisaRequired ?? data.hasVisaSupport);
+      tourData.hotelName = data.hotelName || data.destinationCountry || 'Standart Otel';
+      tourData.hotelCategory = data.hotelCategory || '4*';
+      tourData.meetingPointAddress = data.meetingPointAddress || data.meetingPoint || 'Heydər Əliyev Beynəlxalq Hava Limanı';
     }
 
     await prisma.tour.create({
@@ -162,34 +217,42 @@ class ToursService {
     if (!tour) return null;
     if (companyId && tour.companyId !== companyId) return null;
 
+    const priceVal = data.price !== undefined ? data.price : data.basePrice;
+    const maxPartVal = data.maxParticipants !== undefined ? data.maxParticipants : data.capacity;
+    const meetingPointVal = data.meetingPointAddress !== undefined ? data.meetingPointAddress : data.meetingPoint;
+    const flightVal = data.flightIncluded !== undefined ? data.flightIncluded : data.hasFlight;
+    const visaVal = data.passportVisaRequired !== undefined ? data.passportVisaRequired : data.hasVisaSupport;
+
     const tourData = {
       title: data.title,
       description: data.description,
       phoneNumber: data.phoneNumber,
       email: data.email,
-      images: data.images ? JSON.stringify(data.images) : undefined,
+      images: data.images ? JSON.stringify(Array.isArray(data.images) ? data.images : [data.images]) : undefined,
       minParticipants: data.minParticipants ? parseInt(data.minParticipants, 10) : undefined,
-      maxParticipants: data.maxParticipants ? parseInt(data.maxParticipants, 10) : undefined,
+      maxParticipants: maxPartVal ? parseInt(maxPartVal, 10) : undefined,
       startDate: data.startDate ? new Date(data.startDate) : undefined,
-      includedServices: data.includedServices ? JSON.stringify(data.includedServices) : undefined,
-      excludedServices: data.excludedServices ? JSON.stringify(data.excludedServices) : undefined,
+      endDate: data.endDate ? new Date(data.endDate) : undefined,
+      includedServices: data.includedServices ? JSON.stringify(data.includedServices) : (data.inclusions ? JSON.stringify(data.inclusions) : undefined),
+      excludedServices: data.excludedServices ? JSON.stringify(data.excludedServices) : (data.exclusions ? JSON.stringify(data.exclusions) : undefined),
       itinerary: data.itinerary ? JSON.stringify(data.itinerary) : undefined,
       status: data.status,
-      price: data.price ? parseFloat(data.price) : undefined,
+      price: priceVal !== undefined ? parseFloat(priceVal) : undefined,
       currency: data.currency,
-      hotelName: data.hotelName,
-      hotelCategory: data.hotelCategory
+      hotelName: data.hotelName !== undefined ? data.hotelName : (data.destinationCountry || undefined),
+      hotelCategory: data.hotelCategory !== undefined ? data.hotelCategory : undefined
     };
 
     if (tour.type === 'DOMESTIC') {
-      tourData.transportType = data.transportType;
-      tourData.busCapacity = data.busCapacity ? parseInt(data.busCapacity, 10) : undefined;
-      tourData.meetingPointAddress = data.meetingPointAddress;
+      tourData.transportType = data.transportType || data.busType || undefined;
+      tourData.busCapacity = data.busCapacity ? parseInt(data.busCapacity, 10) : (data.capacity ? parseInt(data.capacity, 10) : undefined);
+      tourData.meetingPointAddress = meetingPointVal;
       tourData.meetingPointLat = data.meetingPointLat ? parseFloat(data.meetingPointLat) : undefined;
       tourData.meetingPointLng = data.meetingPointLng ? parseFloat(data.meetingPointLng) : undefined;
     } else if (tour.type === 'FOREIGN') {
-      tourData.flightIncluded = data.flightIncluded !== undefined ? !!data.flightIncluded : undefined;
-      tourData.passportVisaRequired = data.passportVisaRequired !== undefined ? !!data.passportVisaRequired : undefined;
+      tourData.flightIncluded = flightVal !== undefined ? !!flightVal : undefined;
+      tourData.passportVisaRequired = visaVal !== undefined ? !!visaVal : undefined;
+      tourData.meetingPointAddress = meetingPointVal || 'Heydər Əliyev Beynəlxalq Hava Limanı';
     }
 
     await prisma.tour.update({

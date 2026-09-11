@@ -1,0 +1,46 @@
+.web-booking-page {
+  padding: 2rem 0 5rem;
+}
+
+.web-booking-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1.5rem;
+  color: var(--text-muted);
+}
+
+.web-booking-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 3rem;
+  align-items: flex-start;
+}
+
+.web-booking-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  min-width: 0;
+}
+
+.web-booking-step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-glass);
+}
+
+.web-booking-aside {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .web-booking-layout {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}

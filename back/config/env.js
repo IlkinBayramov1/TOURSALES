@@ -13,7 +13,12 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(5000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL təyin olunmalıdır'),
   JWT_SECRET: z.string().default('your-default-jwt-secret-key'),
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development')
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  FRONTEND_WEB_URL: z.string().default('http://localhost:5173'),
+  FRONTEND_VENDOR_URL: z.string().default('http://localhost:5174'),
+  FRONTEND_ADMIN_URL: z.string().default('http://localhost:5175'),
+  REDIS_HOST: z.string().default('127.0.0.1'),
+  REDIS_PORT: z.coerce.number().default(6379),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

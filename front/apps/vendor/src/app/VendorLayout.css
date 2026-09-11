@@ -1,0 +1,27 @@
+.vendor-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.vendor-layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: #f8fafc;
+}
+
+.vendor-layout-content {
+  flex: 1;
+  padding: 24px 32px 48px;
+  max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .vendor-layout-content {
+    padding: 16px;
+  }
+}

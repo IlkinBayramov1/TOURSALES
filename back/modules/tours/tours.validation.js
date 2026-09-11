@@ -1,6 +1,34 @@
 import ApiError from '../../core/api.error.js';
 
 export const validateTour = (req, res, next) => {
+  // Normalize frontend vs backend field names
+  if (req.body.price === undefined && req.body.basePrice !== undefined) {
+    req.body.price = req.body.basePrice;
+  }
+  if (req.body.maxParticipants === undefined && req.body.capacity !== undefined) {
+    req.body.maxParticipants = req.body.capacity;
+  }
+  
+  if (req.body.type === 'DOMESTIC') {
+    if (!req.body.regions || !Array.isArray(req.body.regions) || req.body.regions.length === 0) {
+      if (req.body.region) {
+        req.body.regions = [req.body.region];
+      }
+    }
+    if (!req.body.transportType && req.body.busType) {
+      req.body.transportType = req.body.busType;
+    }
+    if (!req.body.meetingPointAddress && req.body.meetingPoint) {
+      req.body.meetingPointAddress = req.body.meetingPoint;
+    }
+  }
+
+  if (req.body.type === 'FOREIGN') {
+    if (!req.body.hotelName) {
+      req.body.hotelName = req.body.destinationCountry || 'Standart Otel';
+    }
+  }
+
   const { type, title, price, maxParticipants, startDate } = req.body;
 
   if (!type || !title || price === undefined || !maxParticipants || !startDate) {
@@ -22,13 +50,6 @@ export const validateTour = (req, res, next) => {
     if (!meetingPointAddress) {
       return next(ApiError.badRequest('Daxili tur üçün toplanış yeri (meetingPointAddress) vacibdir.'));
     }
-
-    // Qabaqcadan təyin olunmuş Qarabağ yoxlanışı (Qarabağ rayonları seçilə bilməz drop-down-da)
-    const karabakhRegions = ['Şuşa', 'Ağdam', 'Xankəndi', 'Xocalı', 'Xocavənd', 'Füzuli', 'Cəbrayıl', 'Zəngilan', 'Qubadlı', 'Laçın', 'Kəlbəcər'];
-    const hasKarabakh = regions.some(r => karabakhRegions.includes(r));
-    if (hasKarabakh) {
-      return next(ApiError.badRequest('Bu siyahıdan Qarabağ rayonları seçilə bilməz (Daxili tur məhdudiyyəti).'));
-    }
   }
 
   if (type === 'FOREIGN') {
@@ -40,3 +61,5 @@ export const validateTour = (req, res, next) => {
 
   next();
 };
+
+export default validateTour;

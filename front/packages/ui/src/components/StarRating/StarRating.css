@@ -1,0 +1,59 @@
+.ui-star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ui-star-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.ui-star-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-star-interactive {
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.ui-star-interactive:hover {
+  transform: scale(1.15);
+}
+
+.ui-star-icon {
+  stroke-width: 1.5;
+}
+
+.ui-star-filled {
+  fill: var(--accent-gold-400);
+  stroke: var(--accent-gold-400);
+}
+
+.ui-star-half {
+  fill: url(#halfStarGrad);
+  stroke: var(--accent-gold-400);
+}
+
+.ui-star-empty {
+  fill: transparent;
+  stroke: var(--text-muted);
+}
+
+.ui-star-score {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.ui-star-count {
+  color: var(--text-muted);
+  font-size: 0.825rem;
+}

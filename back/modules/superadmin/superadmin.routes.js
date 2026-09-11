@@ -11,5 +11,8 @@ router.use(authMiddleware());
 router.use(roleMiddleware(ROLES.SUPERADMIN));
 
 router.get('/dashboard', superAdminController.getDashboardStats);
+router.get('/dashboard/stats', superAdminController.getDashboardStats);
+router.get('/stats', superAdminController.getDashboardStats);
+router.get('/', superAdminController.getDashboardStats);
 
 export default router;

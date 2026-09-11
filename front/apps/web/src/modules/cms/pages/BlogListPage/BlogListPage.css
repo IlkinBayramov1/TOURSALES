@@ -1,0 +1,120 @@
+.web-blog-hero {
+  background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
+  padding: 4.5rem 1.5rem 3.5rem 1.5rem;
+  text-align: center;
+  color: #ffffff;
+}
+
+.web-blog-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--primary-300, #93c5fd);
+  margin-bottom: 1.25rem;
+}
+
+.web-blog-hero h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  letter-spacing: -0.02em;
+}
+
+.web-blog-hero p {
+  font-size: 1.0625rem;
+  color: #94a3b8;
+  max-width: 620px;
+  margin: 0 auto 2rem auto;
+  line-height: 1.5;
+}
+
+.web-blog-search-bar {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.web-blog-search-bar input {
+  background: #ffffff;
+  border-radius: var(--radius-full, 9999px);
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.web-blog-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1rem 5rem 1rem;
+}
+
+.web-blog-tags-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  justify-content: center;
+}
+
+.web-blog-tag-btn {
+  padding: 0.5rem 1.125rem;
+  border-radius: var(--radius-full, 9999px);
+  border: 1px solid var(--border-light, #e2e8f0);
+  background: var(--surface-card, #ffffff);
+  color: var(--text-secondary, #475569);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.web-blog-tag-btn:hover {
+  background: var(--bg-secondary, #f8fafc);
+  color: var(--primary-600, #2563eb);
+}
+
+.web-blog-tag-btn.active {
+  background: var(--primary-600, #2563eb);
+  color: #ffffff;
+  border-color: var(--primary-600, #2563eb);
+}
+
+.web-blog-loading,
+.web-blog-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.web-blog-empty h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0 0 0.5rem 0;
+}
+
+.web-blog-empty p {
+  color: var(--text-secondary, #64748b);
+  margin: 0;
+}
+
+.web-blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 2rem;
+}
+
+@media (max-width: 640px) {
+  .web-blog-grid {
+    grid-template-columns: 1fr;
+  }
+}

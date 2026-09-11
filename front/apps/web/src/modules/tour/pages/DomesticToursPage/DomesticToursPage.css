@@ -1,0 +1,31 @@
+.web-domestic-page {
+  padding: 2rem 0 5rem;
+}
+
+.web-domestic-catalog-section {
+  margin-bottom: 3rem;
+}
+
+.web-domestic-section-heading {
+  font-size: 1.65rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+}
+
+.web-domestic-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.web-domestic-error {
+  background: var(--error-bg);
+  color: var(--error-400);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+}

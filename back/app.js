@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
+import env from './config/env.js';
 import routes from './routes/index.js';
 import errorHandler from './middlewares/error.middleware.js';
 import setupSwagger from './config/swagger.js';
@@ -15,16 +16,56 @@ app.use((req, res, next) => {
   next();
 });
 
-// Qlobal middleware-lər
-app.use(cors());
+// CORS Whitelist for Frontends (web: 5173, vendor: 5174, admin: 5175)
+const allowedOrigins = [
+  env.FRONTEND_WEB_URL,
+  env.FRONTEND_VENDOR_URL,
+  env.FRONTEND_ADMIN_URL,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:5175',
+].filter(Boolean);
+
+// In development, also dynamically allow any localhost / 127.0.0.1 port (e.g. 5173-5178)
+const isAllowedDevOrigin = (origin) => {
+  if (env.NODE_ENV === 'development') {
+    try {
+      const { hostname } = new URL(origin);
+      return hostname === 'localhost' || hostname === '127.0.0.1';
+    } catch {
+      return false;
+    }
+  }
+  return false;
+};
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, server-to-server, curl) or allowed origins
+      if (!origin || allowedOrigins.includes(origin) || isAllowedDevOrigin(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS siyasəti bu mənşədən sorğuya icazə vermir: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID'],
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Swagger UI OpenAPI 3.0 Setup (/api-docs)
 setupSwagger(app);
 
-// İctimai şəkillərin paylaşılması üçün statik marşrut (məs. /public/uploads/...)
+// İctimai şəkillərin paylaşılması üçün statik marşrut (məs. /public/uploads/... və ya /uploads/...)
 app.use('/public', express.static('public'));
+app.use('/uploads', express.static('public/uploads'));
 
 // Bütün API marşrutları '/api' prefiksi altında birləşir
 app.use('/api', routes);

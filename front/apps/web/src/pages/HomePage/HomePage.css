@@ -1,0 +1,1172 @@
+/* ==========================================================================
+   B2C HOME PAGE - 2026 SAAS MARKETPLACE DESIGN SYSTEM
+   ========================================================================== */
+
+.web-home-container-page {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 32px 120px;
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   1. HERO SLIDESHOW & SEARCH ENGINE
+   ========================================================================== */
+.web-hero-section-wrapper {
+  margin-top: 16px;
+  position: relative;
+  margin-bottom: 90px;
+}
+
+.web-slider-container {
+  position: relative;
+  width: 100%;
+  height: 560px;
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.12);
+}
+
+.web-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transform: scale(1.05);
+  transition: opacity 1s ease-in-out, transform 4s ease-out;
+  z-index: 1;
+}
+
+.web-active-slide {
+  opacity: 1;
+  transform: scale(1);
+  z-index: 2;
+}
+
+.web-slide-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.4) 60%, transparent 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 80px;
+}
+
+.web-slide-content {
+  max-width: 650px;
+  transform: translateY(20px);
+  opacity: 0;
+  animation: slideUp 0.8s ease-out forwards 0.3s;
+}
+
+@keyframes slideUp {
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.web-hero-tagline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #ffffff;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #ff385c 0%, #e11d48 100%);
+  padding: 8px 16px;
+  border-radius: 100px;
+  box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+}
+
+.web-hero-title {
+  font-size: 54px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px 0;
+}
+
+.web-hero-title span {
+  color: #a5b4fc;
+}
+
+.web-hero-subtitle {
+  font-size: 18px;
+  color: #e2e8f0;
+  line-height: 1.6;
+  font-weight: 500;
+  margin: 0 0 36px 0;
+}
+
+/* Slider Controls */
+.web-slider-btn-prev, 
+.web-slider-btn-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s;
+}
+
+.web-slider-btn-prev { left: 24px; }
+.web-slider-btn-next { right: 24px; }
+
+.web-slider-btn-prev:hover, 
+.web-slider-btn-next:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.web-slider-dots {
+  position: absolute;
+  bottom: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.web-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.web-active-dot {
+  width: 24px;
+  background-color: #ffffff;
+  border-radius: 100px;
+}
+
+/* Floating Search Engine (Bento Style) */
+.web-search-engine-container {
+  position: absolute;
+  bottom: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 100px);
+  max-width: 1040px;
+  z-index: 40;
+}
+
+.web-search-inner-grid {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 24px;
+  padding: 10px 12px 10px 28px;
+  box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.16);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.web-search-field-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  transition: background-color 0.2s;
+}
+
+.web-search-field-group:hover {
+  background-color: #f8fafc;
+}
+
+.web-search-icon-field {
+  color: var(--brand-primary, #635bff);
+  display: flex;
+  align-items: center;
+}
+
+.web-search-text-fields {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 3px;
+}
+
+.web-search-text-fields label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0f172a;
+}
+
+.web-search-text-fields input {
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 500;
+  color: #334155;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+}
+
+.web-search-text-fields input::placeholder {
+  color: #94a3b8;
+}
+
+.web-search-divider {
+  width: 1px;
+  height: 44px;
+  background-color: #e2e8f0;
+  margin: 0 8px;
+}
+
+.web-btn-search-execute {
+  background: linear-gradient(135deg, #ff385c 0%, #e11d48 100%);
+  color: #ffffff;
+  border: none;
+  padding: 16px 36px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(255, 56, 92, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+
+.web-btn-search-execute:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(255, 56, 92, 0.35);
+}
+
+/* ==========================================================================
+   2. VIP CAROUSEL SECTION (Premium Gold Design)
+   ========================================================================== */
+.web-vip-carousel-section {
+  margin-bottom: 80px;
+  padding: 36px 40px;
+  background: linear-gradient(135deg, #fdfbf7 0%, #fffdf5 100%);
+  border-radius: 32px;
+  border: 1px solid #fde68a;
+  box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.06);
+}
+
+.web-vip-section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #d97706;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+.web-btn-view-all-links-vip {
+  background: none;
+  border: none;
+  color: #d97706;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.web-btn-view-all-links-vip:hover {
+  text-decoration: underline;
+}
+
+.web-vip-tour-card {
+  border-color: #fde68a !important;
+  background-color: #ffffff !important;
+}
+
+.web-vip-tour-card:hover {
+  box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.15) !important;
+  border-color: #f59e0b !important;
+}
+
+.web-vip-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 5;
+}
+
+.web-verified-icon-vip {
+  color: #f59e0b;
+}
+
+.web-btn-product-redirect-vip {
+  background-color: #fef3c7;
+  color: #d97706;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.web-vip-tour-card:hover .web-btn-product-redirect-vip {
+  background-color: #d97706;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   3. TRENDING DESTINATIONS (Bento Grid)
+   ========================================================================== */
+.web-destinations-section {
+  margin-bottom: 80px;
+}
+
+.web-section-header {
+  margin-bottom: 32px;
+}
+
+.web-section-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+}
+
+.web-section-main-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px 0;
+  border-left: 4px solid var(--brand-accent, #ff385c);
+  padding-left: 12px;
+  line-height: 1.2;
+}
+
+.web-section-sub-title {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0;
+}
+
+.web-destinations-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.web-destination-card {
+  position: relative;
+  height: 340px;
+  border-radius: 24px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
+  text-decoration: none;
+}
+
+.web-dest-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.web-destination-card:hover .web-dest-image {
+  transform: scale(1.08);
+}
+
+.web-dest-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 40px 24px 24px 24px;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+.web-dest-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+}
+
+.web-dest-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+/* ==========================================================================
+   4. CATEGORY CAROUSELS & TOUR CARDS
+   ========================================================================== */
+.web-carousel-section {
+  margin-bottom: 80px;
+}
+
+.web-btn-view-all-links {
+  background: none;
+  border: none;
+  color: var(--brand-primary, #635bff);
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.web-btn-view-all-links:hover {
+  text-decoration: underline;
+}
+
+.web-tours-carousel {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding-bottom: 24px;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+}
+
+.web-tours-carousel::-webkit-scrollbar {
+  height: 8px;
+}
+
+.web-tours-carousel::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 100px;
+}
+
+.web-tours-carousel::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 100px;
+}
+
+/* Tour Product Card */
+.web-tour-product-card {
+  min-width: 320px;
+  max-width: 340px;
+  background-color: #ffffff;
+  border-radius: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  scroll-snap-align: start;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  cursor: pointer;
+}
+
+.web-tour-product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.1);
+  border-color: rgba(203, 213, 225, 0.9);
+}
+
+.web-tour-thumbnail-wrapper {
+  width: 100%;
+  aspect-ratio: 4/3.2;
+  border-radius: 24px 24px 0 0;
+  overflow: hidden;
+  position: relative;
+  background-color: #f1f5f9;
+}
+
+.web-tour-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.web-tour-product-card:hover .web-tour-img {
+  transform: scale(1.05);
+}
+
+.web-wishlist-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 5;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.web-wishlist-btn:hover {
+  transform: scale(1.1);
+  color: #ff385c;
+}
+
+.web-wishlist-active {
+  color: #ff385c;
+}
+
+.web-floating-card-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background-color: #ffffff;
+  color: #0f172a;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  z-index: 5;
+}
+
+.web-loyalty-points-indicator {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  z-index: 5;
+}
+
+.web-tour-product-meta-body {
+  padding: 20px;
+}
+
+.web-operator-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.web-operator-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+}
+
+.web-verified-icon {
+  color: #0ea5e9;
+}
+
+.web-operator-company-name {
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.web-rating-info-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.web-star-rating-icon {
+  color: #f59e0b;
+  fill: #f59e0b;
+}
+
+.web-tour-title-heading {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+  height: 48px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.web-tour-calendar-timeline {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.web-tour-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.web-price-meta-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.web-price-meta-block span {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.web-price-meta-block h4 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.web-azn-symbol {
+  font-size: 14px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.web-btn-product-redirect {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.web-tour-product-card:hover .web-btn-product-redirect {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   5. CAMPAIGN BANNER (Bento Box Urgency)
+   ========================================================================== */
+.web-campaign-section {
+  margin-bottom: 80px;
+}
+
+.web-campaign-container {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fde68a;
+  border-radius: 24px;
+  padding: 32px 40px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  box-shadow: 0 10px 20px -5px rgba(217, 119, 6, 0.08);
+}
+
+.web-campaign-icon-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background-color: #ffffff;
+  color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.web-campaign-body {
+  flex: 1;
+}
+
+.web-campaign-body h4 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #78350f;
+  margin: 0 0 8px 0;
+}
+
+.web-campaign-body p {
+  font-size: 15px;
+  color: #92400e;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.web-btn-campaign-action {
+  background-color: #ffffff;
+  border: 2px solid #fcd34d;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #78350f;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.web-btn-campaign-action:hover {
+  background-color: #78350f;
+  color: #ffffff;
+  border-color: #78350f;
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   6. REWARDS ECOSYSTEM (Apple Wallet Style)
+   ========================================================================== */
+.web-rewards-ecosystem-section {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 32px;
+  padding: 80px;
+  margin-bottom: 80px;
+}
+
+.web-rewards-layout-split {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.web-badge-promo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ecfdf5;
+  color: #059669;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.web-rewards-main-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px 0;
+  line-height: 1.2;
+}
+
+.web-rewards-paragraph {
+  font-size: 16px;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+.web-rewards-feature-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.web-reward-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.web-reward-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: #fef3c7;
+  color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.web-reward-icon-wrapper-blue {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: #e0f2fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.web-reward-feature-item h5 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.web-reward-feature-item p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Virtual Loyalty Card (FinTech Style) */
+.web-rewards-visual-card-box {
+  display: flex;
+  justify-content: center;
+}
+
+.web-virtual-loyalty-card {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1.58/1;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.web-virtual-loyalty-card:hover {
+  transform: translateY(-6px) scale(1.02);
+}
+
+.web-vcard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.web-vcard-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+
+.web-vcard-shield {
+  color: #10b981;
+}
+
+.web-vcard-body {
+  position: relative;
+  z-index: 2;
+  margin: 12px 0;
+}
+
+.web-vcard-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.web-vcard-points-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.web-vcard-points {
+  font-size: 40px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.web-vcard-currency {
+  font-size: 14px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.web-vcard-footer {
+  position: relative;
+  z-index: 2;
+}
+
+.web-vcard-user {
+  display: flex;
+  flex-direction: column;
+}
+
+.web-vcard-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.web-vcard-member-since {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.web-circle1 {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 91, 255, 0.25) 0%, transparent 70%);
+  top: -60px;
+  right: -60px;
+}
+
+.web-circle2 {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+  bottom: -60px;
+  left: -40px;
+}
+
+.web-card-glare {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   7. TRUST & ASSURANCE SECTION
+   ========================================================================== */
+.web-assurance-section {
+  margin-bottom: 80px;
+}
+
+.web-section-header-centered {
+  text-align: center;
+  max-width: 650px;
+  margin: 0 auto 48px auto;
+}
+
+.web-assurance-main-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px 0;
+}
+
+.web-assurance-sub-title {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0;
+}
+
+.web-assurance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.web-assurance-item-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 32px;
+  transition: all 0.3s;
+}
+
+.web-assurance-item-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.web-assurance-icon-frame {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background-color: #ecfdf5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.web-assurance-icon-frame-blue {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background-color: #e0f2fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.web-assurance-icon-frame-purple {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background-color: #eef2ff;
+  color: #635bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.web-assurance-item-card h4 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.web-assurance-item-card p {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 1080px) {
+  .web-destinations-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .web-rewards-layout-split {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .web-assurance-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .web-slider-container {
+    height: 480px;
+  }
+  .web-hero-title {
+    font-size: 38px;
+  }
+  .web-slide-overlay {
+    padding: 0 32px;
+  }
+  .web-search-engine-container {
+    position: static;
+    transform: none;
+    width: 100%;
+    margin-top: 24px;
+  }
+  .web-search-inner-grid {
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+  }
+  .web-search-divider {
+    display: none;
+  }
+  .web-btn-search-execute {
+    width: 100%;
+    justify-content: center;
+  }
+  .web-hero-section-wrapper {
+    margin-bottom: 40px;
+  }
+  .web-campaign-container {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+  }
+  .web-rewards-ecosystem-section {
+    padding: 32px 24px;
+  }
+}

@@ -1,0 +1,42 @@
+.web-checkout-page {
+  padding: 2rem 0 5rem;
+}
+
+.web-checkout-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1.5rem;
+  color: var(--text-muted);
+}
+
+.web-checkout-layout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 3rem;
+  align-items: flex-start;
+}
+
+.web-checkout-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-width: 0;
+}
+
+.web-checkout-right {
+  min-width: 0;
+}
+
+.web-checkout-back-link {
+  margin-top: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .web-checkout-layout {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}

@@ -1,0 +1,85 @@
+.ui-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.ui-input-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ui-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ui-input {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background-color: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.ui-input::placeholder {
+  color: var(--text-muted);
+}
+
+.ui-input:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.12);
+}
+
+.ui-input-with-left-icon {
+  padding-left: 2.5rem;
+}
+
+.ui-input-with-right-icon {
+  padding-right: 2.5rem;
+}
+
+.ui-input-icon-left,
+.ui-input-icon-right {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.ui-input-icon-left {
+  left: 0.85rem;
+}
+
+.ui-input-icon-right {
+  right: 0.85rem;
+}
+
+.ui-input-has-error .ui-input {
+  border-color: var(--error-500);
+}
+
+.ui-input-has-error .ui-input:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.ui-input-error {
+  font-size: 0.8rem;
+  color: var(--error-400);
+}
+
+.ui-input-helper {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

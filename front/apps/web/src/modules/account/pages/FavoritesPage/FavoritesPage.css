@@ -1,0 +1,43 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - FAVORITES / WISHLIST PAGE
+   ========================================================================== */
+
+.web-favorites-loading,
+.web-favorites-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.web-empty-heart-icon {
+  color: #ff385c;
+  margin-bottom: 20px;
+}
+
+.web-favorites-empty h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.web-favorites-empty p {
+  color: #64748b;
+  font-size: 14px;
+  max-width: 400px;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.web-favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}

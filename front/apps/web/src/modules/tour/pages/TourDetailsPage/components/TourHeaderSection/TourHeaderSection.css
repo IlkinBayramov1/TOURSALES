@@ -1,0 +1,58 @@
+.web-tour-header-section {
+  margin-bottom: 2rem;
+}
+
+.web-tour-header-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.web-tour-header-title {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.web-tour-header-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.web-tour-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.meta-icon {
+  color: var(--primary-400);
+}
+
+.star-icon-filled {
+  fill: var(--accent-gold-400);
+  color: var(--accent-gold-400);
+}
+
+.web-tour-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .web-tour-header-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

@@ -1,0 +1,10 @@
+.web-catalog-filter-sidebar {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .web-catalog-filter-sidebar {
+    width: 100%;
+  }
+}

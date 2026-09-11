@@ -1,0 +1,89 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - SALES PIE CHART
+   ========================================================================== */
+
+.vendor-pie-chart-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.vendor-pie-container-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.vendor-pie-render-box {
+  width: 100%;
+  height: 170px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vendor-pie-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.vendor-pie-center-text strong {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.vendor-pie-center-text span {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.vendor-pie-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 8px;
+}
+
+.vendor-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vendor-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.vendor-legend-text {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.vendor-legend-value {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+}

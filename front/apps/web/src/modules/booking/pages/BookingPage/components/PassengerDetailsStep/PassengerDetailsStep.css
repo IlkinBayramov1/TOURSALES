@@ -1,0 +1,11 @@
+.web-passenger-step-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.web-passenger-step-header {
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto;
+}

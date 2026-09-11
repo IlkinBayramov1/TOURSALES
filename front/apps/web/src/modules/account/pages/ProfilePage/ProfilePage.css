@@ -1,0 +1,104 @@
+.web-account-layout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 5rem 1rem;
+}
+
+.web-account-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .web-account-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.web-account-page-header {
+  margin-bottom: 2rem;
+}
+
+.web-account-page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.web-account-page-header p {
+  font-size: 0.9375rem;
+  color: var(--text-secondary, #64748b);
+  margin: 0;
+}
+
+.web-profile-card {
+  padding: 2rem;
+  border-radius: var(--radius-2xl, 1.25rem);
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-light, #e2e8f0);
+  margin-bottom: 2rem;
+}
+
+.web-card-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+}
+
+.web-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .web-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.web-profile-role-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.web-role-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary, #0f172a);
+}
+
+.web-role-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.web-verified-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--success-600, #16a34a);
+  font-weight: 500;
+}
+
+.web-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-light, #f1f5f9);
+}

@@ -1,0 +1,44 @@
+.web-visa-notice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  margin-bottom: 3rem;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.web-visa-notice-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.web-visa-notice-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.web-visa-notice-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.web-visa-notice-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.web-visa-notice-desc strong {
+  color: #60a5fa;
+}

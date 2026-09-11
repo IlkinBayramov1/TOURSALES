@@ -1,0 +1,107 @@
+.web-live-qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1.5rem;
+  border-radius: var(--radius-2xl, 1.25rem);
+  text-align: center;
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-light, rgba(226, 232, 240, 0.8));
+  box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0, 0, 0, 0.1));
+  position: relative;
+  overflow: hidden;
+}
+
+.web-qr-header {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.web-qr-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.web-qr-security {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: var(--text-tertiary, #94a3b8);
+  background: var(--bg-tertiary, #f1f5f9);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm, 0.375rem);
+}
+
+.web-qr-booking-number {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+}
+
+.web-qr-frame {
+  position: relative;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: var(--radius-xl, 1rem);
+  border: 2px solid var(--border-light, #e2e8f0);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.web-qr-scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #2563eb, transparent);
+  animation: qrScan 2.5s ease-in-out infinite;
+  box-shadow: 0 0 8px #2563eb;
+  z-index: 2;
+}
+
+@keyframes qrScan {
+  0% {
+    top: 5%;
+  }
+  50% {
+    top: 95%;
+  }
+  100% {
+    top: 5%;
+  }
+}
+
+.web-qr-image {
+  width: 220px;
+  height: 220px;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.web-qr-footer {
+  width: 100%;
+}
+
+.web-qr-instruction {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #475569);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.web-qr-refresh-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted, #94a3b8);
+  display: block;
+}

@@ -1,0 +1,75 @@
+.web-country-cards-wrapper {
+  margin-bottom: 3rem;
+}
+
+.web-country-cards-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.web-country-all-btn {
+  background: transparent;
+  border: none;
+  color: var(--primary-400);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.web-country-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.web-country-card {
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.web-country-card.active {
+  border-color: var(--primary-500);
+  box-shadow: var(--shadow-glow);
+}
+
+.web-country-card-img-box {
+  position: relative;
+  height: 140px;
+  width: 100%;
+}
+
+.web-country-card-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.web-country-flag {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 1.5rem;
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(4px);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.web-country-card-info {
+  padding: 1rem;
+}
+
+.web-country-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+}
+
+.web-country-cities {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

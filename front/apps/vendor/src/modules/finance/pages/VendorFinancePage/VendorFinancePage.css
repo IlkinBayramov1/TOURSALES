@@ -1,0 +1,67 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - VENDOR FINANCE PAGE
+   ========================================================================== */
+
+.vendor-finance-page {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  color: #0f172a;
+}
+
+.finance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.finance-header h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+}
+
+.finance-header p {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.finance-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.finance-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.finance-section-card {
+  background-color: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  padding: 28px;
+}
+
+.finance-section-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 20px 0;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 768px) {
+  .vendor-finance-page {
+    padding: 20px 16px;
+  }
+}

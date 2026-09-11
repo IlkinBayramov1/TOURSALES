@@ -25,9 +25,11 @@ export const ROLE_PERMISSIONS = {
   ]
 };
 
-export const hasPermission = (role, permission) => {
+export const hasPermission = (role, permissionOrRole) => {
+  if (role === ROLES.SUPERADMIN) return true;
+  if (role && role.toLowerCase() === (permissionOrRole || '').toLowerCase()) return true;
   const permissions = ROLE_PERMISSIONS[role] || [];
-  return permissions.includes(permission);
+  return permissions.includes(permissionOrRole);
 };
 
 export default {

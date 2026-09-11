@@ -105,6 +105,27 @@ class AuthController {
       data: { user: req.user }
     });
   });
+
+  refreshToken = asyncHandler(async (req, res) => {
+    const { refreshToken } = req.body;
+    if (!refreshToken) throw ApiError.badRequest('Refresh token tələb olunur.');
+    const ipAddress = req.ip || req.connection?.remoteAddress || 'Unknown';
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+    const result = await authService.refreshTokens(refreshToken, ipAddress, userAgent);
+    return res.json({
+      status: 'success',
+      msg: 'Token uğurla yeniləndi.',
+      data: result
+    });
+  });
+
+  logout = asyncHandler(async (req, res) => {
+    await authService.logoutCurrentSession(req.user.id, req.token);
+    return res.json({
+      status: 'success',
+      msg: 'Uğurla çıxış edildi.'
+    });
+  });
 }
 
 export const authController = new AuthController();

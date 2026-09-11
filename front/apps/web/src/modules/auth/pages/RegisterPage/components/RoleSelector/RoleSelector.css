@@ -1,0 +1,43 @@
+.auth-role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-role-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.auth-role-option strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.auth-role-option small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.auth-role-option:hover {
+  border-color: var(--border-hover);
+}
+
+.auth-role-option.active {
+  border-color: var(--primary-500);
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--primary-400);
+  box-shadow: var(--shadow-glow);
+}

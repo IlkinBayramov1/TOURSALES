@@ -1,0 +1,66 @@
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.ui-badge-pill {
+  border-radius: var(--radius-full);
+}
+
+.ui-badge-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.ui-badge-md {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.825rem;
+}
+
+.ui-badge-primary {
+  background: rgba(99, 91, 255, 0.1);
+  color: var(--brand-primary);
+  border: 1px solid rgba(99, 91, 255, 0.2);
+}
+
+.ui-badge-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.ui-badge-warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.ui-badge-error {
+  background: rgba(255, 56, 92, 0.1);
+  color: #e11d48;
+  border: 1px solid rgba(255, 56, 92, 0.25);
+}
+
+.ui-badge-info {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0284c7;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+}
+
+.ui-badge-gold {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #b45309;
+  border: 1px solid #fcd34d;
+  font-weight: 700;
+}
+
+.ui-badge-neutral {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}

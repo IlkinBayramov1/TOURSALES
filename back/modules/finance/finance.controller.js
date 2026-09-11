@@ -1,5 +1,9 @@
 import { asyncHandler } from '../../core/utils.js';
 import { financeService } from './finance.service.js';
+import { taxEngine } from './tax.engine.js';
+import { ledgerService } from './ledger.service.js';
+import PDFGenerator from '../../utils/pdf-generator.js';
+import prisma from '../../config/db.js';
 import ApiError from '../../core/api.error.js';
 import { ROLES } from '../../config/constants.js';
 
@@ -47,6 +51,43 @@ class FinanceController {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=transactions.xlsx');
     return res.send(buffer);
+  });
+
+  // Azərbaycan DVX e-Qaimə XML Generator
+  getEQaimeXML = asyncHandler(async (req, res) => {
+    const { bookingId } = req.params;
+    const result = await taxEngine.generateInvoiceForBooking(bookingId);
+    return res.json({
+      status: 'success',
+      msg: 'e-Qaimə XML sənədi uğurla generasiya edildi',
+      data: result
+    });
+  });
+
+  // Kommersiya Faktura PDF Endirilməsi
+  getInvoicePDF = asyncHandler(async (req, res) => {
+    const { bookingId } = req.params;
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { company: true }
+    });
+    if (!booking) throw ApiError.notFound('Rezervasiya tapılmadı.');
+
+    const pdfBuffer = await PDFGenerator.generateInvoicePDF(booking, booking.company);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=invoice-${booking.id}.pdf`);
+    return res.send(pdfBuffer);
+  });
+
+  // İkiqat Yazılışlı Maliyyə Baş Kitabı (Ledger) Auditi
+  getLedgerAudit = asyncHandler(async (req, res) => {
+    const companyId = req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId;
+    const result = await ledgerService.getAuditEntries(companyId);
+    return res.json({
+      status: 'success',
+      msg: 'Maliyyə auditi qeydləri gətirildi',
+      data: result
+    });
   });
 }
 

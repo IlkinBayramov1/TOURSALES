@@ -1,0 +1,416 @@
+/* ==========================================================================
+   B2C NAVBAR - ULTRA PREMIUM SAAS/MARKETPLACE DESIGN (2026)
+   ========================================================================== */
+
+.web-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 88px;
+  z-index: 100;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid transparent;
+}
+
+.web-navbar-scrolled {
+  height: 76px;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.06);
+}
+
+.web-nav-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* --- LOGO --- */
+.web-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  transition: transform 0.2s;
+}
+
+.web-logo-group:hover {
+  transform: scale(1.02);
+}
+
+.web-logo-icon {
+  color: var(--brand-accent, #ff385c);
+  display: flex;
+  align-items: center;
+}
+
+.web-logo-text {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.04em;
+}
+
+.web-logo-text span {
+  color: var(--brand-accent, #ff385c);
+}
+
+/* --- CENTER NAVIGATION (Minimalist Pill Style) --- */
+.web-center-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.web-nav-pill {
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: #475569;
+  padding: 10px 18px;
+  border-radius: 100px;
+  transition: all 0.2s ease;
+  background-color: transparent;
+}
+
+.web-nav-pill:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.web-nav-pill-active {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* --- RIGHT ACTIONS --- */
+.web-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.web-relative-wrap {
+  position: relative;
+}
+
+/* Language & Currency Button */
+.web-btn-lang-curr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.web-btn-lang-curr:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.web-lang-text {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Loyalty Points Badge Pill */
+.web-loyalty-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 4px 14px 4px 4px;
+  border-radius: 100px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.web-loyalty-pill:hover {
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  transform: translateY(-1px);
+}
+
+.web-loyalty-icon-circle {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.web-loyalty-text {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.web-loyalty-amount {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.web-loyalty-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* User Menu Pill */
+.web-user-menu-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 5px 6px 5px 12px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #475569;
+}
+
+.web-user-menu-pill:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+.web-hamburger-icon {
+  color: #475569;
+}
+
+.web-user-avatar-circle {
+  background: linear-gradient(135deg, #635bff 0%, #4e44e7 100%);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Login Pill Button */
+.web-btn-login-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ff385c 0%, #e11d48 100%);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 56, 92, 0.25);
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.web-btn-login-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 56, 92, 0.35);
+}
+
+/* --- Dropdown Popovers --- */
+.web-dropdown-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(226, 232, 240, 0.9);
+  width: 260px;
+  padding: 10px;
+  z-index: 200;
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.web-dropdown-popover-right {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  background-color: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(226, 232, 240, 0.9);
+  width: 240px;
+  padding: 10px;
+  z-index: 200;
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.web-dropdown-popover-header {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  padding: 8px 12px 10px;
+}
+
+.web-dropdown-popover-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  text-align: left;
+  font-family: inherit;
+}
+
+.web-dropdown-popover-item:hover {
+  background-color: #f8fafc;
+}
+
+.web-dropdown-popover-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.web-dropdown-item-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.web-dropdown-item-sub {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.web-check-green {
+  color: #10b981;
+}
+
+.web-dropdown-item-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.15s;
+}
+
+.web-dropdown-item-user:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.web-dropdown-icon {
+  color: #94a3b8;
+}
+
+.web-dropdown-item-user:hover .web-dropdown-icon {
+  color: #0f172a;
+}
+
+.web-dropdown-divider {
+  height: 1px;
+  background-color: #e2e8f0;
+  margin: 6px 0;
+}
+
+.web-dropdown-item-logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ef4444;
+  transition: background-color 0.15s;
+  font-family: inherit;
+}
+
+.web-dropdown-item-logout:hover {
+  background-color: #fef2f2;
+}
+
+/* Mobile */
+.web-mobile-toggle-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #0f172a;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.web-mobile-drawer {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.5rem 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 0.75rem;
+}
+
+.web-mobile-drawer a {
+  color: #334155;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 0;
+}
+
+@media (max-width: 960px) {
+  .web-center-nav {
+    display: none;
+  }
+  .web-mobile-toggle-btn {
+    display: flex;
+    align-items: center;
+  }
+}

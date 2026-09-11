@@ -4,6 +4,7 @@ import { generateExcel } from '../../utils/excel-generator.js';
 import ApiError from '../../core/api.error.js';
 import notificationsService from '../notifications/notifications.service.js';
 import ledgerService from '../finance/ledger.service.js';
+import riskEngine from '../security/risk.engine.js';
 
 class BookingsService {
   async getAll(filters = {}, companyId = null) {
@@ -113,6 +114,24 @@ class BookingsService {
     const paidAmount = data.paidAmount ? parseFloat(data.paidAmount) : totalAmount;
     if (paidAmount < totalAmount) {
       throw ApiError.badRequest(`Sistemdə nisyə/borc bron rejimi mövcud deyil. Tam ödənilməli məbləğ: ${totalAmount} AZN`);
+    }
+
+    // Fraud & Risk Evaluation
+    const userBookingCount = customer ? await prisma.booking.count({ where: { contactEmail: data.contactEmail } }) : 0;
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const recentBookingsIn10Min = await prisma.booking.count({
+      where: { contactEmail: data.contactEmail, createdAt: { gte: tenMinutesAgo } }
+    });
+
+    const riskAssessment = riskEngine.evaluateBookingRisk({
+      email: data.contactEmail,
+      amount: paidAmount,
+      userBookingCount,
+      recentBookingsIn10Min
+    });
+
+    if (riskAssessment.action === 'REJECT') {
+      throw ApiError.forbidden(`Təhlükəsizlik xəbərdarlığı: Rezervasiya fırıldaqçılıq riskinə görə rədd edildi (${riskAssessment.reasons.join(', ')}).`);
     }
 
     const remainingAmount = 0.0;

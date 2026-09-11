@@ -1,0 +1,105 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - TOUR OVERVIEW TAB
+   ========================================================================== */
+
+.web-tour-overview-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.web-tour-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.web-feature-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.feature-icon {
+  color: #635bff;
+  flex-shrink: 0;
+}
+
+.feature-title {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.feature-value {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.web-section-heading {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+.web-tour-desc-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #334155;
+  white-space: pre-line;
+}
+
+.web-organizer-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px 24px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+}
+
+.web-organizer-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.web-organizer-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(99, 91, 255, 0.1);
+  color: #635bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.web-organizer-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.web-organizer-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 2px 0 0 0;
+}

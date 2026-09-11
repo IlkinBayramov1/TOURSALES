@@ -1,0 +1,40 @@
+.web-foreign-page {
+  padding: 2rem 0 5rem;
+}
+
+.web-foreign-catalog-section {
+  margin-bottom: 3.5rem;
+}
+
+.web-foreign-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.web-foreign-section-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.web-foreign-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.web-foreign-error {
+  background: var(--error-bg);
+  color: var(--error-400);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+}

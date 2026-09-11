@@ -1,0 +1,84 @@
+.web-promo-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.web-promo-modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0.75rem 0 0.35rem 0;
+}
+
+.web-promo-modal-header p {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #64748b);
+  margin: 0;
+}
+
+.web-promo-code-card {
+  background: var(--bg-tertiary, #f8fafc);
+  border: 2px dashed var(--primary-300, #93c5fd);
+  border-radius: var(--radius-xl, 1rem);
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.web-code-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 0.5rem;
+}
+
+.web-code-copy-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.web-modal-code {
+  font-family: monospace;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--primary-700, #1d4ed8);
+}
+
+.web-modal-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.web-promo-terms-box h4 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0 0 0.75rem 0;
+}
+
+.web-promo-terms-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.web-promo-terms-box li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #475569);
+  line-height: 1.4;
+}
+
+.web-term-check {
+  color: var(--primary-600, #2563eb);
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}

@@ -1,0 +1,5 @@
+/* Reuses .web-legal-page classes with custom overrides */
+.web-legal-badge {
+  background: var(--success-50, #f0fdf4);
+  color: var(--success-700, #15803d);
+}

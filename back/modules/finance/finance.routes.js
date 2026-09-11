@@ -21,4 +21,11 @@ router.get('/transactions/export', financeController.exportTransactions);
 router.get('/payouts', roleMiddleware(ROLES.SUPERADMIN), financeController.getAllPayouts);
 router.patch('/payouts/:payoutId', roleMiddleware(ROLES.SUPERADMIN), financeController.processPayout);
 
+// Azərbaycan e-Qaimə XML və Rəsmi Kommersiya Fakturası
+router.get('/invoices/:bookingId/eqaime', financeController.getEQaimeXML);
+router.get('/invoices/:bookingId/pdf', financeController.getInvoicePDF);
+
+// İkiqat Yazılışlı Maliyyə Baş Kitabı (Ledger) Auditi
+router.get('/ledger/audit', financeController.getLedgerAudit);
+
 export default router;

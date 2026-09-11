@@ -1,0 +1,20 @@
+.web-voucher-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.web-print-btn,
+.web-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media print {
+  .web-voucher-actions {
+    display: none !important;
+  }
+}

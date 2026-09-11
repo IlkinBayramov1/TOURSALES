@@ -1,0 +1,110 @@
+.vendor-data-table-card {
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: var(--radius-2xl, 1.25rem);
+  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+  overflow: hidden;
+}
+
+.vendor-table-toolbar {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.vendor-table-search {
+  max-width: 320px;
+  width: 100%;
+}
+
+.vendor-table-search input {
+  height: 38px;
+  font-size: 0.875rem;
+}
+
+.vendor-table-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.vendor-table-wrapper {
+  overflow-x: auto;
+}
+
+.vendor-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.vendor-data-table th {
+  background: var(--bg-secondary, #f8fafc);
+  padding: 0.875rem 1.5rem;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  border-bottom: 1px solid var(--border-light, #e2e8f0);
+  white-space: nowrap;
+}
+
+.vendor-data-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+  color: var(--text-primary, #0f172a);
+}
+
+.vendor-data-table tbody tr:hover {
+  background-color: var(--bg-tertiary, #f8fafc);
+}
+
+.vendor-table-loading-cell,
+.vendor-table-empty-cell {
+  text-align: center;
+  padding: 4rem 2rem !important;
+  color: var(--text-muted, #94a3b8);
+}
+
+.vendor-table-loading-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.vendor-table-empty-cell svg {
+  margin-bottom: 0.75rem;
+}
+
+.vendor-table-pagination {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-light, #f1f5f9);
+  background: var(--bg-secondary, #f8fafc);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.vendor-pagination-info {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #64748b);
+}
+
+.vendor-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vendor-current-page {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  padding: 0 0.5rem;
+}

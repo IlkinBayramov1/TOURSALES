@@ -1,0 +1,98 @@
+:root {
+  /* 2026 SaaS Color Palette (tour-platform design system) */
+  --bg-app: #f7f9fc; /* Stripe signature cool gray background */
+  --bg-main: #f7f9fc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #ffffff;
+  --bg-surface-hover: #f1f5f9;
+  --bg-surface-glass: rgba(255, 255, 255, 0.85);
+  --bg-glass: rgba(255, 255, 255, 0.85);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* Brand Primary (Stripe blur indigo) */
+  --brand-primary: #635bff;
+  --brand-primary-hover: #4e44e7;
+  --primary-50: #eef2ff;
+  --primary-100: #e0e7ff;
+  --primary-200: #c7d2fe;
+  --primary-300: #a5b4fc;
+  --primary-400: #818cf8;
+  --primary-500: #635bff;
+  --primary-600: #4e44e7;
+  --primary-700: #4338ca;
+  --primary-800: #3730a3;
+  --primary-900: #312e81;
+
+  /* Brand Accent (Airbnb dynamic coral) */
+  --brand-accent: #ff385c;
+  --brand-accent-hover: #e11d48;
+  --accent-500: #ff385c;
+
+  /* Accent Gold - VIP & Premium */
+  --accent-gold-100: #fef3c7;
+  --accent-gold-300: #fde68a;
+  --accent-gold-400: #fbbf24;
+  --accent-gold-500: #f59e0b;
+  --accent-gold-600: #d97706;
+
+  /* Status Colors */
+  --success-400: #34d399;
+  --success-500: #10b981;
+  --success-600: #059669;
+  --success-bg: rgba(16, 185, 129, 0.1);
+  --warning-400: #fbbf24;
+  --warning-500: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --error-400: #f87171;
+  --error-500: #ef4444;
+  --error-bg: rgba(239, 68, 68, 0.1);
+  --info-500: #0ea5e9;
+  --info-bg: rgba(14, 165, 233, 0.1);
+
+  /* Borders */
+  --border-subtle: #e2e8f0;
+  --border-focus: #c7d2fe;
+  --border-glass: #e2e8f0;
+  --border-hover: #cbd5e1;
+
+  /* Spacing Scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Modern Border Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Premium Shadows & Elevations */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.06), 0 4px 8px -2px rgba(0, 0, 0, 0.03);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  --shadow-glow: 0 0 20px rgba(99, 91, 255, 0.2);
+  --shadow-gold-glow: 0 0 20px rgba(245, 158, 11, 0.25);
+  --shadow-card: 0 10px 30px -10px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 20px 40px -10px rgba(15, 23, 42, 0.1);
+
+  /* Transitions & Blur */
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  --glass-blur: blur(16px);
+}

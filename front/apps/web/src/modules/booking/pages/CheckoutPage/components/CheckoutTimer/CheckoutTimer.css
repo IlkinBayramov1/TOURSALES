@@ -1,0 +1,72 @@
+.web-checkout-timer-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.web-checkout-timer-card.critical {
+  border-color: var(--error-500);
+  background: var(--error-bg);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+
+.web-timer-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--primary-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.web-checkout-timer-card.critical .web-timer-icon-box {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--error-400);
+}
+
+.web-timer-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.web-timer-digits {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: monospace;
+}
+
+.web-checkout-timer-card.critical .web-timer-digits {
+  color: var(--error-400);
+}
+
+.web-timer-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0 0 0 auto;
+  max-width: 380px;
+  text-align: right;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .web-checkout-timer-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .web-timer-hint {
+    margin: 0;
+    text-align: left;
+  }
+}

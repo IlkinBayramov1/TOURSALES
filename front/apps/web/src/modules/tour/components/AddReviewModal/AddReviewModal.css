@@ -1,0 +1,46 @@
+.web-add-review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.web-add-review-rating-field,
+.web-add-review-comment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.web-add-review-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.web-add-review-stars {
+  padding: 0.5rem 0;
+}
+
+.web-add-review-textarea {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  outline: none;
+}
+
+.web-add-review-textarea:focus {
+  border-color: var(--primary-500);
+}
+
+.web-add-review-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}

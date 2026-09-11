@@ -1,0 +1,72 @@
+.web-karabakh-spotlight {
+  margin-bottom: 3.5rem;
+  padding: 2.5rem;
+  background: linear-gradient(145deg, rgba(234, 179, 8, 0.08), rgba(17, 24, 39, 0.9));
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: var(--radius-xl);
+}
+
+.web-karabakh-spotlight-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.web-karabakh-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.web-karabakh-icon-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-gold-400);
+}
+
+.web-karabakh-section-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 0.25rem 0;
+  color: var(--text-primary);
+}
+
+.web-karabakh-section-desc {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.web-karabakh-permit-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: var(--success-400);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+}
+
+.web-karabakh-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 1.75rem;
+}
+
+@media (max-width: 768px) {
+  .web-karabakh-spotlight {
+    padding: 1.5rem;
+  }
+}
