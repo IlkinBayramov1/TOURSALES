@@ -51,8 +51,9 @@ export const tourManageApi = {
 
   getTourById: async (id: string): Promise<ApiResponse<Tour>> => {
     try {
-      const res = await vendorAxiosClient.get<ApiResponse<Tour>>(VENDOR_ENDPOINTS.TOURS.DETAIL(id));
-      return res.data;
+      const res = await vendorAxiosClient.get<{ status: string; data: Tour } | ApiResponse<Tour>>(VENDOR_ENDPOINTS.TOURS.DETAIL(id));
+      const tour = (res.data as any)?.data || res.data;
+      return { success: true, data: tour };
     } catch {
       const all = await tourManageApi.getMyTours();
       const found = all.data.find((t) => t.id === id) || all.data[0];
@@ -61,18 +62,53 @@ export const tourManageApi = {
   },
 
   createTour: async (payload: CreateTourPayload): Promise<ApiResponse<Tour>> => {
-    const res = await vendorAxiosClient.post<ApiResponse<Tour>>(VENDOR_ENDPOINTS.TOURS.CREATE, payload);
-    return res.data;
+    const res = await vendorAxiosClient.post<{ status: string; data: Tour } | ApiResponse<Tour>>(VENDOR_ENDPOINTS.TOURS.CREATE, payload);
+    const tour = (res.data as any)?.data || res.data;
+    return { success: true, data: tour };
   },
 
   updateTour: async (id: string, payload: Partial<CreateTourPayload>): Promise<ApiResponse<Tour>> => {
-    const res = await vendorAxiosClient.put<ApiResponse<Tour>>(VENDOR_ENDPOINTS.TOURS.UPDATE(id), payload);
-    return res.data;
+    const res = await vendorAxiosClient.put<{ status: string; data: Tour } | ApiResponse<Tour>>(VENDOR_ENDPOINTS.TOURS.UPDATE(id), payload);
+    const tour = (res.data as any)?.data || res.data;
+    return { success: true, data: tour };
+  },
+
+  toggleTourStatus: async (id: string, status?: string): Promise<ApiResponse<Tour>> => {
+    const res = await vendorAxiosClient.patch<{ status: string; data: Tour } | ApiResponse<Tour>>(
+      VENDOR_ENDPOINTS.TOURS.STATUS(id),
+      status ? { status } : {}
+    );
+    const tour = (res.data as any)?.data || res.data;
+    return { success: true, data: tour };
   },
 
   deleteTour: async (id: string): Promise<ApiResponse<void>> => {
     const res = await vendorAxiosClient.delete<ApiResponse<void>>(VENDOR_ENDPOINTS.TOURS.DELETE(id));
     return res.data;
+  },
+
+  getSeatMatrix: async (id: string): Promise<{ tourId: string; busCapacity: number; matrix: Array<{ seatNumber: number; status: 'AVAILABLE' | 'BOOKED' | 'LOCKED'; lockedBy?: string | null }> }> => {
+    const res = await vendorAxiosClient.get<{ status: string; data: { tourId: string; busCapacity: number; matrix: Array<{ seatNumber: number; status: 'AVAILABLE' | 'BOOKED' | 'LOCKED'; lockedBy?: string | null }> } }>(
+      VENDOR_ENDPOINTS.TOURS.SEATS(id)
+    );
+    return res.data.data;
+  },
+
+  exportToursExcel: async (): Promise<void> => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.TOURS.EXPORT, {
+      responseType: 'blob',
+    });
+    const blob = new Blob([res.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `turlar-${new Date().toISOString().split('T')[0]}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 
   configSeats: async (id: string, busType: string): Promise<ApiResponse<SeatMatrix>> => {

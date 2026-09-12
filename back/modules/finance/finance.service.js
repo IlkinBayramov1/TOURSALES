@@ -179,6 +179,134 @@ class FinanceService {
 
     return generateExcel(formattedData, columns, 'Maliyyə Tarixçəsi');
   }
+
+  // --- VENDOR SPECIFIC FINANCE METHODS ---
+
+  async getVendorOverview(companyId) {
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      select: {
+        availableBalance: true,
+        pendingBalance: true,
+        iban: true,
+        bankName: true
+      }
+    });
+
+    if (!company) throw ApiError.notFound('Şirkət tapılmadı.');
+
+    const payoutsAgg = await prisma.payout.aggregate({
+      where: { companyId, status: 'Completed' },
+      _sum: { amount: true }
+    });
+    const totalWithdrawn = Number(payoutsAgg._sum.amount || 0);
+
+    const txSalesAgg = await prisma.transaction.aggregate({
+      where: { companyId, type: 'TICKET_SALE', status: 'Completed' },
+      _sum: { amount: true, commission: true, netAmount: true }
+    });
+    const totalTurnover = Number(txSalesAgg._sum.amount || 0);
+    const totalCommissions = Number(txSalesAgg._sum.commission || 0);
+
+    const now = new Date();
+    const upcomingBookings = await prisma.booking.findMany({
+      where: {
+        companyId,
+        status: 'CONFIRMED',
+        deletedAt: null,
+        tour: { endDate: { gte: now } }
+      },
+      select: { paidAmount: true }
+    });
+    const calculatedPending = upcomingBookings.reduce((sum, b) => sum + Number(b.paidAmount || 0), 0);
+    const pendingBalance = Math.max(Number(company.pendingBalance || 0), calculatedPending);
+
+    return {
+      availableBalance: Number(company.availableBalance || 0),
+      pendingBalance,
+      totalWithdrawn,
+      totalTurnover,
+      totalCommissions,
+      iban: company.iban || '',
+      bankName: company.bankName || '',
+      currency: 'AZN'
+    };
+  }
+
+  async getVendorTransactions(companyId, query = {}) {
+    const { type, status, startDate, endDate, search } = query;
+    const where = { companyId };
+
+    if (type && type !== 'ALL') where.type = type;
+    if (status && status !== 'ALL') where.status = status;
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
+    }
+    if (search) {
+      where.description = { contains: search };
+    }
+
+    const txs = await prisma.transaction.findMany({
+      where,
+      include: {
+        booking: {
+          select: {
+            id: true,
+            tour: { select: { title: true } }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return txs.map((t) => {
+      const amountNum = Number(t.amount);
+      const isPositive = amountNum > 0 && t.type !== 'PAYOUT';
+
+      let accountName = 'Maliyyə Əməliyyatı';
+      if (t.type === 'TICKET_SALE') accountName = 'Tur Bilet Satışı';
+      else if (t.type === 'PAYOUT') accountName = 'Bank Hesabına Çıxarış';
+      else if (t.type === 'REFUND') accountName = 'Ləğv / Geri Qaytarılma';
+      else if (t.type === 'SUBSCRIPTION') accountName = 'Abunəlik Ödənişi';
+
+      return {
+        id: t.id,
+        companyId: t.companyId,
+        transactionId: t.id,
+        account: accountName,
+        type: t.type,
+        debit: t.amount < 0 || t.type === 'PAYOUT' ? Math.abs(amountNum) : 0,
+        credit: isPositive ? Number(t.netAmount || t.amount) : 0,
+        amount: Math.abs(amountNum),
+        commission: Number(t.commission || 0),
+        netAmount: Number(t.netAmount || t.amount),
+        currency: 'AZN',
+        status: t.status,
+        description: t.description || `${accountName} (#${t.id.slice(0, 8)})`,
+        createdAt: t.createdAt.toISOString()
+      };
+    });
+  }
+
+  async getVendorPayouts(companyId) {
+    const payouts = await prisma.payout.findMany({
+      where: { companyId },
+      orderBy: { payoutDate: 'desc' }
+    });
+
+    return payouts.map((p) => ({
+      id: p.id,
+      companyId: p.companyId,
+      amount: Number(p.amount),
+      currency: 'AZN',
+      bankAccount: p.bankAccount,
+      status: p.status.toUpperCase(),
+      requestedAt: p.payoutDate.toISOString(),
+      processedAt: p.status !== 'Pending' ? p.payoutDate.toISOString() : null
+    }));
+  }
 }
 
 export const financeService = new FinanceService();

@@ -1,33 +1,47 @@
 import { vendorAxiosClient } from '../../shared/api/vendorAxiosClient';
 import { VENDOR_ENDPOINTS } from '../../shared/api/vendorEndpoints';
-import { Company } from '@toursales/types';
+import { Company, CompanyProfileStats, PasswordChangePayload } from '@toursales/types';
 
 export const vendorProfileApi = {
+  // Şirkətin profil məlumatlarını gətir
   getMyCompany: async (): Promise<Company> => {
-    try {
-      const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.PROFILE.COMPANY);
-      return res.data?.data || res.data;
-    } catch {
-      return {
-        id: 'comp_1',
-        name: 'Caspian Tour MMC',
-        voen: '1302948571',
-        email: 'info@caspiantour.az',
-        phone: '+994 12 498 00 00',
-        address: 'Bakı ş., Nizami küç. 48',
-        bankName: 'Kapital Bank ASC',
-        bankIban: 'AZ12ABB0000000012345678901',
-        logoUrl: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200',
-        status: 'ACTIVE',
-        commissionRate: 5,
-        createdAt: '2025-11-20T10:00:00Z',
-        updatedAt: '2026-09-01T12:00:00Z'
-      };
-    }
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.PROFILE.COMPANY);
+    return res.data?.data || res.data;
   },
 
+  // Şirkət profilini və rekvizitlərini yenilə
   updateCompany: async (data: Partial<Company>): Promise<Company> => {
     const res = await vendorAxiosClient.put(VENDOR_ENDPOINTS.PROFILE.UPDATE, data);
     return res.data?.data || res.data;
+  },
+
+  // Şirkətin profil statistikası (Aktiv turlar, Cəmi sifarişlər, Reytinq, Dövriyyə)
+  getCompanyStats: async (): Promise<CompanyProfileStats> => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.PROFILE.STATS);
+    return res.data?.data || res.data;
+  },
+
+  // Təhlükəsizlik: Şifrənin dəyişdirilməsi
+  changePassword: async (payload: PasswordChangePayload): Promise<{ message: string }> => {
+    const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.PROFILE.PASSWORD, payload);
+    return { message: res.data?.msg || res.data?.message || 'Şifrə uğurla dəyişdirildi' };
+  },
+
+  // Şəkil / Loqo / Sənəd yükləmə
+  uploadFile: async (file: File): Promise<{ url: string; fullUrl: string }> => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.PROFILE.UPLOAD, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    const data = res.data?.data || res.data;
+    return {
+      url: data.url || '',
+      fullUrl: data.fullUrl || data.url || ''
+    };
   }
 };

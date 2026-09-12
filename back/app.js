@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import crypto from 'crypto';
 import env from './config/env.js';
 import routes from './routes/index.js';
@@ -8,13 +9,33 @@ import setupSwagger from './config/swagger.js';
 
 const app = express();
 
-// X-Correlation-ID Tracing Middleware
+// X-Correlation-ID & Ultra-lightweight Latency Profiler Middleware
 app.use((req, res, next) => {
   const correlationId = req.headers['x-correlation-id'] || crypto.randomUUID();
   req.correlationId = correlationId;
   res.setHeader('X-Correlation-ID', correlationId);
+
+  const start = process.hrtime.bigint();
+  const originalEnd = res.end;
+
+  res.end = function (...args) {
+    const durationMs = (Number(process.hrtime.bigint() - start) / 1e6).toFixed(1);
+    if (!res.headersSent) {
+      res.setHeader('X-Response-Time', `${durationMs}ms`);
+    }
+    if (env.NODE_ENV === 'development' && !req.url.startsWith('/public') && !req.url.startsWith('/uploads')) {
+      const statusColor = res.statusCode >= 400 ? '\x1b[31m' : '\x1b[32m';
+      const reset = '\x1b[0m';
+      console.log(`[API ${statusColor}${res.statusCode}${reset}] ${req.method} ${req.originalUrl || req.url} - ${durationMs}ms`);
+    }
+    return originalEnd.apply(this, args);
+  };
+
   next();
 });
+
+// Gzip / Deflate response compression for ultra-fast JSON transfer
+app.use(compression());
 
 // CORS Whitelist for Frontends (web: 5173, vendor: 5174, admin: 5175)
 const allowedOrigins = [
@@ -54,6 +75,7 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID'],
+    maxAge: 86400, // Preflight OPTIONS sorğularını 24 saat keşləyir (şəbəkə dövriyyəsini 2 dəfə azaldır)
   })
 );
 

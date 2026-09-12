@@ -1,0 +1,23 @@
+{
+  "watch": [
+    "server.js",
+    "app.js",
+    "config",
+    "modules",
+    "middlewares",
+    "routes",
+    "utils"
+  ],
+  "ext": "js,mjs,json",
+  "ignore": [
+    "node_modules",
+    "public",
+    "uploads",
+    "secure_uploads",
+    "*.log",
+    ".git",
+    "prisma/migrations",
+    "scratch*"
+  ],
+  "delay": "250"
+}

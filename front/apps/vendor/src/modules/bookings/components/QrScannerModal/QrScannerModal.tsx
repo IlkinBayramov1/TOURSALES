@@ -3,7 +3,7 @@ import {
   QrCode, 
   CheckCircle2, 
   XCircle, 
-  ShieldCheck, 
+  AlertTriangle,
   Search, 
   Bus, 
   User 
@@ -49,7 +49,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
         setError('Bilet tapılmadı və ya etibarsızdır.');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Yoxlama zamanı xəta baş verdi.');
+      setError(err.response?.data?.msg || err.response?.data?.message || 'Yoxlama zamanı xəta baş verdi.');
     } finally {
       setScanning(false);
     }
@@ -104,6 +104,12 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
             </div>
 
             <h3>Minik Təsdiqləndi!</h3>
+            {result.alreadyCheckedIn && (
+              <div className="vendor-scanner-already-badge">
+                <AlertTriangle size={14} />
+                <span>Bu bilet artıq minikdən keçmişdi (Təkrar təsdiq)</span>
+              </div>
+            )}
             <p className="vendor-success-tour">{result.tourTitle}</p>
 
             <div className="vendor-success-seats-row">

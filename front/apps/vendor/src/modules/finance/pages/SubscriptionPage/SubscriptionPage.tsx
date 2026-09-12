@@ -1,120 +1,220 @@
-import React, { useState } from 'react';
-import { Button } from '@toursales/ui';
+import React, { useEffect, useState } from 'react';
+import { Button, Spinner, Badge } from '@toursales/ui';
 import { SubscriptionPlan } from '@toursales/types';
-import { vendorFinanceApi } from '../../vendorFinanceApi';
+import { vendorFinanceApi, CurrentSubscriptionInfo } from '../../vendorFinanceApi';
+import { SubscriptionUsageCard } from '../../components/SubscriptionUsageCard/SubscriptionUsageCard';
+import { PlanUpgradeModal } from '../../components/PlanUpgradeModal/PlanUpgradeModal';
+import { PlanComparisonMatrix } from '../../components/PlanComparisonMatrix/PlanComparisonMatrix';
+import { BillingInvoicesTable } from '../../components/BillingInvoicesTable/BillingInvoicesTable';
+import { InvoicePrintModal } from '../../components/InvoicePrintModal/InvoicePrintModal';
+import { SubscriptionFaq } from '../../components/SubscriptionFaq/SubscriptionFaq';
+import { CheckCircle2, ArrowLeft, Sparkles, Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './SubscriptionPage.css';
 
-const MOCK_PLANS: SubscriptionPlan[] = [
-  {
-    id: 'starter',
-    name: 'Başlanğıc (Starter)',
-    monthlyPrice: 0,
-    currency: 'AZN',
-    commissionRate: 8,
-    maxTours: 5,
-    features: [
-      '5 aktiv tur elanı',
-      '8% platform komissiyası',
-      'Standart bilet satışı & QR vauçer',
-      'E-poçt dəstəyi'
-    ]
-  },
-  {
-    id: 'pro',
-    name: 'Peşəkar (Pro)',
-    monthlyPrice: 49,
-    currency: 'AZN',
-    commissionRate: 5,
-    maxTours: 50,
-    isPopular: true,
-    features: [
-      '50 aktiv tur elanı',
-      '5% güzəştli platform komissiyası',
-      'Avtobus oturacaq interaktiv seçimi',
-      'FİN kod ilə sərnişin siyahısı (roster)',
-      'QR Bilet Yoxlama skaneri',
-      'API Açar inteqrasiyası',
-      '24/7 Prioritetli dəstək'
-    ]
-  },
-  {
-    id: 'enterprise',
-    name: 'Korporativ (Enterprise)',
-    monthlyPrice: 149,
-    currency: 'AZN',
-    commissionRate: 3,
-    maxTours: -1,
-    features: [
-      'Limitsiz aktiv tur elanları',
-      '3% minimum platform komissiyası',
-      'Fərdi menecer dəstəyi',
-      'Reklam bannerlərində 20% endirim',
-      'Avtomatlaşdırılmış e-Qaimə integrasiyası',
-      'Genişləndirilmiş komanda RBAC rolları'
-    ]
-  }
-];
-
 export const SubscriptionPage: React.FC = () => {
-  const [currentPlanId, setCurrentPlanId] = useState<string>('pro');
-  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [currentSub, setCurrentSub] = useState<CurrentSubscriptionInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const handleSelectPlan = async (planId: string) => {
+  // Billing Cycle Toggle
+  const [billingCycle, setBillingCycle] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
+
+  // Modals state
+  const [selectedTargetPlan, setSelectedTargetPlan] = useState<SubscriptionPlan | null>(null);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  const loadData = async () => {
     try {
-      setLoadingId(planId);
-      await vendorFinanceApi.changeSubscriptionPlan(planId);
-      setCurrentPlanId(planId);
+      setLoading(true);
+      const [plansData, subData] = await Promise.all([
+        vendorFinanceApi.getSubscriptions(),
+        vendorFinanceApi.getCurrentSubscription(),
+      ]);
+      setPlans(plansData);
+      setCurrentSub(subData);
     } catch (err) {
-      console.error(err);
+      console.error('Abunəlik planları yüklənmədi:', err);
     } finally {
-      setLoadingId(null);
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleOpenUpgradeModal = (plan: SubscriptionPlan) => {
+    setSelectedTargetPlan(plan);
+    setIsUpgradeModalOpen(true);
+  };
+
+  const currentPlanId = currentSub?.planId;
+
   return (
     <div className="subscription-page">
+      {/* Top Breadcrumb Navigation */}
+      <div className="sub-top-nav">
+        <Link to="/finance" className="sub-back-link">
+          <ArrowLeft size={16} />
+          <span>Maliyyə & Hesablaşma Səhifəsinə Qayıt</span>
+        </Link>
+      </div>
+
+      {/* Main Header */}
       <div className="sub-header">
-        <h1>Abunəlik Planları</h1>
-        <p>Agentliyinizin ehtiyaclarına uyğun planı seçin və ən sərfəli komissiya dərəcələrindən faydalanın</p>
+        <div className="sub-header-badge">
+          <Sparkles size={16} />
+          <span>Şirkət Tarifləri & Hesablaşma Sistemi</span>
+        </div>
+        <h1>Abunəlik və Hesablaşma İdarəetməsi</h1>
+        <p>
+          Agentliyinizin biznes miqyasına uyğun planı seçin, istifadə limitlərinizi izləyin və rəsmi fakturalarınızı idarə edin
+        </p>
       </div>
 
-      <div className="plans-grid">
-        {MOCK_PLANS.map((plan) => {
-          const isCurrent = currentPlanId === plan.id;
-          return (
-            <div
-              key={plan.id}
-              className={`plan-card ${plan.isPopular ? 'featured' : ''}`}
-            >
-              {plan.isPopular && <div className="popular-badge">Ən Çox Seçilən</div>}
+      {/* Success Notification Banner */}
+      {successMsg && (
+        <div className="sub-success-banner">
+          <CheckCircle2 size={20} />
+          <span>{successMsg}</span>
+        </div>
+      )}
 
-              <h2 className="plan-name">{plan.name}</h2>
-              <div className="plan-price">
-                <span className="amount">{plan.monthlyPrice}</span>
-                <span className="period">{plan.currency} / ay</span>
-              </div>
+      {loading ? (
+        <div className="sub-loading-wrap">
+          <Spinner size="lg" />
+          <p>Məlumatlar hazırlanır...</p>
+        </div>
+      ) : (
+        <>
+          {/* 1. Current Subscription & Usage Widget */}
+          {currentSub && (
+            <SubscriptionUsageCard
+              subscription={currentSub}
+              onRefresh={() => {
+                loadData();
+                setRefreshCounter((c) => c + 1);
+              }}
+            />
+          )}
 
-              <ul className="plan-features">
-                {plan.features.map((feat, idx) => (
-                  <li key={idx}>
-                    <span className="check">✓</span>
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                variant={isCurrent ? 'secondary' : 'primary'}
-                disabled={isCurrent}
-                isLoading={loadingId === plan.id}
-                onClick={() => handleSelectPlan(plan.id)}
+          {/* 2. Billing Cycle Toggle (Monthly vs Yearly) */}
+          <div className="sub-billing-toggle-container">
+            <div className="sub-billing-toggle-pill">
+              <button
+                type="button"
+                className={`sub-cycle-btn ${billingCycle === 'MONTHLY' ? 'active' : ''}`}
+                onClick={() => setBillingCycle('MONTHLY')}
               >
-                {isCurrent ? 'Hazırkı Planınız' : 'Bu Plana Keç'}
-              </Button>
+                Aylıq Hesablaşma
+              </button>
+              <button
+                type="button"
+                className={`sub-cycle-btn ${billingCycle === 'YEARLY' ? 'active' : ''}`}
+                onClick={() => setBillingCycle('YEARLY')}
+              >
+                <span>İllik Hesablaşma</span>
+                <span className="sub-save-badge">20% Qənaət</span>
+              </button>
             </div>
-          );
-        })}
-      </div>
+          </div>
+
+          {/* 3. Subscription Plans Grid */}
+          <div className="plans-grid">
+            {plans.map((plan) => {
+              const isCurrent = currentPlanId === plan.id;
+              const monthly = plan.monthlyPrice;
+              const displayMonthly =
+                billingCycle === 'YEARLY' && monthly > 0
+                  ? Math.round(monthly * 0.8)
+                  : monthly;
+              const annualTotal = Math.round(monthly * 12 * 0.8);
+
+              return (
+                <div
+                  key={plan.id}
+                  className={`plan-card ${plan.isPopular ? 'featured' : ''} ${isCurrent ? 'active-plan' : ''}`}
+                >
+                  {plan.isPopular && <div className="popular-badge">Ən Çox Seçilən</div>}
+                  {isCurrent && <div className="current-badge">Hazırkı Planınız</div>}
+
+                  <h2 className="plan-name">{plan.name}</h2>
+                  <div className="plan-price">
+                    <span className="amount">{displayMonthly}</span>
+                    <span className="period">{plan.currency || 'AZN'} / ay</span>
+                  </div>
+
+                  {billingCycle === 'YEARLY' && monthly > 0 && (
+                    <div className="plan-annual-sub">
+                      İllik cəmi: <strong>{annualTotal} AZN</strong> (2 ay pulsuz)
+                    </div>
+                  )}
+
+                  <div className="plan-comm-tag">
+                    Daxili Komissiya: <strong>{plan.commissionRate ?? 5}%</strong>
+                  </div>
+
+                  <ul className="plan-features">
+                    {plan.features?.map((feat, idx) => (
+                      <li key={idx}>
+                        <Check size={16} className="check" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    variant={isCurrent ? 'secondary' : plan.isPopular ? 'primary' : 'outline'}
+                    style={{ width: '100%' }}
+                    disabled={isCurrent}
+                    onClick={() => handleOpenUpgradeModal(plan)}
+                  >
+                    {isCurrent ? 'Hazırkı Planınız' : 'Bu Plana Keç'}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 4. Full Feature Comparison Matrix */}
+          <PlanComparisonMatrix currentPlanId={currentPlanId} />
+
+          {/* 5. Invoices & Billing History Table */}
+          <BillingInvoicesTable
+            onViewInvoice={(paymentId) => setSelectedPaymentId(paymentId)}
+            refreshKey={refreshCounter}
+          />
+
+          {/* 6. FAQ Accordion */}
+          <SubscriptionFaq />
+        </>
+      )}
+
+      {/* Upgrade / Confirmation Modal */}
+      <PlanUpgradeModal
+        isOpen={isUpgradeModalOpen}
+        targetPlan={selectedTargetPlan}
+        currentSubscription={currentSub}
+        billingCycle={billingCycle}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        onSuccess={(msg) => {
+          setSuccessMsg(msg);
+          loadData();
+          setRefreshCounter((c) => c + 1);
+          setTimeout(() => setSuccessMsg(null), 5000);
+        }}
+      />
+
+      {/* Printable Invoice Modal */}
+      <InvoicePrintModal
+        isOpen={!!selectedPaymentId}
+        paymentId={selectedPaymentId}
+        onClose={() => setSelectedPaymentId(null)}
+      />
     </div>
   );
 };

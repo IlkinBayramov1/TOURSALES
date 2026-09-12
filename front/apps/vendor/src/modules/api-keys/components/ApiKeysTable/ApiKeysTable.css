@@ -1,0 +1,57 @@
+.apikeys-table-container {
+  background: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e5e7eb);
+  border-radius: var(--radius-xl, 16px);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.env-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.env-badge.live {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.env-badge.test {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.key-prefix-code {
+  font-family: monospace;
+  font-size: 0.8125rem;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  color: var(--color-text-primary, #1f2937);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scopes-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  max-width: 240px;
+}
+
+.scope-pill {
+  display: inline-block;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  color: #475569;
+}

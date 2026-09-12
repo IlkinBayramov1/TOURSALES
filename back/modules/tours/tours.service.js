@@ -1,3 +1,4 @@
+import ExcelJS from 'exceljs';
 import prisma from '../../config/db.js';
 import { generateUniqueId } from '../../utils/id-generator.js';
 import { generateExcel } from '../../utils/excel-generator.js';
@@ -33,7 +34,9 @@ class ToursService {
 
     const { search, status, type } = filters;
 
-    const where = {};
+    const where = {
+      deletedAt: null
+    };
     if (companyId) {
       where.companyId = companyId;
     }
@@ -105,7 +108,7 @@ class ToursService {
       parsedItinerary = [];
     }
 
-    const primaryRegion = tour.regions?.[0]?.name || tour.hotelName || 'Qarabağ';
+    const primaryRegion = tour.regions?.[0]?.name || tour.destinationCountry || tour.hotelName || 'Qarabağ';
     const capacity = tour.busCapacity || tour.maxParticipants || 48;
     const availableSeats = Math.max(0, capacity - soldSeats);
     const numericPrice = parseFloat(tour.price) || 0;
@@ -121,6 +124,10 @@ class ToursService {
       dynamicPrice: dynamicPrice || numericPrice,
       meetingPoint: tour.meetingPointAddress || '',
       region: primaryRegion,
+      regions: tour.regions ? tour.regions.map(r => r.name) : [],
+      destinationCountry: tour.destinationCountry || '',
+      category: tour.type,
+      endDate: tour.endDate || null,
       images: parsedImages,
       inclusions: parsedInclusions,
       exclusions: parsedExclusions,
@@ -171,12 +178,14 @@ class ToursService {
       minParticipants: parseInt(data.minParticipants || 1, 10),
       maxParticipants: parseInt(data.maxParticipants || data.capacity || 40, 10),
       startDate: new Date(data.startDate),
+      endDate: data.endDate ? new Date(data.endDate) : null,
       includedServices: JSON.stringify(data.includedServices || data.inclusions || []),
       excludedServices: JSON.stringify(data.excludedServices || data.exclusions || []),
       itinerary: JSON.stringify(data.itinerary || []),
       status: data.status || 'Active',
       price: parseFloat(data.price !== undefined ? data.price : (data.basePrice || 0)),
       currency: data.currency || 'AZN',
+      destinationCountry: data.destinationCountry || (data.type === 'FOREIGN' ? (data.hotelName || null) : null),
       hotelName: data.hotelName || data.destinationCountry || null,
       hotelCategory: data.hotelCategory || null
     };
@@ -199,9 +208,10 @@ class ToursService {
       data: tourData
     });
 
-    if (data.type === 'DOMESTIC' && data.regions && Array.isArray(data.regions)) {
+    const regionList = Array.isArray(data.regions) ? data.regions : (data.region ? [data.region] : []);
+    if (data.type === 'DOMESTIC' && regionList.length > 0) {
       await prisma.tourRegion.createMany({
-        data: data.regions.map((regionName) => ({
+        data: regionList.map((regionName) => ({
           tourId: id,
           name: regionName
         }))
@@ -232,13 +242,14 @@ class ToursService {
       minParticipants: data.minParticipants ? parseInt(data.minParticipants, 10) : undefined,
       maxParticipants: maxPartVal ? parseInt(maxPartVal, 10) : undefined,
       startDate: data.startDate ? new Date(data.startDate) : undefined,
-      endDate: data.endDate ? new Date(data.endDate) : undefined,
+      endDate: data.endDate !== undefined ? (data.endDate ? new Date(data.endDate) : null) : undefined,
       includedServices: data.includedServices ? JSON.stringify(data.includedServices) : (data.inclusions ? JSON.stringify(data.inclusions) : undefined),
       excludedServices: data.excludedServices ? JSON.stringify(data.excludedServices) : (data.exclusions ? JSON.stringify(data.exclusions) : undefined),
       itinerary: data.itinerary ? JSON.stringify(data.itinerary) : undefined,
       status: data.status,
       price: priceVal !== undefined ? parseFloat(priceVal) : undefined,
       currency: data.currency,
+      destinationCountry: data.destinationCountry !== undefined ? data.destinationCountry : undefined,
       hotelName: data.hotelName !== undefined ? data.hotelName : (data.destinationCountry || undefined),
       hotelCategory: data.hotelCategory !== undefined ? data.hotelCategory : undefined
     };
@@ -260,27 +271,82 @@ class ToursService {
       data: tourData
     });
 
-    if (tour.type === 'DOMESTIC' && data.regions && Array.isArray(data.regions)) {
+    const regionList = Array.isArray(data.regions) ? data.regions : (data.region ? [data.region] : null);
+    if (tour.type === 'DOMESTIC' && regionList) {
       await prisma.tourRegion.deleteMany({ where: { tourId: id } });
-      await prisma.tourRegion.createMany({
-        data: data.regions.map((regionName) => ({
-          tourId: id,
-          name: regionName
-        }))
-      });
+      if (regionList.length > 0) {
+        await prisma.tourRegion.createMany({
+          data: regionList.map((regionName) => ({
+            tourId: id,
+            name: regionName
+          }))
+        });
+      }
     }
 
     cacheService.clear();
     return this.getById(id);
   }
 
+  async toggleStatus(id, newStatus = null, companyId = null) {
+    const tour = await prisma.tour.findUnique({
+      where: { id },
+      include: {
+        regions: true,
+        bookings: { where: { status: 'CONFIRMED' } },
+        company: true
+      }
+    });
+    if (!tour) throw ApiError.notFound('Tur tapılmadı.');
+    if (companyId && tour.companyId !== companyId) {
+      throw ApiError.forbidden('Bu turun statusunu dəyişmək üçün icazəniz yoxdur.');
+    }
+
+    let targetStatus = newStatus;
+    if (!targetStatus) {
+      targetStatus = tour.status?.toLowerCase() === 'active' ? 'Deactive' : 'Active';
+    } else {
+      targetStatus = targetStatus.toLowerCase() === 'active' ? 'Active' : 'Deactive';
+    }
+
+    const updated = await prisma.tour.update({
+      where: { id },
+      data: { status: targetStatus },
+      include: {
+        regions: true,
+        bookings: { where: { status: 'CONFIRMED' } },
+        company: true
+      }
+    });
+
+    cacheService.clear();
+    const soldSeats = updated.bookings?.reduce((sum, b) => sum + b.seats, 0) || 0;
+    const dynamicPrice = this.calculateDynamicPrice(updated, soldSeats);
+    return this._formatTourForClient(updated, soldSeats, dynamicPrice);
+  }
+
   async delete(id, companyId = null) {
-    const tour = await prisma.tour.findUnique({ where: { id } });
+    const tour = await prisma.tour.findUnique({
+      where: { id },
+      include: {
+        bookings: { where: { status: 'CONFIRMED' } }
+      }
+    });
     if (!tour) return false;
     if (companyId && tour.companyId !== companyId) return false;
 
+    if (tour.bookings && tour.bookings.length > 0) {
+      throw ApiError.badRequest('Bu tur üzrə təsdiqlənmiş sərnişin rezervasiyaları mövcuddur! Turu tam silmək əvəzinə statusunu "Deaktiv" edin.');
+    }
+
     cacheService.clear();
-    await prisma.tour.delete({ where: { id } });
+    await prisma.tour.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        status: 'Deactive'
+      }
+    });
     return true;
   }
 
@@ -389,31 +455,154 @@ class ToursService {
   async exportToursToExcel(filters = {}, companyId = null) {
     const tours = await this.getAll(filters, companyId);
 
-    const columns = [
-      { header: 'Tur ID', key: 'id', width: 15 },
-      { header: 'Turun Adı', key: 'title', width: 25 },
-      { header: 'Növü', key: 'type', width: 12 },
-      { header: 'Qiymət', key: 'price', width: 12 },
-      { header: 'Başlama Tarixi', key: 'startDate', width: 15 },
-      { header: 'Maks. Yer', key: 'maxParticipants', width: 12 },
-      { header: 'Status', key: 'status', width: 12 },
-      { header: 'Baxış Sayı', key: 'viewCount', width: 12 },
-      { header: 'Favorit Sayı', key: 'favoriteCount', width: 12 }
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'TourSales Vendor Portal';
+    workbook.created = new Date();
+
+    const worksheet = workbook.addWorksheet('Turlar');
+
+    // Sütunların tərifi və eni
+    worksheet.columns = [
+      { key: 'id', width: 14 },
+      { key: 'title', width: 34 },
+      { key: 'type', width: 16 },
+      { key: 'region', width: 22 },
+      { key: 'price', width: 16 },
+      { key: 'startDate', width: 16 },
+      { key: 'endDate', width: 16 },
+      { key: 'capacity', width: 14 },
+      { key: 'soldSeats', width: 14 },
+      { key: 'occupancy', width: 16 },
+      { key: 'status', width: 16 }
     ];
 
-    const formattedData = tours.map((t) => ({
-      id: t.id,
-      title: t.title,
-      type: t.type === 'DOMESTIC' ? 'Daxili' : 'Xarici',
-      price: `${t.price} ${t.currency}`,
-      startDate: t.startDate.toISOString().split('T')[0],
-      maxParticipants: t.maxParticipants,
-      status: t.status,
-      viewCount: t.viewCount,
-      favoriteCount: t.favoriteCount
-    }));
+    // 1. Üst Banner / Başlıq
+    worksheet.mergeCells('A1:K1');
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = 'TOURSALES — ŞİRKƏT TURLARI HESABATI';
+    titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFF' } };
+    titleCell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '1E3A8A' } // Tünd göy
+    };
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    worksheet.getRow(1).height = 36;
 
-    return generateExcel(formattedData, columns, 'Turlar');
+    // 2. Metadata Sətri (Tarix və tur sayı)
+    worksheet.mergeCells('A2:K2');
+    const metaCell = worksheet.getCell('A2');
+    metaCell.value = `Çıxarış tarixi: ${new Date().toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}  |  Cəmi Tur: ${tours.length} ədəd`;
+    metaCell.font = { name: 'Arial', size: 9, italic: true, color: { argb: '64748B' } };
+    metaCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    worksheet.getRow(2).height = 20;
+
+    // 3. Cədvəl Başlıq Sətri (Row 3)
+    const headerRow = worksheet.getRow(3);
+    headerRow.values = [
+      'Tur ID',
+      'Turun Adı',
+      'Növü',
+      'İstiqamət / Region',
+      'Qiymət (AZN)',
+      'Çıxış Tarixi',
+      'Dönüş Tarixi',
+      'Maks. Yer',
+      'Satılmış Yer',
+      'Doluluq Faizi',
+      'Satış Statusu'
+    ];
+    headerRow.height = 26;
+    headerRow.eachCell((cell) => {
+      cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFF' } };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '2563EB' } // Mavi
+      };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'CBD5E1' } },
+        bottom: { style: 'medium', color: { argb: '1E3A8A' } }
+      };
+    });
+
+    // 4. Məlumat Sətirləri
+    tours.forEach((t, idx) => {
+      const rowIdx = idx + 4;
+      const row = worksheet.getRow(rowIdx);
+
+      const cap = t.capacity || t.maxParticipants || 48;
+      const sold = t.soldSeats || 0;
+      const occPercent = cap > 0 ? Math.round((sold / cap) * 100) : 0;
+
+      let startFormatted = '-';
+      if (t.startDate) {
+        try {
+          const d = new Date(t.startDate);
+          startFormatted = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : String(t.startDate);
+        } catch {
+          startFormatted = String(t.startDate);
+        }
+      }
+
+      let endFormatted = '-';
+      if (t.endDate) {
+        try {
+          const d = new Date(t.endDate);
+          endFormatted = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : String(t.endDate);
+        } catch {
+          endFormatted = String(t.endDate);
+        }
+      }
+
+      const statusText = t.status === 'ACTIVE' ? 'Aktiv (Satışda)' : 'Deaktiv';
+
+      row.values = [
+        t.id,
+        t.title,
+        t.type === 'DOMESTIC' ? '🇦🇿 Daxili' : '✈️ Xarici',
+        t.destinationCountry ? `${t.destinationCountry} - ${t.region}` : (t.region || '-'),
+        `${t.basePrice || t.price || 0} ${t.currency || 'AZN'}`,
+        startFormatted,
+        endFormatted,
+        cap,
+        sold,
+        `%${occPercent}`,
+        statusText
+      ];
+
+      row.height = 22;
+
+      // Zebra striping
+      const isEven = idx % 2 === 0;
+      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        cell.font = { name: 'Arial', size: 10 };
+        cell.alignment = { vertical: 'middle', horizontal: [1, 3, 6, 7, 8, 9, 10, 11].includes(colNumber) ? 'center' : 'left' };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: isEven ? 'F8FAFC' : 'FFFFFF' }
+        };
+        cell.border = {
+          bottom: { style: 'thin', color: { argb: 'E2E8F0' } }
+        };
+
+        // Status rəngi
+        if (colNumber === 11) {
+          if (t.status === 'ACTIVE') {
+            cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: '166534' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'DCFCE7' } };
+          } else {
+            cell.font = { name: 'Arial', size: 10, color: { argb: '64748B' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F1F5F9' } };
+          }
+        }
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer;
   }
 }
 

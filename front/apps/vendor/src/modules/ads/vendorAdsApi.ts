@@ -1,51 +1,77 @@
 import { vendorAxiosClient } from '../../shared/api/vendorAxiosClient';
 import { VENDOR_ENDPOINTS } from '../../shared/api/vendorEndpoints';
-import { Ad } from '@toursales/types';
+import { Ad, AdPackage, VendorAdsKPI, CampaignPromo } from '@toursales/types';
 
 export const vendorAdsApi = {
-  getCampaigns: async (): Promise<Ad[]> => {
-    try {
-      const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.ADS.MY_CAMPAIGNS);
-      return res.data?.data || res.data;
-    } catch {
-      return [
-        {
-          id: 'ad_1',
-          title: 'Qəbələ Turlarında Payız Kampaniyası',
-          imageUrl: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800',
-          linkUrl: '/tours/gabala-autumn',
-          position: 'HERO',
-          isActive: true,
-          startDate: '2026-09-01T00:00:00Z',
-          endDate: '2026-09-30T23:59:59Z',
-          clicksCount: 342,
-          impressionsCount: 8900
-        },
-        {
-          id: 'ad_2',
-          title: 'Şahdağ Qış Xizək Turlarına Erkən Qeydiyyat',
-          imageUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800',
-          linkUrl: '/tours/shahdag-winter',
-          position: 'SIDEBAR',
-          isActive: false,
-          startDate: '2026-10-01T00:00:00Z',
-          endDate: '2026-11-15T23:59:59Z',
-          clicksCount: 0,
-          impressionsCount: 0
-        }
-      ];
-    }
+  // Reklam paketləri
+  getPackages: async (): Promise<AdPackage[]> => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.ADS.PACKAGES);
+    return res.data?.data || res.data;
   },
 
-  createCampaign: async (data: {
-    title: string;
-    imageUrl: string;
+  // Reklamların siyahısı
+  getAds: async (filters: { status?: string; position?: string; search?: string } = {}): Promise<Ad[]> => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.ADS.LIST, { params: filters });
+    return res.data?.data || res.data;
+  },
+
+  // KPI analitikası
+  getKPI: async (): Promise<VendorAdsKPI> => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.ADS.KPI);
+    return res.data?.data || res.data;
+  },
+
+  // Reklam almaq / başlatmaq
+  purchaseAd: async (data: {
+    tourId?: string;
+    packageId: string;
+    position?: string;
+    title?: string;
+    imageUrl?: string;
     linkUrl?: string;
-    position: 'HERO' | 'SIDEBAR' | 'POPUP';
+  }): Promise<Ad> => {
+    const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.ADS.PURCHASE, data);
+    return res.data?.data || res.data;
+  },
+
+  // Statusu dəyişmək (Active <-> Paused)
+  toggleStatus: async (id: string): Promise<Ad> => {
+    const res = await vendorAxiosClient.patch(VENDOR_ENDPOINTS.ADS.STATUS(id));
+    return res.data?.data || res.data;
+  },
+
+  // Reklamı silmək
+  deleteAd: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const res = await vendorAxiosClient.delete(VENDOR_ENDPOINTS.ADS.DELETE(id));
+    return res.data?.data || res.data;
+  },
+
+  // Promokodların siyahısı
+  getPromoCodes: async (): Promise<CampaignPromo[]> => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.CAMPAIGNS.LIST, {
+      params: { companyOnly: true }
+    });
+    return res.data?.data || res.data;
+  },
+
+  // Yeni promokod yaratmaq
+  createPromoCode: async (data: {
+    promoCode: string;
+    type?: string;
+    discountType: 'PERCENTAGE' | 'FIXED';
+    discountValue: number;
+    usageLimit?: number;
     startDate: string;
     endDate: string;
-  }): Promise<Ad> => {
-    const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.ADS.CREATE, data);
+    description?: string;
+  }): Promise<CampaignPromo> => {
+    const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.CAMPAIGNS.CREATE, data);
+    return res.data?.data || res.data;
+  },
+
+  // Promokodu silmək
+  deletePromoCode: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const res = await vendorAxiosClient.delete(VENDOR_ENDPOINTS.CAMPAIGNS.DELETE(id));
     return res.data?.data || res.data;
   }
 };

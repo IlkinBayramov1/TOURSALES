@@ -1,0 +1,239 @@
+.sub-usage-card {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.04) 0%, rgba(16, 185, 129, 0.04) 100%), #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sub-usage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 20px;
+}
+
+.sub-usage-badge-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sub-usage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  width: fit-content;
+}
+
+.sub-usage-plan-name {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.sub-usage-meta-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.sub-meta-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.sub-meta-pill strong {
+  color: #0f172a;
+}
+
+/* Auto Renew Toggle */
+.sub-auto-renew-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 8px 14px;
+  border-radius: 12px;
+  user-select: none;
+}
+
+.sub-auto-renew-toggle input {
+  display: none;
+}
+
+.sub-toggle-slider {
+  width: 36px;
+  height: 20px;
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  position: relative;
+  transition: 0.2s ease;
+}
+
+.sub-toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: white;
+  top: 3px;
+  left: 3px;
+  transition: 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.sub-auto-renew-toggle input:checked + .sub-toggle-slider {
+  background-color: #10b981;
+}
+
+.sub-auto-renew-toggle input:checked + .sub-toggle-slider::before {
+  transform: translateX(16px);
+}
+
+.sub-toggle-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Body & Progress */
+.sub-usage-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sub-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sub-progress-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13.5px;
+}
+
+.sub-progress-title {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.sub-progress-val {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.sub-progress-track {
+  height: 10px;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.sub-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.sub-progress-bar.warning {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
+.sub-progress-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Perks Grid */
+.sub-perks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.sub-perk-item {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sub-perk-item.balance {
+  background: rgba(37, 99, 235, 0.05);
+  border-color: rgba(37, 99, 235, 0.15);
+}
+
+.sub-perk-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.sub-perk-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sub-perk-val.text-primary {
+  color: #2563eb;
+}
+
+@media (max-width: 768px) {
+  .sub-usage-header {
+    flex-direction: column;
+  }
+  .sub-usage-meta-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
   ArrowRight, 
@@ -239,6 +239,30 @@ export const TourFormWizard: React.FC<TourFormWizardProps> = ({
   const [showManualUrl, setShowManualUrl] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.title !== undefined) setTitle(initialData.title);
+      if (initialData.description !== undefined) setDescription(initialData.description);
+      if (initialData.type !== undefined) setType(initialData.type);
+      if (initialData.region !== undefined) setRegion(initialData.region);
+      if (initialData.destinationCountry !== undefined) setDestinationCountry(initialData.destinationCountry);
+      if (initialData.basePrice !== undefined) setBasePrice(initialData.basePrice.toString());
+      if (initialData.startDate) setStartDate(initialData.startDate.split('T')[0]);
+      if (initialData.endDate) setEndDate(initialData.endDate.split('T')[0]);
+      if (initialData.meetingPoint !== undefined) setMeetingPoint(initialData.meetingPoint);
+      if (initialData.busType !== undefined) setBusType(initialData.busType as any);
+      if (initialData.capacity !== undefined) setCapacity(initialData.capacity);
+      if (initialData.hotelName !== undefined) setHotelName(initialData.hotelName);
+      if (initialData.hotelCategory !== undefined) setHotelCategory(initialData.hotelCategory);
+      if (initialData.flightIncluded !== undefined) setFlightIncluded(initialData.flightIncluded);
+      if (initialData.passportVisaRequired !== undefined) setPassportVisaRequired(initialData.passportVisaRequired);
+      if (initialData.itinerary && initialData.itinerary.length > 0) setItinerary(initialData.itinerary);
+      if (initialData.inclusions && initialData.inclusions.length > 0) setInclusionsText(initialData.inclusions.join('\n'));
+      if (initialData.exclusions && initialData.exclusions.length > 0) setExclusionsText(initialData.exclusions.join('\n'));
+      if (initialData.images && initialData.images[0]) setImageUrl(initialData.images[0]);
+    }
+  }, [initialData]);
+
   const handleTypeChange = (newType: 'DOMESTIC' | 'FOREIGN') => {
     setType(newType);
     if (newType === 'FOREIGN') {
@@ -362,9 +386,28 @@ export const TourFormWizard: React.FC<TourFormWizardProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (step === 1) {
+      if (!title || !title.trim()) {
+        alert('Zəhmət olmasa turun başlığını daxil edin.');
+        return;
+      }
+      if (!basePrice || parseFloat(basePrice) <= 0) {
+        alert('Zəhmət olmasa turun qiymətini daxil edin.');
+        return;
+      }
+      if (!startDate) {
+        alert('Zəhmət olmasa turun başlama tarixini seçin.');
+        return;
+      }
+    }
     // Yalnız 4-cü mərhələdə form submit oluna bilər
     if (step < 4) {
       setStep((s) => s + 1);
+      return;
+    }
+    if (!title || !title.trim()) {
+      alert('Zəhmət olmasa 1-ci mərhələdə turun başlığını daxil edin.');
+      setStep(1);
       return;
     }
     if (!imageUrl) {

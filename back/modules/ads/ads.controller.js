@@ -18,9 +18,7 @@ class AdsController {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
     }
-    const { tourId, packageId } = req.body;
-    if (!tourId || !packageId) throw ApiError.badRequest('Tur və Paket ID vacibdir.');
-    const result = await adsService.purchaseAd(req.user.companyId, tourId, packageId);
+    const result = await adsService.purchaseAd(req.user.companyId, req.body);
     return res.status(201).json({ status: 'success', msg: 'Reklam uğurla alındı', data: result });
   });
 
@@ -28,6 +26,22 @@ class AdsController {
     const companyId = req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId;
     const result = await adsService.getAds(req.query, companyId);
     return res.json({ status: 'success', msg: 'Reklamlar uğurla gətirildi', data: result });
+  });
+
+  toggleStatus = asyncHandler(async (req, res) => {
+    if (!req.user.companyId) {
+      throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
+    }
+    const result = await adsService.toggleAdStatus(req.user.companyId, req.params.id);
+    return res.json({ status: 'success', msg: 'Reklam statusu yeniləndi', data: result });
+  });
+
+  deleteAd = asyncHandler(async (req, res) => {
+    if (!req.user.companyId) {
+      throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
+    }
+    const result = await adsService.deleteAd(req.user.companyId, req.params.id);
+    return res.json({ status: 'success', msg: result.message });
   });
 
   getKPI = asyncHandler(async (req, res) => {

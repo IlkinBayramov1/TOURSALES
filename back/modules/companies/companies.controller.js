@@ -20,6 +20,19 @@ class CompaniesController {
     return res.json({ status: 'success', msg: 'Şirkət profili yeniləndi', data: result });
   });
 
+  changePassword = asyncHandler(async (req, res) => {
+    const result = await companiesService.changePassword(req.user.id, req.body);
+    return res.json({ status: 'success', msg: result.message, data: null });
+  });
+
+  getCompanyStats = asyncHandler(async (req, res) => {
+    if (!req.user.companyId) {
+      throw ApiError.badRequest('Bu istifadəçiyə bağlı bir şirkət profili yoxdur.');
+    }
+    const result = await companiesService.getCompanyStats(req.user.companyId);
+    return res.json({ status: 'success', msg: 'Şirkət statistikası gətirildi', data: result });
+  });
+
   // Admin metodları
   getAll = asyncHandler(async (req, res) => {
     const result = await companiesService.getAllCompanies(req.query);

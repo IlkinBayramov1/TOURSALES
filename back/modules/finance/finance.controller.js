@@ -89,6 +89,32 @@ class FinanceController {
       data: result
     });
   });
+
+  // --- VENDOR ENDPOINTS ---
+
+  getVendorOverview = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.query.companyId;
+    if (!companyId) throw ApiError.badRequest('Şirkət ID təyin edilməyib.');
+
+    const result = await financeService.getVendorOverview(companyId);
+    return res.json({ status: 'success', msg: 'Maliyyə icmalı gətirildi', data: result });
+  });
+
+  getVendorTransactions = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.query.companyId;
+    if (!companyId) throw ApiError.badRequest('Şirkət ID təyin edilməyib.');
+
+    const result = await financeService.getVendorTransactions(companyId, req.query);
+    return res.json({ status: 'success', msg: 'Maliyyə əməliyyatları gətirildi', data: result });
+  });
+
+  getVendorPayouts = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.query.companyId;
+    if (!companyId) throw ApiError.badRequest('Şirkət ID təyin edilməyib.');
+
+    const result = await financeService.getVendorPayouts(companyId);
+    return res.json({ status: 'success', msg: 'Çıxarış sorğuları gətirildi', data: result });
+  });
 }
 
 export const financeController = new FinanceController();

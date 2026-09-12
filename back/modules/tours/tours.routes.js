@@ -1,6 +1,6 @@
 import express from 'express';
 import { toursController } from './tours.controller.js';
-import { validateTour } from './tours.validation.js';
+import { validateTour, validateTourUpdate } from './tours.validation.js';
 import { authMiddleware } from '../auth/auth.middleware.js';
 import { roleMiddleware } from '../../middlewares/role.middleware.js';
 import { ROLES } from '../../config/constants.js';
@@ -35,7 +35,8 @@ router.get('/:id/waiting-list', toursController.getWaitingList);
 router.post('/', roleMiddleware(ROLES.VENDOR), validateTour, toursController.create);
 
 // Həm Admin, həm Vendor üçün ortaq marşrutlar
-router.put('/:id', validateTour, toursController.update);
-router.delete('/:id', toursController.delete);
+router.patch('/:id/status', roleMiddleware(ROLES.VENDOR, ROLES.SUPERADMIN), toursController.toggleStatus);
+router.put('/:id', roleMiddleware(ROLES.VENDOR, ROLES.SUPERADMIN), validateTourUpdate, toursController.update);
+router.delete('/:id', roleMiddleware(ROLES.VENDOR, ROLES.SUPERADMIN), toursController.delete);
 
 export default router;

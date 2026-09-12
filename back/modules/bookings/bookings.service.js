@@ -417,6 +417,403 @@ class BookingsService {
 
     return generateExcel(formattedData, columns, 'Rezervasiyalar');
   }
+
+  // --- VENDOR SPECIFIC METHODS ---
+
+  async getVendorBookings(companyId, query = {}) {
+    const { tourId, status, search } = query;
+
+    const where = {
+      companyId,
+      deletedAt: null
+    };
+
+    if (tourId) where.tourId = tourId;
+    if (status) where.status = status;
+
+    if (search) {
+      where.OR = [
+        { id: { contains: search } },
+        { passengerName: { contains: search } },
+        { passengerSurname: { contains: search } },
+        { contactNumber: { contains: search } },
+        { contactEmail: { contains: search } }
+      ];
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where,
+      include: {
+        tour: {
+          select: {
+            id: true,
+            title: true,
+            startDate: true,
+            endDate: true,
+            meetingPointAddress: true,
+            destinationCountry: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return bookings.map((b) => {
+      let passList = [];
+      if (b.passengersData) {
+        try { passList = JSON.parse(b.passengersData); } catch (e) {}
+      }
+
+      if (!passList || passList.length === 0) {
+        const seatNum = parseInt(b.busSeatNumber, 10) || 1;
+        passList = [{
+          seatNumber: seatNum,
+          fullName: `${b.passengerName} ${b.passengerSurname}`,
+          phone: b.contactNumber,
+          finCode: b.passengerPassport || '',
+          isCheckedIn: b.isCheckedIn
+        }];
+      }
+
+      return {
+        id: b.id,
+        bookingNumber: b.id,
+        userId: b.contactEmail,
+        tourId: b.tourId,
+        tourTitle: b.tour ? b.tour.title : 'Tur',
+        tourStartDate: b.tour?.startDate,
+        tourEndDate: b.tour?.endDate,
+        companyId: b.companyId,
+        totalAmount: Number(b.totalAmount || 0),
+        totalPrice: Number(b.totalAmount || 0),
+        currency: 'AZN',
+        status: b.status,
+        paymentMethod: 'BIRBANK',
+        paymentStatus: b.paymentStatus,
+        passengers: passList,
+        isCheckedIn: b.isCheckedIn,
+        checkedInAt: b.checkedInAt,
+        checkedInBy: b.checkedInBy,
+        qrToken: b.qrToken || b.id,
+        createdAt: b.createdAt.toISOString(),
+        updatedAt: b.updatedAt.toISOString()
+      };
+    });
+  }
+
+  async getVendorStats(companyId) {
+    const bookings = await prisma.booking.findMany({
+      where: { companyId, deletedAt: null },
+      select: {
+        id: true,
+        status: true,
+        seats: true,
+        totalAmount: true,
+        isCheckedIn: true,
+        passengersData: true
+      }
+    });
+
+    const totalBookings = bookings.length;
+    let totalPassengers = 0;
+    let checkedInCount = 0;
+    let totalRevenue = 0;
+
+    for (const b of bookings) {
+      if (b.status === 'CONFIRMED' || b.status === 'COMPLETED') {
+        totalRevenue += Number(b.totalAmount || 0);
+      }
+
+      let passList = [];
+      if (b.passengersData) {
+        try { passList = JSON.parse(b.passengersData); } catch (e) {}
+      }
+
+      if (passList.length > 0) {
+        totalPassengers += passList.length;
+        checkedInCount += passList.filter(p => p.isCheckedIn).length;
+      } else {
+        totalPassengers += b.seats || 1;
+        if (b.isCheckedIn) {
+          checkedInCount += b.seats || 1;
+        }
+      }
+    }
+
+    const checkedInRate = totalPassengers > 0 ? Math.round((checkedInCount / totalPassengers) * 100) : 0;
+
+    return {
+      totalBookings,
+      totalPassengers,
+      checkedInCount,
+      checkedInRate,
+      totalRevenue: Math.round(totalRevenue * 100) / 100
+    };
+  }
+
+  async getVendorBookingById(id, companyId) {
+    const b = await prisma.booking.findFirst({
+      where: { id, companyId, deletedAt: null },
+      include: {
+        tour: true,
+        company: { select: { id: true, name: true, phoneNumber: true, email: true } }
+      }
+    });
+
+    if (!b) return null;
+
+    let passList = [];
+    if (b.passengersData) {
+      try { passList = JSON.parse(b.passengersData); } catch (e) {}
+    }
+
+    if (!passList || passList.length === 0) {
+      const seatNum = parseInt(b.busSeatNumber, 10) || 1;
+      passList = [{
+        seatNumber: seatNum,
+        fullName: `${b.passengerName} ${b.passengerSurname}`,
+        phone: b.contactNumber,
+        finCode: b.passengerPassport || '',
+        isCheckedIn: b.isCheckedIn
+      }];
+    }
+
+    return {
+      id: b.id,
+      bookingNumber: b.id,
+      userId: b.contactEmail,
+      tourId: b.tourId,
+      tourTitle: b.tour ? b.tour.title : 'Tur',
+      tourStartDate: b.tour?.startDate,
+      tourEndDate: b.tour?.endDate,
+      companyId: b.companyId,
+      companyName: b.company?.name,
+      totalAmount: Number(b.totalAmount || 0),
+      totalPrice: Number(b.totalAmount || 0),
+      currency: 'AZN',
+      status: b.status,
+      paymentMethod: 'BIRBANK',
+      paymentStatus: b.paymentStatus,
+      passengers: passList,
+      isCheckedIn: b.isCheckedIn,
+      checkedInAt: b.checkedInAt,
+      checkedInBy: b.checkedInBy,
+      qrToken: b.qrToken || b.id,
+      createdAt: b.createdAt.toISOString(),
+      updatedAt: b.updatedAt.toISOString()
+    };
+  }
+
+  async getVendorRoster(tourId, companyId) {
+    const tour = await prisma.tour.findFirst({
+      where: { id: tourId, companyId, deletedAt: null }
+    });
+    if (!tour) {
+      throw ApiError.notFound('Tur tapılmadı və ya bu şirkətə aid deyil.');
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        tourId,
+        companyId,
+        status: { in: ['CONFIRMED', 'COMPLETED'] },
+        deletedAt: null
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    const roster = [];
+    for (const b of bookings) {
+      let passList = [];
+      if (b.passengersData) {
+        try { passList = JSON.parse(b.passengersData); } catch (e) {}
+      }
+
+      if (passList.length > 0) {
+        passList.forEach((p, idx) => {
+          roster.push({
+            id: `${b.id}-${p.seatNumber || idx + 1}`,
+            bookingId: b.id,
+            bookingNumber: b.id,
+            seatNumber: p.seatNumber || idx + 1,
+            fullName: p.fullName || `${b.passengerName} ${b.passengerSurname}`,
+            phone: p.phone || b.contactNumber,
+            finCode: p.finCode || b.passengerPassport || '',
+            status: b.status,
+            isCheckedIn: p.isCheckedIn !== undefined ? p.isCheckedIn : b.isCheckedIn,
+            checkedInAt: b.checkedInAt
+          });
+        });
+      } else {
+        const seats = b.seats || 1;
+        const baseSeat = parseInt(b.busSeatNumber, 10) || 1;
+        for (let i = 0; i < seats; i++) {
+          roster.push({
+            id: `${b.id}-${baseSeat + i}`,
+            bookingId: b.id,
+            bookingNumber: b.id,
+            seatNumber: baseSeat + i,
+            fullName: i === 0 ? `${b.passengerName} ${b.passengerSurname}` : `${b.passengerName} ${b.passengerSurname} (${i + 1})`,
+            phone: b.contactNumber,
+            finCode: b.passengerPassport || '',
+            status: b.status,
+            isCheckedIn: b.isCheckedIn,
+            checkedInAt: b.checkedInAt
+          });
+        }
+      }
+    }
+
+    roster.sort((a, b) => a.seatNumber - b.seatNumber);
+    return roster;
+  }
+
+  async checkInTicket(payload, companyId, userId) {
+    const searchVal = (payload.qrToken || payload.bookingNumber || '').trim();
+    if (!searchVal) {
+      throw ApiError.badRequest('Bilet nömrəsi və ya QR kod təqdim edilməlidir.');
+    }
+
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [
+          { id: searchVal },
+          { qrToken: searchVal }
+        ],
+        companyId,
+        deletedAt: null
+      },
+      include: { tour: true }
+    });
+
+    if (!booking) {
+      throw ApiError.notFound('Bilet tapılmadı və ya bu şirkətə aid deyil.');
+    }
+
+    if (booking.status === 'CANCELLED') {
+      throw ApiError.badRequest('Bu bilet ləğv edilib! Minik icazəsi verilmir.');
+    }
+
+    const alreadyCheckedIn = booking.isCheckedIn;
+
+    let passList = [];
+    if (booking.passengersData) {
+      try { passList = JSON.parse(booking.passengersData); } catch (e) {}
+    }
+
+    let seatNumbers = [];
+    let passengerNames = [];
+
+    if (passList.length > 0) {
+      passList = passList.map(p => ({ ...p, isCheckedIn: true }));
+      seatNumbers = passList.map(p => p.seatNumber);
+      passengerNames = passList.map(p => p.fullName);
+    } else {
+      seatNumbers = [parseInt(booking.busSeatNumber, 10) || 1];
+      passengerNames = [`${booking.passengerName} ${booking.passengerSurname}`];
+    }
+
+    const now = new Date();
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: {
+        isCheckedIn: true,
+        checkedInAt: now,
+        checkedInBy: userId || 'VENDOR',
+        passengersData: passList.length > 0 ? JSON.stringify(passList) : booking.passengersData
+      }
+    });
+
+    return {
+      verified: true,
+      alreadyCheckedIn,
+      bookingNumber: booking.id,
+      passengerNames,
+      seatNumbers,
+      checkedInAt: now.toISOString(),
+      tourTitle: booking.tour ? booking.tour.title : 'Tur'
+    };
+  }
+
+  async toggleCheckIn(bookingId, passengerSeat, companyId, userId) {
+    const booking = await prisma.booking.findFirst({
+      where: { id: bookingId, companyId, deletedAt: null }
+    });
+    if (!booking) {
+      throw ApiError.notFound('Bilet tapılmadı.');
+    }
+
+    let newCheckedIn = !booking.isCheckedIn;
+    let passList = [];
+    if (booking.passengersData) {
+      try { passList = JSON.parse(booking.passengersData); } catch (e) {}
+    }
+
+    if (passList.length > 0 && passengerSeat !== undefined) {
+      const seatNum = parseInt(passengerSeat, 10);
+      const target = passList.find(p => p.seatNumber === seatNum);
+      if (target) {
+        target.isCheckedIn = !target.isCheckedIn;
+        newCheckedIn = target.isCheckedIn;
+      }
+      const allChecked = passList.every(p => p.isCheckedIn);
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          isCheckedIn: allChecked,
+          checkedInAt: newCheckedIn ? new Date() : null,
+          checkedInBy: newCheckedIn ? userId : null,
+          passengersData: JSON.stringify(passList)
+        }
+      });
+    } else {
+      if (passList.length > 0) {
+        passList = passList.map(p => ({ ...p, isCheckedIn: newCheckedIn }));
+      }
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          isCheckedIn: newCheckedIn,
+          checkedInAt: newCheckedIn ? new Date() : null,
+          checkedInBy: newCheckedIn ? userId : null,
+          passengersData: passList.length > 0 ? JSON.stringify(passList) : booking.passengersData
+        }
+      });
+    }
+
+    return { isCheckedIn: newCheckedIn, checkedInAt: newCheckedIn ? new Date().toISOString() : null };
+  }
+
+  async exportVendorRosterToExcel(tourId, companyId) {
+    const tour = await prisma.tour.findFirst({
+      where: { id: tourId, companyId, deletedAt: null }
+    });
+    if (!tour) throw ApiError.notFound('Tur tapılmadı.');
+
+    const roster = await this.getVendorRoster(tourId, companyId);
+
+    const columns = [
+      { header: 'Yer №', key: 'seatNumber', width: 10 },
+      { header: 'Sərnişin Ad Soyad', key: 'fullName', width: 28 },
+      { header: 'Telefon Nömrəsi', key: 'phone', width: 18 },
+      { header: 'FİN Kod (Ş/V)', key: 'finCode', width: 16 },
+      { header: 'Bilet №', key: 'bookingNumber', width: 16 },
+      { header: 'Status', key: 'status', width: 14 },
+      { header: 'Minik Qeydiyyatı', key: 'checkInStatus', width: 18 }
+    ];
+
+    const formattedData = roster.map(r => ({
+      seatNumber: r.seatNumber,
+      fullName: r.fullName,
+      phone: r.phone,
+      finCode: r.finCode || '—',
+      bookingNumber: r.bookingNumber,
+      status: r.status === 'CONFIRMED' ? 'Təsdiqlənib' : r.status,
+      checkInStatus: r.isCheckedIn ? '✓ Mindirildi' : 'Gözləyir'
+    }));
+
+    return generateExcel(formattedData, columns, `Manifest`);
+  }
 }
 
 export const bookingsService = new BookingsService();

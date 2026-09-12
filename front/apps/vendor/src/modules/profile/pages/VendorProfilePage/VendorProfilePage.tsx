@@ -1,159 +1,231 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Badge } from '@toursales/ui';
+import { Company, CompanyProfileStats, PasswordChangePayload } from '@toursales/types';
 import { vendorProfileApi } from '../../vendorProfileApi';
-import { Company } from '@toursales/types';
+import { ProfileHeroBanner } from '../../components/ProfileHeroBanner/ProfileHeroBanner';
+import { GeneralInfoTab } from '../../components/GeneralInfoTab/GeneralInfoTab';
+import { BankingTab } from '../../components/BankingTab/BankingTab';
+import { SecurityTab } from '../../components/SecurityTab/SecurityTab';
+import { NotificationsTab } from '../../components/NotificationsTab/NotificationsTab';
 import './VendorProfilePage.css';
 
 export const VendorProfilePage: React.FC = () => {
   const [company, setCompany] = useState<Company | null>(null);
+  const [stats, setStats] = useState<CompanyProfileStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [activeTab, setActiveTab] = useState<'general' | 'banking' | 'security' | 'notifications'>('general');
+  const [globalMessage, setGlobalMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [compData, statsData] = await Promise.all([
+        vendorProfileApi.getMyCompany(),
+        vendorProfileApi.getCompanyStats().catch(() => null)
+      ]);
+      setCompany(compData);
+      setStats(statsData);
+    } catch (err: any) {
+      console.error('Failed to load profile data:', err);
+      setGlobalMessage({
+        type: 'error',
+        text: 'Şirkət profil məlumatları yüklənərkən xəta baş verdi. Səhifəni yeniləyin.'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const data = await vendorProfileApi.getMyCompany();
-        setCompany(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadData();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!company) return;
-
+  const handleSaveCompany = async (partialData: Partial<Company>) => {
     try {
       setSaving(true);
-      setMessage(null);
-      await vendorProfileApi.updateCompany(company);
-      setMessage('Məlumatlar uğurla yadda saxlanıldı!');
-      setTimeout(() => setMessage(null), 3000);
+      const updated = await vendorProfileApi.updateCompany(partialData);
+      setCompany(updated);
     } catch (err: any) {
-      setMessage('Məlumatlar yenilənərkən xəta baş verdi');
+      console.error('Profile update failed:', err);
+      throw err;
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading || !company) {
-    return <div style={{ padding: '2rem' }}>Yüklənir...</div>;
+  const handlePasswordChange = async (payload: PasswordChangePayload) => {
+    try {
+      setChangingPassword(true);
+      await vendorProfileApi.changePassword(payload);
+    } catch (err: any) {
+      console.error('Password change failed:', err);
+      throw err;
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const handleLogoUpload = async (file: File) => {
+    try {
+      setUploadingLogo(true);
+      const res = await vendorProfileApi.uploadFile(file);
+      const newLogo = res.fullUrl || res.url;
+      const updated = await vendorProfileApi.updateCompany({ logoUrl: newLogo });
+      setCompany(updated);
+      setGlobalMessage({ type: 'success', text: 'Agentlik loqosu uğurla yeniləndi!' });
+      setTimeout(() => setGlobalMessage(null), 3000);
+    } catch (err: any) {
+      console.error('Logo upload error:', err);
+      setGlobalMessage({ type: 'error', text: 'Loqo yüklənərkən xəta baş verdi.' });
+      setTimeout(() => setGlobalMessage(null), 4000);
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleCoverUpload = async (file: File) => {
+    try {
+      setUploadingCover(true);
+      const res = await vendorProfileApi.uploadFile(file);
+      const newCover = res.fullUrl || res.url;
+      const updated = await vendorProfileApi.updateCompany({ coverUrl: newCover });
+      setCompany(updated);
+      setGlobalMessage({ type: 'success', text: 'Örtük şəkli uğurla yeniləndi!' });
+      setTimeout(() => setGlobalMessage(null), 3000);
+    } catch (err: any) {
+      console.error('Cover upload error:', err);
+      setGlobalMessage({ type: 'error', text: 'Örtük şəkli yüklənərkən xəta baş verdi.' });
+      setTimeout(() => setGlobalMessage(null), 4000);
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="profile-loading-state">
+        <div className="profile-loading-spinner" />
+        <p>Şirkət profili və rekvizitlər yüklənir...</p>
+      </div>
+    );
+  }
+
+  if (!company) {
+    return (
+      <div className="profile-error-state">
+        <h3>Şirkət profili tapılmadı</h3>
+        <p>İstifadəçi profilinizə bağlı şirkət məlumatları gətirilə bilmədi.</p>
+        <button onClick={loadData} className="profile-retry-btn">Yenidən Cəhd Et</button>
+      </div>
+    );
   }
 
   return (
     <div className="vendor-profile-page">
-      <div className="profile-header">
-        <h1>Şirkət Profili & Rekvizitlər</h1>
-        <p>Turizm agentliyinizin rəsmi məlumatlarını, bank rekvizitlərini və əlaqə vasitələrini yeniləyin</p>
+      {/* Top Header */}
+      <div className="profile-page-header">
+        <div>
+          <h1 className="page-main-title">Şirkət Profili & Tənzimləmələr</h1>
+          <p className="page-main-subtitle">
+            Turizm agentliyinizin brend vizualını, hüquqi rekvizitlərini, bank hesablarını və təhlükəsizliyini idarə edin
+          </p>
+        </div>
       </div>
 
-      {message && (
-        <div style={{
-          padding: '1rem',
-          borderRadius: 'var(--radius-md)',
-          backgroundColor: message.includes('xəta') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-          color: message.includes('xəta') ? 'var(--color-error)' : 'var(--color-success)',
-          fontWeight: 600
-        }}>
-          {message}
+      {globalMessage && (
+        <div className={`global-profile-alert ${globalMessage.type}`}>
+          <span>{globalMessage.text}</span>
+          <button onClick={() => setGlobalMessage(null)} className="alert-close-btn">✕</button>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="profile-form-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h3 className="profile-section-title" style={{ margin: 0, border: 'none' }}>Əsas Şirkət Məlumatları</h3>
-          <Badge variant={company.status === 'ACTIVE' ? 'success' : 'warning'}>
-            Status: {company.status}
-          </Badge>
-        </div>
+      {/* Hero Banner with Logo, Cover, Verification and Quick Stats */}
+      <ProfileHeroBanner
+        company={company}
+        stats={stats}
+        onLogoUpload={handleLogoUpload}
+        onCoverUpload={handleCoverUpload}
+        uploadingLogo={uploadingLogo}
+        uploadingCover={uploadingCover}
+      />
 
-        <div className="profile-grid-2">
-          <div className="profile-form-group">
-            <label>Şirkətin Rəsmi Adı</label>
-            <input
-              type="text"
-              value={company.name}
-              onChange={(e) => setCompany({ ...company, name: e.target.value })}
-              required
-            />
-          </div>
+      {/* 4 Tabs Navigation Bar */}
+      <div className="profile-tabs-bar">
+        <button
+          type="button"
+          className={`profile-tab-btn ${activeTab === 'general' ? 'active' : ''}`}
+          onClick={() => setActiveTab('general')}
+        >
+          <span className="tab-icon">🏢</span>
+          <span>Əsas Məlumatlar & Brendinq</span>
+        </button>
 
-          <div className="profile-form-group">
-            <label>VÖEN (Vergi Ödəyicisinin Eyniləşdirmə Nömrəsi)</label>
-            <input
-              type="text"
-              value={company.voen}
-              disabled
-              title="VÖEN dəyişdirilə bilməz"
-            />
-          </div>
-        </div>
+        <button
+          type="button"
+          className={`profile-tab-btn ${activeTab === 'banking' ? 'active' : ''}`}
+          onClick={() => setActiveTab('banking')}
+        >
+          <span className="tab-icon">🏦</span>
+          <span>Bank & Hesablaşma Rekvizitləri</span>
+        </button>
 
-        <div className="profile-grid-2">
-          <div className="profile-form-group">
-            <label>Əlaqə E-poçtu</label>
-            <input
-              type="email"
-              value={company.email}
-              onChange={(e) => setCompany({ ...company, email: e.target.value })}
-              required
-            />
-          </div>
+        <button
+          type="button"
+          className={`profile-tab-btn ${activeTab === 'security' ? 'active' : ''}`}
+          onClick={() => setActiveTab('security')}
+        >
+          <span className="tab-icon">🔐</span>
+          <span>Təhlükəsizlik & Şifrə</span>
+        </button>
 
-          <div className="profile-form-group">
-            <label>Əlaqə Telefonu</label>
-            <input
-              type="tel"
-              value={company.phone}
-              onChange={(e) => setCompany({ ...company, phone: e.target.value })}
-              required
-            />
-          </div>
-        </div>
+        <button
+          type="button"
+          className={`profile-tab-btn ${activeTab === 'notifications' ? 'active' : ''}`}
+          onClick={() => setActiveTab('notifications')}
+        >
+          <span className="tab-icon">🔔</span>
+          <span>Bildiriş Tənzimləmələri</span>
+        </button>
+      </div>
 
-        <div className="profile-form-group">
-          <label>Faktiki Ünvan</label>
-          <input
-            type="text"
-            value={company.address || ''}
-            onChange={(e) => setCompany({ ...company, address: e.target.value })}
+      {/* Tab Panels */}
+      <div className="profile-tab-body">
+        {activeTab === 'general' && (
+          <GeneralInfoTab
+            company={company}
+            onSave={handleSaveCompany}
+            saving={saving}
           />
-        </div>
+        )}
 
-        <h3 className="profile-section-title" style={{ marginTop: '2rem' }}>Bank Hesablaşma Rekvizitləri</h3>
+        {activeTab === 'banking' && (
+          <BankingTab
+            company={company}
+            onSave={handleSaveCompany}
+            saving={saving}
+          />
+        )}
 
-        <div className="profile-grid-2">
-          <div className="profile-form-group">
-            <label>Xidmət Göstərən Bank</label>
-            <input
-              type="text"
-              value={company.bankName || ''}
-              onChange={(e) => setCompany({ ...company, bankName: e.target.value })}
-            />
-          </div>
+        {activeTab === 'security' && (
+          <SecurityTab
+            onPasswordChange={handlePasswordChange}
+            changing={changingPassword}
+          />
+        )}
 
-          <div className="profile-form-group">
-            <label>Bank Hesabı (IBAN)</label>
-            <input
-              type="text"
-              value={company.bankIban || ''}
-              onChange={(e) => setCompany({ ...company, bankIban: e.target.value })}
-            />
-          </div>
-        </div>
-
-        <div className="profile-actions">
-          <Button variant="primary" type="submit" isLoading={saving}>
-            Dəyişiklikləri Yadda Saxla
-          </Button>
-        </div>
-      </form>
+        {activeTab === 'notifications' && (
+          <NotificationsTab
+            company={company}
+            onSave={handleSaveCompany}
+            saving={saving}
+          />
+        )}
+      </div>
     </div>
   );
 };
+
+export default VendorProfilePage;

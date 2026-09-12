@@ -46,6 +46,7 @@ export interface Booking {
   paymentStatus: PaymentStatus;
   passengers: PassengerInfo[];
   qrToken?: string;
+  isCheckedIn?: boolean;
   checkedInAt?: string | null;
   checkedInBy?: string | null;
   promoCode?: string | null;

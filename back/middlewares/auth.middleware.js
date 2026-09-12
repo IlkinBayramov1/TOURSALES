@@ -31,31 +31,20 @@ export const authMiddleware = (options = {}) => {
         return next(ApiError.unauthorized('2FA verification required'));
       }
 
-      // Sessiyanın verilənlər bazasında aktiv olduğunu yoxlayırıq
-      const sessionExists = await prisma.session.findFirst({
-        where: { userId: decoded.id, token }
+      // Sessiyanın və istifadəçinin verilənlər bazasında aktiv olduğunu tək sorğu ilə (Eager load) yoxlayırıq
+      const session = await prisma.session.findFirst({
+        where: { userId: decoded.id, token },
+        include: { user: true }
       });
 
-      if (!sessionExists) {
+      if (!session || !session.user || session.user.deletedAt) {
         if (options.isPublic) {
           return next();
         }
         return next(ApiError.unauthorized('Oturum sonlandırılıb və ya etibarsızdır. Yenidən daxil olun.'));
       }
 
-      // İstifadəçinin bazada mövcudluğunu yoxlayırıq
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.id }
-      });
-
-      if (!user) {
-        if (options.isPublic) {
-          return next();
-        }
-        return next(ApiError.unauthorized('User not found'));
-      }
-
-      req.user = user;
+      req.user = session.user;
       req.token = token; // Müvafiq olaraq sessiyanı silmək (logout) üçün
       next();
     } catch (err) {

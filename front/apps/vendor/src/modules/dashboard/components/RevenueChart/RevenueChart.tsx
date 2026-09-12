@@ -20,22 +20,28 @@ interface RevenueChartProps {
   data?: MonthlyData[];
 }
 
-const DEFAULT_DATA = [
-  { month: '1 Apr', revenue: 450, bookings: 12 },
-  { month: '5 Apr', revenue: 800, bookings: 24 },
-  { month: '10 Apr', revenue: 600, bookings: 18 },
-  { month: '15 Apr', revenue: 1200, bookings: 36 },
-  { month: '20 Apr', revenue: 1450, bookings: 42 },
-  { month: '25 Apr', revenue: 1100, bookings: 30 },
-  { month: '30 Apr', revenue: 1800, bookings: 55 },
+const EMPTY_DATA: MonthlyData[] = [
+  { month: 'Yan', revenue: 0, bookings: 0 },
+  { month: 'Fev', revenue: 0, bookings: 0 },
+  { month: 'Mar', revenue: 0, bookings: 0 },
+  { month: 'Apr', revenue: 0, bookings: 0 },
+  { month: 'May', revenue: 0, bookings: 0 },
+  { month: 'İyn', revenue: 0, bookings: 0 },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const rev = payload[0].value || 0;
+    const bookings = payload[0].payload?.bookings;
     return (
       <div className="vendor-chart-custom-tooltip">
         <span className="tooltip-label">{label}</span>
-        <strong className="tooltip-value">{payload[0].value?.toLocaleString()} ₼</strong>
+        <strong className="tooltip-value">{Number(rev).toLocaleString()} ₼</strong>
+        {bookings !== undefined && (
+          <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block' }}>
+            {bookings} sifariş
+          </span>
+        )}
       </div>
     );
   }
@@ -43,7 +49,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
-  const chartData = data && data.length > 0 ? data : DEFAULT_DATA;
+  const chartData = data && data.length > 0 ? data : EMPTY_DATA;
 
   return (
     <div className="vendor-revenue-chart-card">

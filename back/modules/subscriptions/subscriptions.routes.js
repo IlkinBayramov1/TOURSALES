@@ -6,15 +6,21 @@ import { ROLES } from '../../config/constants.js';
 
 const router = express.Router();
 
-// Bütün abunəlik və tarif idarəetməsi yalnız SuperAdmin-ə aiddir
+// Bütün abunəlik marşrutları üçün auth vacibdir
 router.use(authMiddleware());
-router.use(roleMiddleware(ROLES.SUPERADMIN));
 
+// Vendor və Ümumi Abunəlik Marşrutları
+router.get('/current', subscriptionsController.getCurrentSubscription);
 router.get('/plans', subscriptionsController.getAllPlans);
-router.post('/plans', subscriptionsController.createPlan);
-router.put('/plans/:id', subscriptionsController.updatePlan);
+router.post('/change-plan', subscriptionsController.changePlan);
+router.get('/payments', subscriptionsController.getBillingHistory);
+router.get('/invoice/:paymentId', subscriptionsController.getInvoiceDetails);
+router.patch('/auto-renewal', subscriptionsController.toggleAutoRenewal);
 
-router.get('/subscribers', subscriptionsController.getSubscribers);
-router.get('/subscribers/export', subscriptionsController.exportSubscribers);
+// SuperAdmin idarəetmə marşrutları
+router.post('/plans', roleMiddleware(ROLES.SUPERADMIN), subscriptionsController.createPlan);
+router.put('/plans/:id', roleMiddleware(ROLES.SUPERADMIN), subscriptionsController.updatePlan);
+router.get('/subscribers', roleMiddleware(ROLES.SUPERADMIN), subscriptionsController.getSubscribers);
+router.get('/subscribers/export', roleMiddleware(ROLES.SUPERADMIN), subscriptionsController.exportSubscribers);
 
 export default router;

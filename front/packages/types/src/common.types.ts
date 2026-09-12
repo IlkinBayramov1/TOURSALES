@@ -30,17 +30,84 @@ export interface ToastMessage {
   duration?: number;
 }
 
+export interface AdPackage {
+  id: string;
+  name?: string;
+  durationDays: number;
+  price: number;
+  features: string[];
+}
+
 export interface Ad {
   id: string;
   title: string;
-  imageUrl: string;
+  imageUrl?: string;
   linkUrl?: string;
-  position: 'HERO' | 'SIDEBAR' | 'POPUP';
-  isActive: boolean;
+  position: 'HERO' | 'SIDEBAR' | 'POPUP' | 'VIP_LIST' | string;
+  isActive?: boolean;
+  status: 'Active' | 'Paused' | 'Expired' | 'Cancelled' | string;
   startDate: string;
   endDate: string;
   clicksCount?: number;
+  viewCount?: number;
   impressionsCount?: number;
+  bookingCount?: number;
+  amountPaid?: number;
+  tourId?: string | null;
+  packageId?: string | null;
+  tour?: {
+    id: string;
+    title: string;
+    price: number;
+    images?: string;
+  } | null;
+  package?: AdPackage | null;
+}
+
+export interface VendorAdsKPI {
+  summary: {
+    totalImpressions: number;
+    totalClicks: number;
+    avgCtr: string;
+    totalBookings: number;
+    totalSpent: number;
+    totalRevenueGenerated: number;
+    roi: string;
+    activeAdsCount: number;
+    totalAdsCount: number;
+  };
+  campaigns: Array<{
+    adId: string;
+    title: string;
+    tourTitle: string | null;
+    packageName: string;
+    position: string;
+    amountPaid: number;
+    startDate: string;
+    endDate: string;
+    status: string;
+    viewCount: number;
+    clicksCount: number;
+    ctr: string;
+    bookingCount: number;
+    revenueGenerated: number;
+  }>;
+}
+
+export interface CampaignPromo {
+  id: string;
+  companyId?: string | null;
+  type: string;
+  promoCode: string;
+  discountType: 'PERCENTAGE' | 'FIXED' | string;
+  discountValue: number;
+  usageLimit: number;
+  usedCount: number;
+  startDate: string;
+  endDate: string;
+  description?: string | null;
+  status: 'Active' | 'Expired' | string;
+  createdAt?: string;
 }
 
 export interface BlogPost {

@@ -37,13 +37,12 @@ export const AdCampaignModal: React.FC<AdCampaignModalProps> = ({
     try {
       setLoading(true);
       setError(null);
-      await vendorAdsApi.createCampaign({
+      await vendorAdsApi.purchaseAd({
         title,
         imageUrl,
         linkUrl,
         position,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString()
+        packageId: 'ADP-7D'
       });
       onSuccess();
       onClose();

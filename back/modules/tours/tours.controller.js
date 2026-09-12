@@ -38,11 +38,18 @@ class ToursController {
     return res.json({ status: 'success', msg: 'Tur yeniləndi', data: result });
   });
 
+  toggleStatus = asyncHandler(async (req, res) => {
+    const companyId = req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId;
+    const { status } = req.body;
+    const result = await toursService.toggleStatus(req.params.id, status, companyId);
+    return res.json({ status: 'success', msg: 'Tur statusu uğurla dəyişdirildi', data: result });
+  });
+
   delete = asyncHandler(async (req, res) => {
     const companyId = req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId;
     const result = await toursService.delete(req.params.id, companyId);
     if (!result) throw ApiError.notFound('Tur tapılmadı və ya silməyə icazəniz yoxdur.');
-    return res.json({ status: 'success', msg: 'Tur silindi' });
+    return res.json({ status: 'success', msg: 'Tur uğurla ləğv edildi' });
   });
 
   // Gözləmə Siyahısı metodları

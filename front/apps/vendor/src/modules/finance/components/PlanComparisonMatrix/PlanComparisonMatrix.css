@@ -1,0 +1,95 @@
+.plan-matrix-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  padding: 28px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.plan-matrix-header h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.01em;
+}
+
+.plan-matrix-header p {
+  color: #64748b;
+  font-size: 13.5px;
+  margin: 0;
+}
+
+.plan-matrix-table-wrap {
+  overflow-x: auto;
+}
+
+.plan-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.plan-matrix-table th,
+.plan-matrix-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.plan-matrix-table th {
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.col-feature {
+  width: 40%;
+  color: #334155;
+  font-size: 14px;
+}
+
+.col-plan {
+  width: 20%;
+  text-align: center;
+}
+
+.col-plan.active-col {
+  background: rgba(37, 99, 235, 0.03);
+  border-left: 2px solid #2563eb;
+  border-right: 2px solid #2563eb;
+}
+
+.matrix-th-name {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.matrix-th-price {
+  font-weight: 500;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.matrix-check {
+  color: #16a34a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.matrix-dash {
+  color: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.matrix-text-val {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+}

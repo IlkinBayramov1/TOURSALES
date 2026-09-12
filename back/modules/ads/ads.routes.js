@@ -7,7 +7,7 @@ import { ROLES } from '../../config/constants.js';
 
 const router = express.Router();
 
-// Bütün reklam marşrutları üçün auth lazımdır
+// Bütün reklam marşrutları üçün auth tələb olunur
 router.use(authMiddleware());
 
 // Paket marşrutları
@@ -15,8 +15,10 @@ router.get('/packages', adsController.getPackages);
 router.post('/packages', roleMiddleware(ROLES.SUPERADMIN), validateAdPackage, adsController.createPackage);
 
 // Reklam marşrutları
-router.post('/purchase', roleMiddleware(ROLES.VENDOR), validateAdPurchase, adsController.purchaseAd);
 router.get('/', adsController.getAds);
 router.get('/kpi', adsController.getKPI);
+router.post('/purchase', roleMiddleware(ROLES.VENDOR), validateAdPurchase, adsController.purchaseAd);
+router.patch('/:id/status', roleMiddleware(ROLES.VENDOR), adsController.toggleStatus);
+router.delete('/:id', roleMiddleware(ROLES.VENDOR), adsController.deleteAd);
 
 export default router;

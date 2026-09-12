@@ -19,59 +19,76 @@ export const RecentBookingsTable: React.FC<RecentBookingsTableProps> = ({
     {
       key: 'bookingNumber',
       header: 'Sifariş №',
-      render: (b: Booking) => (
+      render: (b: any) => (
         <span className="vendor-booking-num font-mono font-bold">
-          {b.bookingNumber}
+          {b.bookingNumber || b.id}
         </span>
       ),
     },
     {
       key: 'tourTitle',
       header: 'Turun Adı',
-      render: (b: Booking) => (
+      render: (b: any) => (
         <span className="vendor-booking-tour font-medium">
-          {b.tourTitle || 'Tur'}
+          {b.tourTitle || b.tour?.title || 'Tur'}
         </span>
       ),
     },
     {
       key: 'passengers',
       header: 'Sərnişinlər & Yerlər',
-      render: (b: Booking) => (
-        <div className="vendor-booking-passengers">
-          <span>{b.passengers?.[0]?.fullName || 'Müştəri'}</span>
-          <span className="vendor-seats-tag">
-            {b.passengers?.map((p: any) => `№${p.seatNumber}`).join(', ')}
-          </span>
-        </div>
-      ),
+      render: (b: any) => {
+        const pName = b.passengerName || b.passengers?.[0]?.fullName || 'Müştəri';
+        const seatInfo = b.busSeatNumber
+          ? `Yer #${b.busSeatNumber}`
+          : b.passengers?.length
+          ? b.passengers.map((p: any) => `№${p.seatNumber}`).join(', ')
+          : `${b.seats || 1} yer`;
+
+        return (
+          <div className="vendor-booking-passengers">
+            <span>{pName}</span>
+            <span className="vendor-seats-tag">{seatInfo}</span>
+          </div>
+        );
+      },
     },
     {
       key: 'totalAmount',
       header: 'Məbləğ',
-      render: (b: Booking) => (
+      render: (b: any) => (
         <strong className="vendor-amount-text">
-          {b.totalAmount || b.totalPrice || 0} {b.currency || 'AZN'}
+          {Number(b.totalAmount || b.totalPrice || 0).toLocaleString()} {b.currency || 'AZN'}
         </strong>
       ),
     },
     {
       key: 'status',
       header: 'Status',
-      render: (b: Booking) => (
-        <Badge
-          variant={
-            b.status === 'CONFIRMED'
-              ? 'success'
-              : b.status === 'COMPLETED'
-              ? 'neutral'
-              : 'warning'
-          }
-          pill
-        >
-          {b.status === 'CONFIRMED' ? 'Təsdiqləndi' : b.status}
-        </Badge>
-      ),
+      render: (b: any) => {
+        let variant: 'success' | 'neutral' | 'warning' | 'error' = 'neutral';
+        let label = b.status;
+
+        if (b.status === 'CONFIRMED') {
+          variant = 'success';
+          label = 'Təsdiqləndi';
+        } else if (b.status === 'PENDING') {
+          variant = 'warning';
+          label = 'Gözləmədə';
+        } else if (b.status === 'CANCELLED') {
+          variant = 'error';
+          label = 'Ləğv edildi';
+        } else if (b.status === 'COMPLETED') {
+          variant = 'neutral';
+          label = 'Tamamlandı';
+        }
+
+        return (
+          <Badge variant={variant} pill>
+            {label}
+          </Badge>
+        );
+      },
     },
     {
       key: 'actions',

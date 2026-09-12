@@ -14,6 +14,10 @@ model User {
   hashAlgorithm      String           @default("SHA256") // SHA256, BCRYPT, ARGON2ID
   name               String?
   role               String           @default("User") // SuperAdmin, Vendor, User
+  agencyRole         String?          @default("OWNER") // OWNER, MANAGER, ACCOUNTANT, GUIDE
+  phoneNumber        String?
+  status             String           @default("Active") // Active, Suspended, Invited
+  lastLoginAt        DateTime?
   loyaltyPoints      Int              @default(0)
   companyId          String?          // For Vendor users
   company            Company?         @relation(fields: [companyId], references: [id], onDelete: SetNull)
@@ -67,10 +71,26 @@ model Company {
   rating           Float                 @default(0.0)
   availableBalance Decimal               @default(0.0000) @db.Decimal(19, 4)
   pendingBalance   Decimal               @default(0.0000) @db.Decimal(19, 4)
-  payoutAccount    String?
-  planId           String?
-  plan             SubscriptionPlan?     @relation(fields: [planId], references: [id], onDelete: SetNull)
-  deletedAt        DateTime?
+  payoutAccount         String?
+  legalName             String?
+  logoUrl               String?
+  coverUrl              String?
+  description           String?               @db.Text
+  website               String?
+  city                  String?
+  workingHours          String?
+  socialLinks           String?               @db.Text
+  bankVoen              String?
+  bankCode              String?
+  swiftBic              String?
+  accountantName        String?
+  accountantPhone       String?
+  notificationSettings  String?               @db.Text
+  planId                String?
+  plan                  SubscriptionPlan?     @relation(fields: [planId], references: [id], onDelete: SetNull)
+  autoRenewSubscription Boolean               @default(true)
+  nextBillingDate       DateTime?
+  deletedAt             DateTime?
   deletedBy        String?
   deleteReason     String?
   createdAt        DateTime              @default(now())
@@ -84,6 +104,8 @@ model Company {
   ads              Ad[]
   payments         SubscriptionPayment[]
   ledgerAccounts   LedgerAccount[]
+  apiKeys          ApiKey[]
+  webhooks         Webhook[]
 
   @@index([status])
   @@index([planId])
@@ -131,6 +153,7 @@ model Tour {
   minParticipants       Int          @default(1)
   maxParticipants       Int
   startDate             DateTime
+  endDate               DateTime?
   includedServices      String?      @db.Text // JSON list
   excludedServices      String?      @db.Text // JSON list
   itinerary             String?      @db.Text // JSON list
@@ -146,6 +169,7 @@ model Tour {
   meetingPointLng       Float?
   
   // Common / Foreign specific
+  destinationCountry    String?
   hotelName             String?
   hotelCategory         String?      // 3*, 4*, 5*
   currency              String       @default("AZN")
@@ -200,6 +224,11 @@ model Booking {
   totalAmount      Decimal       @db.Decimal(19, 4)
   documents        String?       @db.Text // JSON list of secure document file paths
   bookingChannel   String        @default("PLATFORM") // PLATFORM, MANUAL
+  isCheckedIn      Boolean       @default(false)
+  checkedInAt      DateTime?
+  checkedInBy      String?
+  qrToken          String?       @unique
+  passengersData   String?       @db.Text // JSON array of passenger objects [{ seatNumber, fullName, phone, finCode, isCheckedIn }]
   deletedAt        DateTime?
   deletedBy        String?
   deleteReason     String?
@@ -211,6 +240,7 @@ model Booking {
   @@index([companyId])
   @@index([contactEmail])
   @@index([status])
+  @@index([isCheckedIn])
 }
 
 model Transaction {
@@ -259,6 +289,7 @@ model Campaign {
   endDate            DateTime
   description        String?         @db.Text
   status             String          @default("Active") // Active, Expired
+  createdAt          DateTime        @default(now())
   usages             CampaignUsage[]
 
   @@index([companyId])
@@ -277,31 +308,38 @@ model CampaignUsage {
 }
 
 model AdPackage {
-  id           String @id // ADP-XXXXXX
+  id           String  @id // ADP-XXXXXX
+  name         String?
   durationDays Int
   price        Decimal @db.Decimal(19, 4)
-  features     String @db.Text // JSON string list
+  features     String  @db.Text // JSON string list
   ads          Ad[]
 }
 
 model Ad {
-  id           String    @id // AD-XXXXXX
+  id           String     @id // AD-XXXXXX
   companyId    String
-  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  tourId       String
-  tour         Tour      @relation(fields: [tourId], references: [id], onDelete: Cascade)
-  packageId    String
-  package      AdPackage @relation(fields: [packageId], references: [id])
-  amountPaid   Decimal   @db.Decimal(19, 4)
+  company      Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tourId       String?
+  tour         Tour?      @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  packageId    String?
+  package      AdPackage? @relation(fields: [packageId], references: [id])
+  title        String?
+  imageUrl     String?    @db.Text
+  linkUrl      String?
+  position     String     @default("HERO") // HERO, SIDEBAR, POPUP, VIP_LIST
+  amountPaid   Decimal    @db.Decimal(19, 4) @default(0.0)
   startDate    DateTime
   endDate      DateTime
-  status       String    @default("Active") // Active, Expired, Cancelled
-  viewCount    Int       @default(0)
-  bookingCount Int       @default(0)
-  createdAt    DateTime  @default(now())
+  status       String     @default("Active") // Active, Paused, Expired, Cancelled
+  viewCount    Int        @default(0)
+  clicksCount  Int        @default(0)
+  bookingCount Int        @default(0)
+  createdAt    DateTime   @default(now())
 
   @@index([companyId])
   @@index([tourId])
+  @@index([status])
 }
 
 model LoyaltyOffer {
@@ -455,3 +493,42 @@ model WebhookLog {
 
   @@index([provider])
 }
+
+model ApiKey {
+  id                 String    @id // AK-XXXXXX
+  companyId          String
+  company            Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name               String
+  keyPrefix          String    // e.g. ts_live_4f92 or ts_test_8b11
+  keyHash            String    @unique // SHA-256 hash of secret key
+  environment        String    @default("LIVE") // LIVE, TEST
+  scopes             String    @db.Text // JSON array: ["tours:read", "bookings:read", "bookings:write"]
+  ipWhitelist        String?   @db.Text
+  rateLimitPerMinute Int       @default(120)
+  requestCount       Int       @default(0)
+  status             String    @default("Active") // Active, Revoked
+  lastUsedAt         DateTime?
+  expiresAt          DateTime?
+  createdAt          DateTime  @default(now())
+
+  @@index([companyId])
+  @@index([keyHash])
+  @@index([status])
+}
+
+model Webhook {
+  id                 String    @id // WH-XXXXXX
+  companyId          String
+  company            Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name               String
+  url                String
+  secretKey          String    // e.g. whsec_...
+  events             String    @db.Text // JSON array: ["booking.created", "booking.confirmed"]
+  status             String    @default("Active") // Active, Disabled
+  lastDeliveryAt     DateTime?
+  lastDeliveryStatus String?   // 200 OK, 500 ERROR
+  createdAt          DateTime  @default(now())
+
+  @@index([companyId])
+}
+

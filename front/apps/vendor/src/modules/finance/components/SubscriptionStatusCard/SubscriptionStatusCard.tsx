@@ -1,22 +1,37 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@toursales/ui';
 import { useNavigate } from 'react-router-dom';
+import { vendorFinanceApi, CurrentSubscriptionInfo } from '../../vendorFinanceApi';
 import './SubscriptionStatusCard.css';
 
 interface SubscriptionStatusCardProps {
-  planName?: string;
-  commissionRate?: number;
-  maxTours?: number;
-  activeToursCount?: number;
+  subscription?: CurrentSubscriptionInfo | null;
 }
 
-export const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({
-  planName = 'Pro Plan',
-  commissionRate = 5,
-  maxTours = 50,
-  activeToursCount = 12
-}) => {
+export const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({ subscription }) => {
   const navigate = useNavigate();
+  const [data, setData] = useState<CurrentSubscriptionInfo | null>(subscription || null);
+
+  useEffect(() => {
+    if (subscription) {
+      setData(subscription);
+    } else {
+      const fetchSub = async () => {
+        try {
+          const res = await vendorFinanceApi.getCurrentSubscription();
+          setData(res);
+        } catch (err) {
+          console.error('Abunəlik məlumatı yüklənmədi:', err);
+        }
+      };
+      fetchSub();
+    }
+  }, [subscription]);
+
+  const planName = data?.planName || 'Peşəkar (Pro)';
+  const commissionRate = data?.commissionRate ?? 5;
+  const maxTours = data?.maxTours ?? 50;
+  const activeToursCount = data?.activeToursCount ?? 0;
 
   return (
     <div className="sub-card">

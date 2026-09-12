@@ -25,9 +25,24 @@ notificationsService.initialize(server);
 // Gündəlik Cron Job-ları işə salırıq
 startCronJobs();
 
-server.listen(PORT, () => {
-  console.log(`Server ${env.NODE_ENV} rejimində, ${PORT} portunda fəaliyyət göstərir (WebSocket və Cron Jobs aktivdir).`);
-});
+// Verilənlər bazasını əvvəlcədən qoşuruq və serveri dinləməyə başlayırıq (Cold-start gecikməsini aradan qaldırır)
+const startServer = async () => {
+  const dbStartTime = Date.now();
+  try {
+    await prisma.$connect();
+    const dbDuration = Date.now() - dbStartTime;
+    console.log(`[Database] Prisma verilənlər bazasına uğurla qoşuldu (${dbDuration}ms).`);
+  } catch (err) {
+    console.error('[CRITICAL] Verilənlər bazasına qoşularkən xəta:', err);
+    process.exit(1);
+  }
+
+  server.listen(PORT, () => {
+    console.log(`Server ${env.NODE_ENV} rejimində, ${PORT} portunda fəaliyyət göstərir (WebSocket və Cron Jobs aktivdir).`);
+  });
+};
+
+startServer();
 
 // Graceful Shutdown Handler
 const gracefulShutdown = async (signal) => {

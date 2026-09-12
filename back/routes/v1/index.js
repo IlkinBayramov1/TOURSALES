@@ -20,6 +20,8 @@ import paymentsRoutes from '../../modules/payments/payments.routes.js';
 import commonRoutes from '../../modules/common/common.routes.js';
 import companyRoutes from '../../modules/company/company.routes.js';
 import crmRoutes from '../../modules/crm/crm.routes.js';
+import teamsRoutes from '../../modules/teams/teams.routes.js';
+import apiKeysRoutes from '../../modules/apikeys/apikeys.routes.js';
 
 const router = express.Router();
 
@@ -35,6 +37,7 @@ router.use('/campaigns', campaignsRoutes);
 router.use('/ads', adsRoutes);
 router.use('/loyalty', loyaltyRoutes);
 router.use('/vendor', vendorRoutes);
+router.use('/teams', teamsRoutes);
 router.use('/superadmin', superadminRoutes);
 router.use('/reviews', reviewsRoutes);
 router.use('/cms', cmsRoutes);
@@ -44,6 +47,7 @@ router.use('/payments', paymentsRoutes);
 router.use('/common', commonRoutes);
 router.use('/company', companyRoutes);
 router.use('/crm', crmRoutes);
+router.use('/api-keys', apiKeysRoutes);
 
 // Admin Portal compatibility aliases
 router.use('/admin/auth', authRoutes);

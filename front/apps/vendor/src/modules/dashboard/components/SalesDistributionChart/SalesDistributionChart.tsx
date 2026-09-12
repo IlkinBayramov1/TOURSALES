@@ -6,6 +6,7 @@ import './SalesDistributionChart.css';
 interface PieEntry {
   name: string;
   value: number;
+  tickets?: number;
   color: string;
 }
 
@@ -14,15 +15,17 @@ interface SalesDistributionChartProps {
   totalTickets?: number;
 }
 
-const DEFAULT_PIE_DATA: PieEntry[] = [
-  { name: 'Xarici Turlar', value: 65, color: '#635bff' },
-  { name: 'Daxili Turlar', value: 35, color: '#0ea5e9' },
+const EMPTY_PIE_DATA: PieEntry[] = [
+  { name: 'Xarici Turlar', value: 50, tickets: 0, color: '#635bff' },
+  { name: 'Daxili Turlar', value: 50, tickets: 0, color: '#0ea5e9' },
 ];
 
 export const SalesDistributionChart: React.FC<SalesDistributionChartProps> = ({
-  data = DEFAULT_PIE_DATA,
-  totalTickets = 1284,
+  data = EMPTY_PIE_DATA,
+  totalTickets = 0,
 }) => {
+  const chartData = data && data.length > 0 ? data : EMPTY_PIE_DATA;
+
   return (
     <div className="vendor-pie-chart-card">
       <div className="vendor-chart-card-header">
@@ -37,14 +40,14 @@ export const SalesDistributionChart: React.FC<SalesDistributionChartProps> = ({
           <ResponsiveContainer width="100%" height={170}>
             <PieChart>
               <Pie
-                data={data}
+                data={chartData}
                 innerRadius={55}
                 outerRadius={75}
                 paddingAngle={5}
                 dataKey="value"
                 stroke="none"
               >
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -55,6 +58,7 @@ export const SalesDistributionChart: React.FC<SalesDistributionChartProps> = ({
                   boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
                   fontSize: '13px',
                 }}
+                formatter={(value: any, name: any) => [`${value}%`, name]}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -66,11 +70,13 @@ export const SalesDistributionChart: React.FC<SalesDistributionChartProps> = ({
         </div>
 
         <div className="vendor-pie-legend">
-          {data.map((item, i) => (
+          {chartData.map((item, i) => (
             <div key={i} className="vendor-legend-item">
               <div className="vendor-legend-dot" style={{ backgroundColor: item.color }} />
               <span className="vendor-legend-text">{item.name}</span>
-              <span className="vendor-legend-value">{item.value}%</span>
+              <span className="vendor-legend-value">
+                {item.value}% {item.tickets !== undefined ? `(${item.tickets} əd)` : ''}
+              </span>
             </div>
           ))}
         </div>

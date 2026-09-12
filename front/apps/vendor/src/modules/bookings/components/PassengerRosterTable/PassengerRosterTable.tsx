@@ -1,7 +1,7 @@
 import React from 'react';
 import { RosterPassenger } from '../../api/vendorBookingApi';
 import { Badge, Button } from '@toursales/ui';
-import { Printer, Phone, User } from 'lucide-react';
+import { Printer, Phone, User, Download, CheckCircle, Clock } from 'lucide-react';
 import { DataTable, Column } from '@/shared/components';
 import './PassengerRosterTable.css';
 
@@ -10,6 +10,7 @@ interface PassengerRosterTableProps {
   isLoading?: boolean;
   tourTitle?: string;
   onToggleCheckIn?: (passenger: RosterPassenger) => void;
+  onExportExcel?: () => void;
 }
 
 export const PassengerRosterTable: React.FC<PassengerRosterTableProps> = ({
@@ -17,10 +18,16 @@ export const PassengerRosterTable: React.FC<PassengerRosterTableProps> = ({
   isLoading,
   tourTitle,
   onToggleCheckIn,
+  onExportExcel,
 }) => {
   const handlePrint = () => {
     window.print();
   };
+
+  const totalCount = passengers.length;
+  const checkedInCount = passengers.filter((p) => p.isCheckedIn).length;
+  const pendingCount = totalCount - checkedInCount;
+  const percentage = totalCount > 0 ? Math.round((checkedInCount / totalCount) * 100) : 0;
 
   const columns: Column<RosterPassenger>[] = [
     {
@@ -101,12 +108,44 @@ export const PassengerRosterTable: React.FC<PassengerRosterTableProps> = ({
         </div>
 
         <div className="vendor-roster-actions">
+          {onExportExcel && (
+            <Button variant="outline" size="sm" onClick={onExportExcel}>
+              <Download size={15} />
+              <span>Excel Manifest</span>
+            </Button>
+          )}
           <Button variant="secondary" size="sm" onClick={handlePrint}>
             <Printer size={15} />
             <span>Siyahını Çap Et</span>
           </Button>
         </div>
       </div>
+
+      {/* Boarding Progress Bar & Stats */}
+      {totalCount > 0 && (
+        <div className="vendor-roster-stats-strip">
+          <div className="vendor-roster-stat-item">
+            <span className="text-secondary">Cəmi Sərnişin:</span>
+            <strong>{totalCount} nəfər</strong>
+          </div>
+          <div className="vendor-roster-stat-item text-success">
+            <CheckCircle size={15} />
+            <span>Mindirildi:</span>
+            <strong>{checkedInCount} ({percentage}%)</strong>
+          </div>
+          <div className="vendor-roster-stat-item text-secondary">
+            <Clock size={15} />
+            <span>Gözləyir:</span>
+            <strong>{pendingCount} nəfər</strong>
+          </div>
+          <div className="vendor-roster-progress-bar-wrap">
+            <div
+              className="vendor-roster-progress-bar-fill"
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       <DataTable<RosterPassenger>
         columns={columns}

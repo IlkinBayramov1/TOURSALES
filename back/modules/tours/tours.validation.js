@@ -3,23 +3,30 @@ import ApiError from '../../core/api.error.js';
 export const validateTour = (req, res, next) => {
   // Normalize frontend vs backend field names
   if (req.body.price === undefined && req.body.basePrice !== undefined) {
-    req.body.price = req.body.basePrice;
+    req.body.price = parseFloat(req.body.basePrice);
   }
   if (req.body.maxParticipants === undefined && req.body.capacity !== undefined) {
-    req.body.maxParticipants = req.body.capacity;
+    req.body.maxParticipants = parseInt(req.body.capacity, 10);
+  }
+  if (!req.body.meetingPointAddress && req.body.meetingPoint) {
+    req.body.meetingPointAddress = req.body.meetingPoint;
+  }
+  if (!req.body.transportType && req.body.busType) {
+    req.body.transportType = req.body.busType;
+  }
+  if (!req.body.regions && req.body.region) {
+    req.body.regions = [req.body.region];
   }
   
   if (req.body.type === 'DOMESTIC') {
-    if (!req.body.regions || !Array.isArray(req.body.regions) || req.body.regions.length === 0) {
-      if (req.body.region) {
-        req.body.regions = [req.body.region];
-      }
+    if (!req.body.transportType) {
+      req.body.transportType = 'STANDARD_48';
     }
-    if (!req.body.transportType && req.body.busType) {
-      req.body.transportType = req.body.busType;
+    if (!req.body.meetingPointAddress) {
+      req.body.meetingPointAddress = 'Gənclik m/s, Caspian Shopping qarşısı';
     }
-    if (!req.body.meetingPointAddress && req.body.meetingPoint) {
-      req.body.meetingPointAddress = req.body.meetingPoint;
+    if (!req.body.regions || req.body.regions.length === 0) {
+      req.body.regions = [req.body.region || 'Shusha'];
     }
   }
 
@@ -27,38 +34,50 @@ export const validateTour = (req, res, next) => {
     if (!req.body.hotelName) {
       req.body.hotelName = req.body.destinationCountry || 'Standart Otel';
     }
+    if (!req.body.meetingPointAddress) {
+      req.body.meetingPointAddress = 'Heydər Əliyev Beynəlxalq Hava Limanı (GYD), Terminal 1';
+    }
   }
 
   const { type, title, price, maxParticipants, startDate } = req.body;
 
-  if (!type || !title || price === undefined || !maxParticipants || !startDate) {
-    return next(ApiError.badRequest('Tur növü (type), başlıq (title), qiymət (price), maksimum iştirakçı sayı (maxParticipants) və başlama tarixi (startDate) vacibdir.'));
+  const missing = [];
+  if (!type) missing.push('Tur növü (type)');
+  if (!title || !String(title).trim()) missing.push('Turun Başlığı (title)');
+  if (price === undefined || isNaN(price)) missing.push('Qiymət (price)');
+  if (!maxParticipants || isNaN(maxParticipants)) missing.push('Maksimum iştirakçı sayı (maxParticipants)');
+  if (!startDate) missing.push('Başlama tarixi (startDate)');
+
+  if (missing.length > 0) {
+    return next(ApiError.badRequest(`Aşağıdakı vacib sahələr doldurulmalıdır: ${missing.join(', ')}`));
   }
 
   if (type !== 'DOMESTIC' && type !== 'FOREIGN') {
     return next(ApiError.badRequest("Tur növü yalnız 'DOMESTIC' və ya 'FOREIGN' ola bilər."));
   }
 
-  if (type === 'DOMESTIC') {
-    const { regions, transportType, meetingPointAddress } = req.body;
-    if (!regions || !Array.isArray(regions) || regions.length === 0) {
-      return next(ApiError.badRequest('Daxili tur üçün ən azı bir region (rayon) seçilməlidir.'));
-    }
-    if (!transportType) {
-      return next(ApiError.badRequest('Daxili tur üçün nəqliyyat növü (transportType) vacibdir.'));
-    }
-    if (!meetingPointAddress) {
-      return next(ApiError.badRequest('Daxili tur üçün toplanış yeri (meetingPointAddress) vacibdir.'));
-    }
-  }
+  next();
+};
 
-  if (type === 'FOREIGN') {
-    const { hotelName } = req.body;
-    if (!hotelName) {
-      return next(ApiError.badRequest('Xarici tur üçün otel adı (hotelName) vacibdir.'));
-    }
+export const validateTourUpdate = (req, res, next) => {
+  if (req.body.price === undefined && req.body.basePrice !== undefined) {
+    req.body.price = req.body.basePrice;
   }
-
+  if (req.body.maxParticipants === undefined && req.body.capacity !== undefined) {
+    req.body.maxParticipants = req.body.capacity;
+  }
+  if (req.body.regions === undefined && req.body.region) {
+    req.body.regions = [req.body.region];
+  }
+  if (!req.body.transportType && req.body.busType) {
+    req.body.transportType = req.body.busType;
+  }
+  if (!req.body.meetingPointAddress && req.body.meetingPoint) {
+    req.body.meetingPointAddress = req.body.meetingPoint;
+  }
+  if (req.body.type && req.body.type !== 'DOMESTIC' && req.body.type !== 'FOREIGN') {
+    return next(ApiError.badRequest("Tur növü yalnız 'DOMESTIC' və ya 'FOREIGN' ola bilər."));
+  }
   next();
 };
 

@@ -8,10 +8,14 @@ class CampaignsService {
 
     const where = {};
     if (companyId) {
-      where.OR = [
-        { companyId },
-        { companyId: null }
-      ];
+      if (filters.companyOnly === 'true' || filters.companyOnly === true) {
+        where.companyId = companyId;
+      } else {
+        where.OR = [
+          { companyId },
+          { companyId: null }
+        ];
+      }
     }
     if (status) {
       where.status = status;
