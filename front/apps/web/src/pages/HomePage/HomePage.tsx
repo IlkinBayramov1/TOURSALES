@@ -1,165 +1,312 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   Search, MapPin, Calendar, Users, Star, ShieldCheck, Gift,
-  ArrowRight, ChevronRight, ChevronLeft, Info, CheckCircle2, 
-  Percent, PlaneTakeoff, Bus, Flame, Crown, Sparkles, Coffee, 
-  Umbrella, HelpCircle, Heart
+  ArrowRight, ChevronRight, ChevronLeft, Percent, PlaneTakeoff, 
+  Bus, Flame, Crown, Sparkles, Coffee, Umbrella, HelpCircle, 
+  Heart, Copy, Check, Building2, Tag
 } from 'lucide-react';
-import { Tour } from '@toursales/types';
+import { Tour, Ad, CompanyPublic, CampaignPromo } from '@toursales/types';
 import { tourApi } from '../../modules/tour/api/tourApi';
+import { adsApi } from '../../modules/ads/api/adsApi';
+import { companyApi } from '../../modules/company/api/companyApi';
+import { campaignApi } from '../../modules/campaign/api/campaignApi';
+import { useCurrency } from '../../shared/context/CurrencyContext';
+import { useToast } from '../../shared/context/ToastContext';
+import { useFavorites } from '../../shared/context/FavoritesContext';
+import { formatDate } from '../../shared/utils/formatters';
 import './HomePage.css';
 
-// --- SLIDER BANNERS ---
-const HERO_SLIDES = [
+// Fallback high-res platform banners when vendor ads are initializing
+const DEFAULT_HERO_SLIDES = [
   {
-    id: 1,
+    id: 'default-1',
     title: 'Yay tətili planlarına <span>indidən başlayın.</span>',
-    subtitle: 'Bütün beynəlxalq istiqamətlərdə 30%-dək qənaət, pulsuz hava limanı transferi.',
+    subtitle: 'Bütün beynəlxalq istiqamətlərdə 30%-dək qənaət və lisenziyalı agentlik zəmanəti.',
     image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=2000',
     badge: 'Erkən Rezervasiya',
-    link: '/campaigns'
+    link: '/tours?category=FOREIGN',
+    isAd: false,
   },
   {
-    id: 2,
+    id: 'default-2',
     title: 'Dağların zirvəsində <span>unudulmaz anlar.</span>',
-    subtitle: 'Şahdağ və Tufandağ turlarında 5 AZN behlə yerinizi zəmanətə alın.',
+    subtitle: 'Şahdağ, Quba və Qəbələ turlarında canlı oturacaq seçimi ilə yerinizi zəmanətə alın.',
     image: 'https://images.unsplash.com/photo-1548777123-e216912df7d8?auto=format&fit=crop&q=80&w=2000',
     badge: 'Daxili Turlar',
-    link: '/domestic'
+    link: '/tours?category=DOMESTIC',
+    isAd: false,
   },
   {
-    id: 3,
+    id: 'default-3',
     title: 'Kapadokyanın <span>sehrli səması.</span>',
-    subtitle: 'Hava şarları, yeraltı şəhərlər və premium otellərdə gecələmə.',
+    subtitle: 'Hava şarları, yeraltı şəhərlər və premium otellərdə qrup və fərdi səyahətlər.',
     image: 'https://images.unsplash.com/photo-1506459225024-1428097a7e18?auto=format&fit=crop&q=80&w=2000',
     badge: 'Kəşf Et',
-    link: '/foreign'
-  }
+    link: '/tours',
+    isAd: false,
+  },
 ];
 
-// --- VIP TURLAR ---
-const VIP_TOURS = [
-  { id: 'vip-1', title: 'Maldiv Adaları: 7 Gecə Lüks Tətil', company: 'Baku Global Elite', rating: 5.0, reviews: 84, price: 3250, date: '15 İyul - 22 İyul', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=800', points: 200, isXarici: true },
-  { id: 'vip-2', title: 'İsveçrə Alp Dağları Ekspressi', company: 'EuroPassport Premium', rating: 4.9, reviews: 112, price: 2890, date: '05 Avqust - 12 Avqust', image: 'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&q=80&w=800', points: 150, isXarici: true },
-  { id: 'vip-3', title: 'Şahdağ Pik Palas Eksklüziv Həftəsonu', company: 'TechTrade Solutions', rating: 5.0, reviews: 65, price: 450, date: 'Hər Həftəsonu', image: 'https://images.unsplash.com/photo-1548777123-e216912df7d8?auto=format&fit=crop&q=80&w=800', points: 50, isXarici: false },
-  { id: 'vip-4', title: 'Paris və Amalfi Sahilləri Klassik', company: 'Boutique Travel AZ', rating: 4.9, reviews: 210, price: 3100, date: '10 Sentyabr - 18 Sentyabr', image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=800', points: 180, isXarici: true }
-];
-
-// --- TRENDING DESTINATIONS ---
+// Curated destinations for Bento navigation
 const TRENDING_DESTINATIONS = [
-  { id: 'd1', name: 'İstanbul, Türkiyə', count: '45+ Tur', image: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&q=80&w=600', link: '/foreign?search=Istanbul' },
-  { id: 'd2', name: 'Quba & Şahdağ', count: '28+ Tur', image: 'https://images.unsplash.com/photo-1548777123-e216912df7d8?auto=format&fit=crop&q=80&w=600', link: '/domestic?search=Quba' },
-  { id: 'd3', name: 'Dubay, BƏƏ', count: '12+ Tur', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=600', link: '/foreign?search=Dubay' },
-  { id: 'd4', name: 'Qəbələ & İsmayıllı', count: '34+ Tur', image: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&q=80&w=600', link: '/domestic?search=Qebele' },
-];
-
-// --- DAXİLİ VƏ XARİCİ FALLBACK MOCK DATA ---
-const FALLBACK_DAXILI = [
-  { id: 'daxili-1', title: 'Şahdağ Kompleksi Həftəsonu Qış & Yay', company: 'TechTrade MMC', rating: 4.9, reviews: 148, price: 35, date: '06 İyun - 07 İyun', image: 'https://images.unsplash.com/photo-1548777123-e216912df7d8?auto=format&fit=crop&q=80&w=600', points: 10, badge: 'Çox Satılan' },
-  { id: 'daxili-2', title: 'Gədəbəy və Göygöl Yaylaqları Eko Tur', company: 'Eco Tourism AZ', rating: 4.7, reviews: 94, price: 40, date: '15 İyun', image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=600', points: 10 },
-  { id: 'daxili-3', title: 'Lənkəran - Lerik Cənub İncisi', company: 'Caspian Travel', rating: 4.8, reviews: 112, price: 38, date: '22 İyun', image: 'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&q=80&w=600', points: 15 },
-  { id: 'daxili-4', title: 'Şəki - Qəbələ Tarix və Təbiət Səyahəti', company: 'DiscoverAz Pro', rating: 5.0, reviews: 205, price: 45, date: '28 İyun - 29 İyun', image: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&q=80&w=600', points: 20 },
-];
-
-const FALLBACK_XARICI = [
-  { id: 'xarici-1', title: '4 Gecə 5 Gün İstanbul və Boğaz Turu', company: 'Baku Global', rating: 4.8, reviews: 290, price: 890, date: '12 İyun - 17 İyun', image: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&q=80&w=600', points: 50, badge: 'Viza Dəstəkli' },
-  { id: 'xarici-2', title: 'Roma, Florensiya Klassik Avropa Turu', company: 'EuroPassport Elite', rating: 5.0, reviews: 412, price: 2450, date: '01 İyul - 08 İyul', image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=600', points: 100 },
-  { id: 'xarici-3', title: 'Sehrli Kapadokya (Hava Şarları & Vadi)', company: 'Global Travel', rating: 4.9, reviews: 320, price: 1200, date: '15 İyul - 20 İyul', image: 'https://images.unsplash.com/photo-1506459225024-1428097a7e18?auto=format&fit=crop&q=80&w=600', points: 60 },
-  { id: 'xarici-4', title: 'Dubay Səhra Safari və Şopinq Festivalı', company: 'SkyLine Avia', rating: 4.6, reviews: 185, price: 1450, date: '10 Avqust - 15 Avqust', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=600', points: 70 },
+  { id: 'd1', name: 'İstanbul, Türkiyə', count: 'Populyar', image: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&q=80&w=600', link: '/tours?q=Istanbul' },
+  { id: 'd2', name: 'Quba & Şahdağ', count: 'Həftəsonu', image: 'https://images.unsplash.com/photo-1548777123-e216912df7d8?auto=format&fit=crop&q=80&w=600', link: '/tours?q=Quba' },
+  { id: 'd3', name: 'Dubay, BƏƏ', count: 'VIP İstiqamət', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=600', link: '/tours?q=Dubay' },
+  { id: 'd4', name: 'Qəbələ & İsmayıllı', count: 'Təbiət', image: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&q=80&w=600', link: '/tours?q=Qebele' },
 ];
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { formatPrice } = useCurrency();
+  const { success } = useToast();
+
+  // Dynamic States from Backend APIs
+  const [heroSlides, setHeroSlides] = useState<any[]>(DEFAULT_HERO_SLIDES);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [wishlist, setWishlist] = useState<string[]>(['vip-2', 'daxili-1']);
-  
-  // Search state
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [companies, setCompanies] = useState<CompanyPublic[]>([]);
+  const [activeCampaign, setActiveCampaign] = useState<CampaignPromo | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Global Wishlist & Favorites
+  const { isFavorite, toggleFavorite } = useFavorites();
+
+  // Search Engine State
   const [searchDestination, setSearchDestination] = useState('');
   const [searchDate, setSearchDate] = useState('');
   const [searchPax, setSearchPax] = useState('');
 
-  // Slayder animasiyası
+  // 1. Fetch Dynamic Data from APIs
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev === HERO_SLIDES.length - 1 ? 0 : prev + 1));
-    }, 6000);
-    return () => clearInterval(timer);
+    let isMounted = true;
+
+    const loadAllHomeData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch vendor ads, tours, companies and active campaigns in parallel
+        const [adsRes, toursRes, companiesRes, campaignsRes] = await Promise.allSettled([
+          adsApi.getPublicAds('HERO', 5),
+          tourApi.getTours({ limit: 20 }),
+          companyApi.getPublicCompanies(8),
+          campaignApi.getActiveCampaigns(),
+        ]);
+
+        if (!isMounted) return;
+
+        // Process Hero Ads
+        if (adsRes.status === 'fulfilled' && adsRes.value && adsRes.value.length > 0) {
+          const dynamicAdSlides = adsRes.value.map((ad: Ad) => {
+            let img = ad.imageUrl;
+            if (!img && ad.tour?.images) {
+              img = Array.isArray(ad.tour.images) ? ad.tour.images[0] : ad.tour.images;
+            }
+            return {
+              id: ad.id,
+              title: `${ad.title} <span>${ad.companyName ? `• ${ad.companyName}` : ''}</span>`,
+              subtitle: ad.tour ? `${ad.tour.title} — Xüsusi partnyor təklifi` : 'Lisenziyalı turizm agentliyindən eksklüziv səyahət.',
+              image: img || 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=2000',
+              badge: ad.companyName ? `Sponsorlu • ${ad.companyName}` : 'Sponsorlu Təklif',
+              link: ad.tourId ? `/tours/${ad.tourId}` : (ad.linkUrl || '/tours'),
+              isAd: true,
+              ad,
+            };
+          });
+
+          // If vendor ads exist, show them first, supplementing with default slides if needed
+          const combinedSlides = dynamicAdSlides.length < 3 
+            ? [...dynamicAdSlides, ...DEFAULT_HERO_SLIDES.slice(0, 3 - dynamicAdSlides.length)]
+            : dynamicAdSlides;
+          setHeroSlides(combinedSlides);
+        }
+
+        // Process Tours
+        if (toursRes.status === 'fulfilled' && toursRes.value?.data) {
+          setTours(toursRes.value.data);
+        }
+
+        // Process Companies
+        if (companiesRes.status === 'fulfilled' && companiesRes.value) {
+          setCompanies(companiesRes.value);
+        }
+
+        // Process Active Campaigns
+        if (campaignsRes.status === 'fulfilled' && campaignsRes.value?.data && campaignsRes.value.data.length > 0) {
+          setActiveCampaign(campaignsRes.value.data[0]);
+        }
+      } catch (err) {
+        console.error('Failed to load home page dynamic data:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadAllHomeData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const toggleWishlist = (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setWishlist(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+  // 2. Slayder avtomatik keçidi (6 saniyə)
+  useEffect(() => {
+    if (heroSlides.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1));
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1));
+  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1));
+
+  // Click handler for Hero Slide (records vendor ad click)
+  const handleSlideClick = (slide: any) => {
+    if (slide.isAd && slide.ad?.id) {
+      adsApi.recordClick(slide.ad.id);
+    }
+    if (slide.link) {
+      if (slide.link.startsWith('http')) {
+        window.open(slide.link, '_blank');
+      } else {
+        navigate(slide.link);
+      }
+    }
   };
 
-  const nextSlide = () => setCurrentSlide(prev => (prev === HERO_SLIDES.length - 1 ? 0 : prev + 1));
-  const prevSlide = () => setCurrentSlide(prev => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1));
-
+  // Search execution
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (searchDestination) params.append('q', searchDestination);
+    if (searchDestination.trim()) params.append('q', searchDestination.trim());
+    if (searchDate.trim()) params.append('date', searchDate.trim());
+    if (searchPax.trim()) params.append('pax', searchPax.trim());
     navigate(`/tours?${params.toString()}`);
   };
 
-  // Reusable Tour Card Renderer
-  const renderCard = (tour: any, isDomestic = false, isVIP = false) => (
-    <div 
-      key={tour.id} 
-      className={`web-tour-product-card ${isVIP ? 'web-vip-tour-card' : ''}`}
-      onClick={() => navigate(isDomestic ? `/domestic` : `/foreign`)}
-    >
-      <div className="web-tour-thumbnail-wrapper">
-        <img src={tour.image} alt={tour.title} className="web-tour-img" />
-        
-        {isVIP && (
-          <div className="web-vip-badge">
-            <Crown size={14} /> VIP Paket
+  // Promo code copy handler
+  const handleCopyPromo = (code: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(code);
+    setCopiedCode(true);
+    success(`"${code}" promo kodu kopyalandı! Rezervasiya zamanı tətbiq edin.`, 'Kupon Aktivdir');
+    setTimeout(() => setCopiedCode(false), 3000);
+  };
+
+  // Image extraction helper
+  const getTourImage = (images?: string[] | string): string => {
+    if (Array.isArray(images) && images.length > 0 && images[0]) return images[0];
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed[0];
+      } catch {
+        if (images.startsWith('http')) return images;
+      }
+    }
+    return 'https://images.unsplash.com/photo-1548777123-e216912df7d8?auto=format&fit=crop&q=80&w=800';
+  };
+
+  // Segmented Tour Lists
+  const vipTours = tours.filter((t) => t.isVIP || (t.company?.rating && t.company.rating >= 4.8)).slice(0, 4);
+  const domesticTours = tours.filter((t) => t.type === 'DOMESTIC' || !t.destinationCountry || t.destinationCountry.toLowerCase().includes('az')).slice(0, 4);
+  const foreignTours = tours.filter((t) => t.type === 'FOREIGN' || (t.destinationCountry && !t.destinationCountry.toLowerCase().includes('az'))).slice(0, 4);
+
+  // Fallback subset if categories are not yet differentiated in database
+  const finalVipTours = vipTours.length > 0 ? vipTours : tours.slice(0, 4);
+  const finalDomesticTours = domesticTours.length > 0 ? domesticTours : tours.slice(0, 4);
+  const finalForeignTours = foreignTours.length > 0 ? foreignTours : tours.slice(2, 6);
+
+  // Card Renderer for Dynamic Tour
+  const renderTourCard = (tour: Tour, isDomestic = false, isVIP = false) => {
+    const tourImage = getTourImage(tour.images);
+    const companyName = tour.company?.name || tour.company?.legalName || 'Rəsmi Partnyor';
+    const rating = tour.company?.rating || 5.0;
+    const tourPrice = tour.price ?? tour.basePrice ?? 0;
+    const loyaltyPoints = Math.max(15, Math.round(tourPrice * 0.05));
+    const isSaved = isFavorite(tour.id);
+    const isVipCard = isVIP || Boolean(tour.isVIP);
+
+    return (
+      <div 
+        key={tour.id} 
+        className={`web-tour-product-card ${isVipCard ? 'web-vip-tour-card' : ''}`}
+        onClick={() => navigate(`/tours/${tour.id}`)}
+      >
+        <div className="web-tour-thumbnail-wrapper">
+          <img src={tourImage} alt={tour.title} className="web-tour-img" loading="lazy" />
+          
+          {isVipCard && (
+            <div className="web-vip-badge">
+              <Crown size={14} /> VIP Paket
+            </div>
+          )}
+          {!isVipCard && tour.availableSeats !== undefined && tour.availableSeats <= 5 && (
+            <span className="web-floating-card-badge">Son {tour.availableSeats} yer!</span>
+          )}
+          
+          <button 
+            className={`web-wishlist-btn ${isSaved ? 'web-wishlist-active' : ''}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleFavorite(tour);
+            }}
+            aria-label={isSaved ? "Seçilmişlərdən çıxar" : "Sevimlilərə əlavə et"}
+          >
+            <Heart size={18} fill={isSaved ? '#ff385c' : 'none'} color={isSaved ? '#ff385c' : 'currentColor'} />
+          </button>
+          
+          <div className="web-loyalty-points-indicator">
+            <Gift size={12} />
+            <span>+{loyaltyPoints} Xal</span>
           </div>
-        )}
-        {!isVIP && tour.badge && <span className="web-floating-card-badge">{tour.badge}</span>}
-        
-        <button 
-          className={`web-wishlist-btn ${wishlist.includes(tour.id) ? 'web-wishlist-active' : ''}`}
-          onClick={(e) => toggleWishlist(tour.id, e)}
-          aria-label="Sevimlilərə əlavə et"
-        >
-          <Heart size={18} fill={wishlist.includes(tour.id) ? "currentColor" : "none"} />
-        </button>
-        
-        <div className="web-loyalty-points-indicator">
-          <Gift size={12} />
-          <span>+{tour.points} Xal</span>
+        </div>
+
+        <div className="web-tour-product-meta-body">
+          <div className="web-operator-row">
+            <div className="web-operator-title-group">
+              <ShieldCheck size={14} className={isVipCard ? 'web-verified-icon-vip' : 'web-verified-icon'} />
+              <span className="web-operator-company-name">{companyName}</span>
+            </div>
+            <div className="web-rating-info-group">
+              <Star size={14} className="web-star-rating-icon" />
+              <span>{rating.toFixed(1)}</span>
+            </div>
+          </div>
+
+          <h3 className="web-tour-title-heading">{tour.title}</h3>
+          
+          <span className="web-tour-calendar-timeline">
+            {tour.type === 'DOMESTIC' ? <Bus size={14} /> : <PlaneTakeoff size={14} />} 
+            {tour.startDate ? formatDate(tour.startDate) : 'Hər həftəsonu'}
+          </span>
+
+          <div className="web-tour-price-row">
+            <div className="web-price-meta-block">
+              <span>Başlayan qiymətlərlə</span>
+              <h4>{formatPrice(tourPrice)}</h4>
+            </div>
+            <button className={isVipCard ? 'web-btn-product-redirect-vip' : 'web-btn-product-redirect'}>
+              Yer Seç
+            </button>
+          </div>
         </div>
       </div>
+    );
+  };
 
-      <div className="web-tour-product-meta-body">
-        <div className="web-operator-row">
-          <div className="web-operator-title-group">
-            <ShieldCheck size={14} className={isVIP ? 'web-verified-icon-vip' : 'web-verified-icon'} />
-            <span className="web-operator-company-name">{tour.company}</span>
-          </div>
-          <div className="web-rating-info-group">
-            <Star size={14} className="web-star-rating-icon" />
-            <span>{tour.rating}</span>
-          </div>
-        </div>
-
-        <h3 className="web-tour-title-heading">{tour.title}</h3>
-        <span className="web-tour-calendar-timeline">
-          {isDomestic ? <Bus size={14} /> : <PlaneTakeoff size={14}/>} 
-          {tour.date}
-        </span>
-
-        <div className="web-tour-price-row">
-          <div className="web-price-meta-block">
-            <span>Başlayan qiymətlərlə</span>
-            <h4>{tour.price} <span className="web-azn-symbol">₼</span></h4>
-          </div>
-          <button className={isVIP ? 'web-btn-product-redirect-vip' : 'web-btn-product-redirect'}>
-            Yer Seç
-          </button>
-        </div>
+  // Skeleton Card Renderer
+  const renderSkeletonCard = (key: number) => (
+    <div key={key} className="web-skeleton-card">
+      <div className="web-skeleton-thumb" />
+      <div className="web-skeleton-body">
+        <div className="web-skeleton-line web-skeleton-line-sm" />
+        <div className="web-skeleton-line web-skeleton-line-lg" />
+        <div className="web-skeleton-line web-skeleton-line-md" />
+        <div className="web-skeleton-line web-skeleton-line-sm" style={{ marginTop: 12 }} />
       </div>
     </div>
   );
@@ -167,20 +314,31 @@ export const HomePage: React.FC = () => {
   return (
     <div className="web-home-container-page">
       
-      {/* 1. HERO SLIDESHOW & BENTO SEARCH ENGINE */}
+      {/* 1. HERO SLIDESHOW WITH DYNAMIC VENDOR ADS & BENTO SEARCH ENGINE */}
       <section className="web-hero-section-wrapper">
         <div className="web-slider-container">
-          {HERO_SLIDES.map((banner, index) => (
+          {heroSlides.map((slide, index) => (
             <div 
-              key={banner.id} 
+              key={slide.id} 
               className={`web-slide ${index === currentSlide ? 'web-active-slide' : ''}`}
-              style={{ backgroundImage: `url(${banner.image})` }}
+              style={{ backgroundImage: `url(${slide.image})` }}
+              onClick={() => handleSlideClick(slide)}
+              role="button"
+              tabIndex={0}
             >
               <div className="web-slide-overlay">
                 <div className="web-slide-content">
-                  <span className="web-hero-tagline"><Flame size={14} /> {banner.badge}</span>
-                  <h1 className="web-hero-title" dangerouslySetInnerHTML={{ __html: banner.title }} />
-                  <p className="web-hero-subtitle">{banner.subtitle}</p>
+                  {slide.isAd ? (
+                    <span className="web-sponsored-badge">
+                      <Sparkles size={13} /> {slide.badge}
+                    </span>
+                  ) : (
+                    <span className="web-hero-tagline">
+                      <Flame size={14} /> {slide.badge}
+                    </span>
+                  )}
+                  <h1 className="web-hero-title" dangerouslySetInnerHTML={{ __html: slide.title }} />
+                  <p className="web-hero-subtitle">{slide.subtitle}</p>
                 </div>
               </div>
             </div>
@@ -190,7 +348,7 @@ export const HomePage: React.FC = () => {
           <button className="web-slider-btn-next" onClick={nextSlide} aria-label="Sonrakı"><ChevronRight size={24} /></button>
           
           <div className="web-slider-dots">
-            {HERO_SLIDES.map((_, idx) => (
+            {heroSlides.map((_, idx) => (
               <span 
                 key={idx} 
                 className={`web-dot ${idx === currentSlide ? 'web-active-dot' : ''}`} 
@@ -225,9 +383,10 @@ export const HomePage: React.FC = () => {
                 <label>Tarix Aralığı</label>
                 <input 
                   type="text" 
-                  placeholder="Tarixi seçin (Məs: May 2026)" 
+                  placeholder="Tarixi seçin (Məs: 2026)" 
                   value={searchDate}
                   onChange={(e) => setSearchDate(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
             </div>
@@ -243,6 +402,7 @@ export const HomePage: React.FC = () => {
                   placeholder="Neçə nəfər?" 
                   value={searchPax}
                   onChange={(e) => setSearchPax(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
             </div>
@@ -266,7 +426,10 @@ export const HomePage: React.FC = () => {
           <Link to="/tours" className="web-btn-view-all-links-vip">Bütün VIP turlar <ArrowRight size={16} /></Link>
         </div>
         <div className="web-tours-carousel">
-          {VIP_TOURS.map(tour => renderCard(tour, !tour.isXarici, true))}
+          {loading 
+            ? [1, 2, 3, 4].map(renderSkeletonCard)
+            : finalVipTours.map(tour => renderTourCard(tour, tour.type === 'DOMESTIC', true))
+          }
         </div>
       </section>
 
@@ -279,7 +442,7 @@ export const HomePage: React.FC = () => {
         <div className="web-destinations-grid">
           {TRENDING_DESTINATIONS.map((dest) => (
             <Link to={dest.link} key={dest.id} className="web-destination-card">
-              <img src={dest.image} alt={dest.name} className="web-dest-image" />
+              <img src={dest.image} alt={dest.name} className="web-dest-image" loading="lazy" />
               <div className="web-dest-overlay">
                 <h3 className="web-dest-name">{dest.name}</h3>
                 <span className="web-dest-count">{dest.count}</span>
@@ -296,40 +459,117 @@ export const HomePage: React.FC = () => {
             <h2 className="web-section-main-title">Bu Həftəsonu Daxili Turlar</h2>
             <p className="web-section-sub-title">Azərbaycanın hər qarışını kəşf edin. Rahat avtobuslar və peşəkar bələdçilərlə.</p>
           </div>
-          <Link to="/domestic" className="web-btn-view-all-links">Hamısına bax <ArrowRight size={16} /></Link>
+          <Link to="/tours?category=DOMESTIC" className="web-btn-view-all-links">Hamısına bax <ArrowRight size={16} /></Link>
         </div>
         <div className="web-tours-carousel">
-          {FALLBACK_DAXILI.map(tour => renderCard(tour, true))}
+          {loading 
+            ? [1, 2, 3, 4].map(renderSkeletonCard)
+            : finalDomesticTours.map(tour => renderTourCard(tour, true, false))
+          }
         </div>
       </section>
 
-      {/* 5. CAMPAIGN BANNER SYSTEM (Bento Box Urgency) */}
+      {/* 5. PARTNER TOURISM AGENCIES & COMPANIES SHOWCASE */}
+      {companies.length > 0 && (
+        <section className="web-companies-section">
+          <div className="web-section-header-flex">
+            <div>
+              <div className="web-vip-section-tag"><Building2 size={16} /> Rəsmi Tərəfdaşlar</div>
+              <h2 className="web-section-main-title">Lisenziyalı Turizm Şirkətləri</h2>
+              <p className="web-section-sub-title">Dövlət reyestrindən keçmiş, yüksək müştəri məmnuniyyətinə sahib partnyor agentliklər.</p>
+            </div>
+            <Link to="/tours" className="web-btn-view-all-links">Bütün Agentliklər <ArrowRight size={16} /></Link>
+          </div>
+          <div className="web-companies-grid">
+            {companies.map((company) => (
+              <Link 
+                to={`/tours?companyId=${company.id}`} 
+                key={company.id} 
+                className="web-company-card"
+              >
+                <div className="web-company-avatar-box">
+                  {company.logoUrl ? (
+                    <img src={company.logoUrl} alt={company.name} className="web-company-avatar-img" />
+                  ) : (
+                    <Building2 size={32} color="#3b82f6" />
+                  )}
+                </div>
+
+                <div className="web-company-name-row">
+                  <span className="web-company-name">{company.name}</span>
+                  <ShieldCheck size={16} className="web-verified-icon" />
+                </div>
+
+                <span className="web-company-city">
+                  <MapPin size={12} /> {company.city || 'Bakı, Azərbaycan'}
+                </span>
+
+                <div className="web-company-meta-bar">
+                  <div className="web-company-rating-box">
+                    <Star size={14} fill="#f59e0b" color="#f59e0b" />
+                    <span>{(company.rating || 5.0).toFixed(1)}</span>
+                  </div>
+                  <span className="web-company-tours-count">
+                    {company.activeTourCount || 0} Aktiv Tur
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 6. DYNAMIC CAMPAIGN BANNER WITH 1-CLICK PROMO CODE COPY */}
       <section className="web-campaign-section">
         <div className="web-campaign-container">
           <div className="web-campaign-icon-box"><Percent size={28} /></div>
           <div className="web-campaign-body">
-            <h4>Xarici Səyahətlərdə Erkən Rezervasiya (Early Bird)</h4>
-            <p>İlkin 20% ödəniş (Milestone Payment) etməklə yerinizi sabitleyib qalan məbləği turun başlamasına 10 gün qalmış tamamlayın.</p>
+            <h4>
+              {activeCampaign 
+                ? `${activeCampaign.discountValue}% Endirim — ${activeCampaign.promoCode}` 
+                : 'Xarici Səyahətlərdə Erkən Rezervasiya (Early Bird)'}
+            </h4>
+            <p>
+              {activeCampaign?.description || 'İlkin 20% ödəniş etməklə yerinizi sabitleyib qalan məbləği turun başlamasına 10 gün qalmış tamamlayın.'}
+            </p>
+            {activeCampaign?.promoCode && (
+              <div className="web-promo-code-container">
+                <span className="web-promo-code-text">{activeCampaign.promoCode}</span>
+                <button 
+                  className="web-btn-copy-promo" 
+                  onClick={(e) => handleCopyPromo(activeCampaign.promoCode, e)}
+                  title="Promo kodu kopyala"
+                >
+                  {copiedCode ? <Check size={14} color="#16a34a" /> : <Copy size={14} />}
+                  <span>{copiedCode ? 'Kopyalandı' : 'Kodu Kopyala'}</span>
+                </button>
+              </div>
+            )}
           </div>
-          <Link to="/campaigns" className="web-btn-campaign-action">Tarifləri İncələ <ChevronRight size={16} /></Link>
+          <Link to="/campaigns" className="web-btn-campaign-action">
+            Bütün Kampaniyalar <ChevronRight size={16} />
+          </Link>
         </div>
       </section>
 
-      {/* 6. XARİCİ TURLAR CAROUSEL */}
+      {/* 7. XARİCİ TURLAR CAROUSEL */}
       <section className="web-carousel-section">
         <div className="web-section-header-flex">
           <div>
             <h2 className="web-section-main-title">Beynəlxalq Səyahətlər</h2>
             <p className="web-section-sub-title">Uçuş və otel daxil tam paketlər. Viza dəstəyi və lüks xidmət təminatı ilə.</p>
           </div>
-          <Link to="/foreign" className="web-btn-view-all-links">Hamısına bax <ArrowRight size={16} /></Link>
+          <Link to="/tours?category=FOREIGN" className="web-btn-view-all-links">Hamısına bax <ArrowRight size={16} /></Link>
         </div>
         <div className="web-tours-carousel">
-          {FALLBACK_XARICI.map(tour => renderCard(tour, false))}
+          {loading 
+            ? [1, 2, 3, 4].map(renderSkeletonCard)
+            : finalForeignTours.map(tour => renderTourCard(tour, false, false))
+          }
         </div>
       </section>
 
-      {/* 7. LOYALTY & REWARDS ECOSYSTEM (Apple Wallet Style) */}
+      {/* 8. LOYALTY & REWARDS ECOSYSTEM (Apple Wallet Style) */}
       <section className="web-rewards-ecosystem-section">
         <div className="web-rewards-layout-split">
           <div className="web-rewards-text-details">
@@ -379,8 +619,8 @@ export const HomePage: React.FC = () => {
 
               <div className="web-vcard-footer">
                 <div className="web-vcard-user">
-                  <span className="web-vcard-name">Elçin Abdullayev</span>
-                  <span className="web-vcard-member-since">Üzv: 2026</span>
+                  <span className="web-vcard-name">Sadiqlik Proqramı</span>
+                  <span className="web-vcard-member-since">Premium Üzv</span>
                 </div>
               </div>
 
@@ -393,7 +633,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 8. TRUST FACTOR & MERCHANT ASSURANCE */}
+      {/* 9. TRUST FACTOR & MERCHANT ASSURANCE */}
       <section className="web-assurance-section">
         <div className="web-section-header-centered">
           <h2 className="web-assurance-main-title">Tam Təhlükəsiz Rezervasiya Modulu</h2>
@@ -402,12 +642,12 @@ export const HomePage: React.FC = () => {
 
         <div className="web-assurance-grid">
           <div className="web-assurance-item-card">
-            <div className="web-assurance-icon-frame"><CheckCircle2 size={24} /></div>
+            <div className="web-assurance-icon-frame"><CheckCircle2Icon /></div>
             <h4>Yoxlanılmış Lisenziya (Verified)</h4>
             <p>Sistemə yalnız rəsmi dövlət reyestrindən keçmiş, hüquqi şəxs statuslu lisenziyalı agentliklər daxil ola bilər.</p>
           </div>
           <div className="web-assurance-item-card">
-            <div className="web-assurance-icon-frame-blue"><Info size={24} /></div>
+            <div className="web-assurance-icon-frame-blue"><Sparkles size={24} /></div>
             <h4>Avtomatlaşdırılmış Rəylər (NPS)</h4>
             <p>Turlar bitdikdən tam 2 saat sonra müştərilərə gedən rəy sorğuları keyfiyyətsiz şirkətləri sistemdən avtomatik uzaqlaşdırır.</p>
           </div>
@@ -422,3 +662,10 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
+
+const CheckCircle2Icon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, ShieldCheck } from 'lucide-react';
+import { MapPin, Phone, Mail, ShieldCheck, MessageCircle } from 'lucide-react';
+import { SUPPORT_CONTACTS } from '@/shared/constants/contacts';
 import './Footer.css';
 
 export const Footer: React.FC = () => {
@@ -51,9 +52,30 @@ export const Footer: React.FC = () => {
           <div className="web-footer-col">
             <h4 className="web-footer-col-title">Mərkəzi Ofis</h4>
             <ul className="web-contact-list">
-              <li><Phone size={16} /> <span>+994 (50) 123 45 67</span></li>
-              <li><Mail size={16} /> <span>support@toursales.az</span></li>
-              <li><MapPin size={16} /> <span>Bakı ş., Nizami r-nu, Heydər Əliyev pr.</span></li>
+              <li>
+                <Phone size={16} /> 
+                <a href={`tel:${SUPPORT_CONTACTS.phoneRaw}`} className="web-footer-contact-link">
+                  {SUPPORT_CONTACTS.phoneDisplay}
+                </a>
+              </li>
+              <li>
+                <MessageCircle size={16} color="#22c55e" /> 
+                <a 
+                  href={SUPPORT_CONTACTS.whatsappUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="web-footer-contact-link web-footer-wa-link"
+                >
+                  WhatsApp: {SUPPORT_CONTACTS.phoneDisplay}
+                </a>
+              </li>
+              <li>
+                <Mail size={16} /> 
+                <a href={`mailto:${SUPPORT_CONTACTS.email}`} className="web-footer-contact-link">
+                  {SUPPORT_CONTACTS.email}
+                </a>
+              </li>
+              <li><MapPin size={16} /> <span>{SUPPORT_CONTACTS.address}</span></li>
             </ul>
           </div>
 

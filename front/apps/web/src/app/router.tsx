@@ -62,6 +62,7 @@ export const AppRoutes: React.FC = () => {
 
       {/* Vouchers (accessible for sharing/verification) */}
       <Route path="/booking/voucher/:id" element={<VoucherPage />} />
+      <Route path="/voucher/:id" element={<VoucherPage />} />
 
       {/* Protected Customer Routes */}
       <Route
@@ -81,6 +82,10 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/account"
+        element={<Navigate to="/account/bookings" replace />}
+      />
+      <Route
         path="/account/profile"
         element={
           <ProtectedRoute>
@@ -98,19 +103,19 @@ export const AppRoutes: React.FC = () => {
       />
       <Route
         path="/account/favorites"
-        element={
-          <ProtectedRoute>
-            <FavoritesPage />
-          </ProtectedRoute>
-        }
+        element={<FavoritesPage />}
+      />
+      <Route
+        path="/favorites"
+        element={<FavoritesPage />}
       />
       <Route
         path="/account/loyalty"
-        element={
-          <ProtectedRoute>
-            <LoyaltyPage />
-          </ProtectedRoute>
-        }
+        element={<LoyaltyPage />}
+      />
+      <Route
+        path="/loyalty"
+        element={<LoyaltyPage />}
       />
 
       {/* Catch-all redirect */}

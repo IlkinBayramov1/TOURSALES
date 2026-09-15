@@ -34,6 +34,129 @@
   margin-top: 1rem;
 }
 
+/* Terminal Modal Styling */
+.terminal-modal-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.terminal-modal-title-icon {
+  color: #10b981;
+}
+
+.web-terminal-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+}
+
+.terminal-modal-desc {
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.terminal-code-display-box {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.03) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.code-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: #047857;
+}
+
+.code-value-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.code-digits {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #0f172a;
+  background: #ffffff;
+  padding: 0.35rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.terminal-copy-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.terminal-copy-action-btn:hover {
+  background: #059669;
+}
+
+.code-amount-notice {
+  font-size: 0.875rem;
+  color: #334155;
+}
+
+.code-amount-notice strong {
+  color: #047857;
+}
+
+.terminal-steps-timeline {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1.15rem 1.5rem;
+}
+
+.terminal-steps-timeline h5 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.75rem 0;
+}
+
+.terminal-steps-timeline ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.terminal-modal-actions {
+  margin-top: 0.5rem;
+}
+
 @media (max-width: 1024px) {
   .web-checkout-layout {
     grid-template-columns: 1fr;

@@ -55,6 +55,29 @@ export interface Company {
   updatedAt: string;
 }
 
+export interface CompanyPublic {
+  id: string;
+  name: string;
+  legalName?: string;
+  logoUrl?: string;
+  coverUrl?: string;
+  description?: string;
+  rating: number;
+  city?: string;
+  address?: string;
+  phoneNumber?: string;
+  email?: string;
+  website?: string;
+  workingHours?: string;
+  socialLinks?: CompanySocialLinks;
+  voen?: string;
+  status: string;
+  isVerified?: boolean;
+  activeTourCount?: number;
+  tours?: any[];
+  createdAt: string;
+}
+
 export interface CompanyProfileStats {
   companyId: string;
   name: string;

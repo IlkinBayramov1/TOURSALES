@@ -20,10 +20,15 @@ export interface PassengerInfo {
   seatNumber: number;
   fullName: string;
   idNumber?: string; // Şəxsiyyət vəsiqəsi / FİN kod
-  finCode?: string;
+  finCode?: string; // 7 simvollu FİN kod
   phone: string;
-  passportUrl?: string; // Xarici turlar üçün
-  birthDate?: string;
+  passportNumber?: string; // Xarici pasport nömrəsi
+  passportUrl?: string; // Xarici turlar üçün pasport sənədi/şəkli
+  birthDate?: string; // Doğum tarixi (YYYY-MM-DD)
+  gender?: 'MALE' | 'FEMALE';
+  emergencyPhone?: string; // Təcili əlaqə nömrəsi
+  notes?: string; // Xüsusi tələblər və ya qeydlər
+  isCheckedIn?: boolean;
 }
 
 export interface Booking {
@@ -40,11 +45,18 @@ export interface Booking {
   companyName?: string;
   totalAmount: number;
   totalPrice?: number;
+  paidAmount?: number;
+  seats?: number;
   currency: string;
   status: BookingStatus;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   passengers: PassengerInfo[];
+  passengerName?: string;
+  passengerSurname?: string;
+  contactNumber?: string;
+  contactEmail?: string;
+  busSeatNumber?: string;
   qrToken?: string;
   isCheckedIn?: boolean;
   checkedInAt?: string | null;

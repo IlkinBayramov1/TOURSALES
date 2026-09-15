@@ -30,9 +30,21 @@ export const OrderSummaryPanel: React.FC<OrderSummaryPanelProps> = ({
           {passengers.map((p) => (
             <div key={p.seatNumber} className="web-order-passenger-item">
               <User size={14} />
-              <span>
-                <strong>Yer {p.seatNumber}:</strong> {p.fullName || 'Adsız'}
-              </span>
+              <div className="web-order-passenger-details">
+                <span>
+                  <strong>Yer {p.seatNumber}:</strong> {p.fullName || 'Adsız'}
+                </span>
+                {(p.finCode || p.idNumber) && (
+                  <span className="web-order-passenger-tag">
+                    FİN: {p.finCode || p.idNumber}
+                  </span>
+                )}
+                {p.passportNumber && (
+                  <span className="web-order-passenger-tag passport">
+                    Pasport: {p.passportNumber}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>

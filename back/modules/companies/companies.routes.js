@@ -8,7 +8,11 @@ import { ROLES } from '../../config/constants.js';
 
 const router = express.Router();
 
-// Bütün şirkət marşrutları üçün auth tələb olunur
+// İctimai tərəfdaş şirkət marşrutları (Web müştərilər üçün - Autentifikasiyasız)
+router.get('/public', companiesController.getPublicCompanies);
+router.get('/public/:id', companiesController.getPublicProfile);
+
+// Bütün daxili şirkət marşrutları üçün auth tələb olunur
 router.use(authMiddleware());
 
 // Vendor-un öz profilinə aid marşrutlar

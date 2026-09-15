@@ -37,10 +37,27 @@
 
 .web-order-passenger-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
   font-size: 0.875rem;
   color: var(--text-secondary);
+}
+
+.web-order-passenger-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.web-order-passenger-tag {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.web-order-passenger-tag.passport {
+  color: #0284c7;
 }
 
 .web-order-passenger-item strong {

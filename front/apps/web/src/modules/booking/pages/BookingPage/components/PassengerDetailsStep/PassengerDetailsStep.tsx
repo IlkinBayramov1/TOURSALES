@@ -5,13 +5,15 @@ import './PassengerDetailsStep.css';
 
 interface PassengerDetailsStepProps {
   passengers: PassengerInfo[];
-  onUpdatePassenger: (seatNumber: number, field: keyof PassengerInfo, value: string) => void;
+  onUpdatePassenger: (seatNumber: number, field: keyof PassengerInfo, value: any) => void;
+  onCopyDetailsToAll?: (sourceSeatNumber: number) => void;
   isForeignTour?: boolean;
 }
 
 export const PassengerDetailsStep: React.FC<PassengerDetailsStepProps> = ({
   passengers,
   onUpdatePassenger,
+  onCopyDetailsToAll,
   isForeignTour = false,
 }) => {
   return (
@@ -26,6 +28,7 @@ export const PassengerDetailsStep: React.FC<PassengerDetailsStepProps> = ({
       <PassengerForm
         passengers={passengers}
         onUpdatePassenger={onUpdatePassenger}
+        onCopyDetailsToAll={onCopyDetailsToAll}
         isForeignTour={isForeignTour}
       />
     </div>

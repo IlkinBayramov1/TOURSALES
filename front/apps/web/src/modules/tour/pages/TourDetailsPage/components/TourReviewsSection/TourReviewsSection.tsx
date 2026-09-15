@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { TourReview } from '@toursales/types';
 import { ReviewList } from '@/modules/tour/components/ReviewList/ReviewList';
 import { AddReviewModal } from '@/modules/tour/components/AddReviewModal/AddReviewModal';
 import { Button, StarRating } from '@toursales/ui';
 import { MessageSquarePlus } from 'lucide-react';
 import { useTourReviews } from '@/modules/tour/hooks/useTourReviews';
+import { tourApi } from '@/modules/tour/api/tourApi';
 import './TourReviewsSection.css';
 
 interface TourReviewsSectionProps {
@@ -23,7 +24,33 @@ export const TourReviewsSection: React.FC<TourReviewsSectionProps> = ({
   onReviewAdded,
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
-  const { submitReview, submitting } = useTourReviews(tourId, onReviewAdded);
+  const [liveReviews, setLiveReviews] = useState<TourReview[]>(reviews);
+  const [liveRating, setLiveRating] = useState<number>(rating);
+  const [liveTotal, setLiveTotal] = useState<number>(reviewsCount);
+
+  const fetchReviews = useCallback(async () => {
+    try {
+      const data = await tourApi.getTourReviews(tourId);
+      if (data) {
+        if (data.reviews) setLiveReviews(data.reviews);
+        if (data.averageRating !== undefined) setLiveRating(data.averageRating);
+        if (data.totalReviews !== undefined) setLiveTotal(data.totalReviews);
+      }
+    } catch {
+      // fallback to initial props
+    }
+  }, [tourId]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
+
+  const handleReviewSuccess = () => {
+    fetchReviews();
+    if (onReviewAdded) onReviewAdded();
+  };
+
+  const { submitReview, submitting } = useTourReviews(tourId, handleReviewSuccess);
 
   return (
     <div className="web-tour-reviews-section">
@@ -31,11 +58,11 @@ export const TourReviewsSection: React.FC<TourReviewsSectionProps> = ({
         <div className="web-reviews-summary">
           <h3 className="web-section-heading">Müştəri Rəyləri</h3>
           <div className="web-reviews-score-box">
-            <span className="web-reviews-big-score">{rating.toFixed(1)}</span>
+            <span className="web-reviews-big-score">{(liveRating || 5).toFixed(1)}</span>
             <div>
-              <StarRating rating={rating} size={18} />
+              <StarRating rating={liveRating || 5} size={18} />
               <span className="web-reviews-count-text">
-                {reviewsCount} təsdiqlənmiş səyyah rəyi
+                {liveTotal} təsdiqlənmiş səyyah rəyi
               </span>
             </div>
           </div>
@@ -50,7 +77,7 @@ export const TourReviewsSection: React.FC<TourReviewsSectionProps> = ({
         </Button>
       </div>
 
-      <ReviewList reviews={reviews} />
+      <ReviewList reviews={liveReviews} />
 
       <AddReviewModal
         isOpen={modalOpen}

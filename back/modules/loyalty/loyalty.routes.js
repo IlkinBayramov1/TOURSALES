@@ -6,11 +6,13 @@ import { ROLES } from '../../config/constants.js';
 
 const router = express.Router();
 
-// Bütün loyallıq marşrutları üçün auth lazımdır
+// İctimai təkliflər siyahısı (Qonaqlar da hədiyyə kataloqunu görə bilsin)
+router.get('/offers', loyaltyController.getOffers);
+
+// Autentifikasiya tələb edən marşrutlar
 router.use(authMiddleware());
 
 // Müştəri/İstifadəçi marşrutları
-router.get('/offers', loyaltyController.getOffers);
 router.post('/redeem', loyaltyController.redeemOffer);
 router.get('/history', loyaltyController.getMyHistory);
 

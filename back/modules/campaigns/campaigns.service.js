@@ -132,6 +132,46 @@ class CampaignsService {
       };
     });
   }
+
+  // İctimai aktiv kampaniyalar (Web SpecialOffersPage üçün)
+  async getActiveCampaigns() {
+    const now = new Date();
+    const campaigns = await prisma.campaign.findMany({
+      where: {
+        status: 'Active',
+        startDate: { lte: now },
+        endDate: { gte: now }
+      },
+      include: {
+        company: {
+          select: { id: true, name: true, logoUrl: true, rating: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return campaigns
+      .filter((c) => c.usageLimit === 0 || c.usedCount < c.usageLimit)
+      .map((c) => ({
+        id: c.id,
+        title:
+          c.description ||
+          `${c.promoCode} — ${c.discountType === 'PERCENTAGE' ? c.discountValue + '%' : c.discountValue + ' AZN'} Endirim!`,
+        subtitle: c.company
+          ? `${c.company.name} tərəfindən xüsusi təklif`
+          : 'Bütün platforma turlarında keçərlidir',
+        promoCode: c.promoCode,
+        discountType: c.discountType,
+        discountValue: Number(c.discountValue) || 0,
+        discountPercentage: c.discountType === 'PERCENTAGE' ? Number(c.discountValue) : 0,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        companyId: c.companyId,
+        companyName: c.company?.name || 'TOURSALES',
+        companyLogo: c.company?.logoUrl || null,
+        imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800'
+      }));
+  }
 }
 
 export const campaignsService = new CampaignsService();

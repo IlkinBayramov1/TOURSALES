@@ -29,4 +29,16 @@ router.get('/:bookingId/pdf', async (req, res, next) => {
   }
 });
 
+// GET /api/v1/vouchers/:bookingId - Get Voucher Details & QR Token
+router.get('/:bookingId', async (req, res, next) => {
+  try {
+    const { bookingId } = req.params;
+    if (bookingId === 'verify') return next();
+    const result = await voucherService.getVoucherDetails(bookingId);
+    res.status(200).json({ status: 'success', data: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

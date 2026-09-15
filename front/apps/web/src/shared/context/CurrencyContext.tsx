@@ -9,12 +9,15 @@ interface CurrencyContextType {
   rates: Record<CurrencyCode, number>;
   setCurrency: (currency: CurrencyCode) => void;
   format: (amountInAzn: number) => string;
+  formatPrice: (amountInAzn: number, targetCurrency?: CurrencyCode) => string;
 }
 
 const DEFAULT_RATES: Record<CurrencyCode, number> = {
   AZN: 1,
   USD: 1.70,
   EUR: 1.85,
+  TRY: 0.05,
+  RUB: 0.018,
 };
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -48,13 +51,18 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('toursales_currency', c);
   };
 
+  const formatPrice = (amountInAzn: number, targetCurrency?: CurrencyCode): string => {
+    const activeCurr = targetCurrency || currency;
+    const rate = rates[activeCurr] || DEFAULT_RATES[activeCurr] || 1;
+    return formatHelper(amountInAzn, activeCurr, rate);
+  };
+
   const format = (amountInAzn: number): string => {
-    const rate = rates[currency] || 1;
-    return formatHelper(amountInAzn, currency, rate);
+    return formatPrice(amountInAzn);
   };
 
   return (
-    <CurrencyContext.Provider value={{ currency, rates, setCurrency, format }}>
+    <CurrencyContext.Provider value={{ currency, rates, setCurrency, format, formatPrice }}>
       {children}
     </CurrencyContext.Provider>
   );

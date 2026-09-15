@@ -15,9 +15,8 @@ class SeatService {
     });
 
     if (!tour) throw ApiError.notFound('Tur tapılmadı.');
-    if (tour.type !== 'DOMESTIC') throw ApiError.badRequest('Oturacaq matrisi yalnız daxili turlar üçün keçərlidir.');
 
-    const totalSeats = tour.busCapacity || tour.maxParticipants || 48;
+    const totalSeats = tour.busCapacity || tour.maxParticipants || (tour.type === 'DOMESTIC' ? 48 : 30);
 
     // Satılmış / Bron edilmiş oturacaqlar
     const bookedSeats = new Set();
@@ -46,10 +45,27 @@ class SeatService {
         this.seatLocks.delete(lockKey); // Müddəti bitmiş kilidi silirik
       }
 
-      matrix.push({ seatNumber: i, status, lockedBy });
+      matrix.push({ 
+        seatNumber: i, 
+        row: Math.ceil(i / 4), 
+        column: ((i - 1) % 4) + 1, 
+        status, 
+        lockedBy 
+      });
     }
 
-    return { tourId, busCapacity: totalSeats, matrix };
+    const availableSeats = matrix.filter(s => s.status === 'AVAILABLE').length;
+    const busType = totalSeats <= 20 ? 'SPRINTER' : 'STANDARD_48';
+
+    return { 
+      tourId, 
+      busCapacity: totalSeats, 
+      totalSeats, 
+      availableSeats, 
+      busType, 
+      seats: matrix, 
+      matrix 
+    };
   }
 
   // 2. Real-vaxt Oturacaq Kilidlənməsi (Concurrency Prevention / Lock)

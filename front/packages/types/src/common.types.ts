@@ -1,4 +1,4 @@
-export type CurrencyCode = 'AZN' | 'USD' | 'EUR';
+export type CurrencyCode = 'AZN' | 'USD' | 'EUR' | 'TRY' | 'RUB';
 
 export type LanguageCode = 'az' | 'en' | 'ru';
 
@@ -53,13 +53,19 @@ export interface Ad {
   impressionsCount?: number;
   bookingCount?: number;
   amountPaid?: number;
+  companyId?: string;
+  companyName?: string;
+  companyLogo?: string | null;
+  companyRating?: number;
   tourId?: string | null;
   packageId?: string | null;
   tour?: {
     id: string;
     title: string;
     price: number;
-    images?: string;
+    images?: string[] | string;
+    type?: string;
+    destinationCountry?: string;
   } | null;
   package?: AdPackage | null;
 }

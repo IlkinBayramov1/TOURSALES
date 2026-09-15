@@ -12,8 +12,8 @@ router.get('/tour/:tourId', reviewsController.getTourReviews);
 // Aşağıdakı marşrutlar üçün autentifikasiya vacibdir
 router.use(authMiddleware());
 
-// Müştərilər turlar üçün rəy yaza bilərlər
-router.post('/', roleMiddleware(ROLES.USER), reviewsController.create);
+// Müştərilər və istifadəçilər turlar üçün rəy yaza bilərlər
+router.post('/', reviewsController.create);
 
 // Vendor-lar öz müştəri məmnuniyyəti indeksini görə bilərlər
 router.get('/satisfaction-index', roleMiddleware(ROLES.VENDOR), reviewsController.getMySatisfactionIndex);

@@ -17,10 +17,18 @@ const handleUploadFile = (req, res, next) => {
   });
 };
 
+import { cmsController } from '../cms/cms.controller.js';
+
 router.get('/currencies', commonController.getCurrencies);
 router.get('/currencies/convert', commonController.convertCurrency);
 router.post('/geofence/check-arrival', commonController.checkGeofence);
 router.post('/i18n/translate', commonController.translate);
 router.post('/upload', authMiddleware(), handleUploadFile, commonController.uploadImage);
+
+// CMS aliases for web client
+router.get('/blogs', cmsController.getBlogs);
+router.get('/blogs/:id', cmsController.getBlogById);
+router.get('/faqs', cmsController.getFAQs);
+router.get('/pages/:slug', cmsController.getStaticPage);
 
 export default router;

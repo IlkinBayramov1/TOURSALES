@@ -11,7 +11,8 @@ class LoyaltyService {
           { endDate: null },
           { endDate: { gte: now } }
         ]
-      }
+      },
+      orderBy: { requiredPoints: 'asc' }
     });
   }
 
@@ -49,6 +50,7 @@ class LoyaltyService {
     }
 
     const historyId = await generateUniqueId('LYH', 'loyaltyHistory');
+    const voucherCode = `RW-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
     // Atomik tranzaksiya
     return prisma.$transaction(async (tx) => {
@@ -75,11 +77,19 @@ class LoyaltyService {
           userId,
           actionType: 'SPENT',
           points: offer.requiredPoints,
-          description: `${offer.partnerName} - ${offer.offerName} təklifi üçün xal xərcləndi.`
+          description: `${offer.partnerName} - ${offer.offerName} təklifi üçün xal xərcləndi (Kupon: ${voucherCode}).`
         }
       });
 
-      return log;
+      return {
+        id: log.id,
+        voucherCode,
+        offerName: offer.offerName,
+        partnerName: offer.partnerName,
+        pointsSpent: offer.requiredPoints,
+        remainingPoints: Math.max(0, user.loyaltyPoints - offer.requiredPoints),
+        createdAt: log.createdAt
+      };
     });
   }
 

@@ -4,6 +4,7 @@ import { Tour } from '@toursales/types';
 import { Badge, Button } from '@toursales/ui';
 import { formatDate } from '@/shared/utils/formatters';
 import { useToast } from '@/shared/context/ToastContext';
+import { useFavorites } from '@/shared/context/FavoritesContext';
 import './TourHeaderSection.css';
 
 interface TourHeaderSectionProps {
@@ -11,7 +12,8 @@ interface TourHeaderSectionProps {
 }
 
 export const TourHeaderSection: React.FC<TourHeaderSectionProps> = ({ tour }) => {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isFavorite: checkFavorite, toggleFavorite } = useFavorites();
+  const isFav = checkFavorite(tour.id);
   const [copied, setCopied] = useState(false);
   const { info } = useToast();
 
@@ -66,10 +68,10 @@ export const TourHeaderSection: React.FC<TourHeaderSectionProps> = ({ tour }) =>
           <Button
             variant="ghost"
             size="sm"
-            leftIcon={<Heart size={16} fill={isFavorite ? 'currentColor' : 'none'} color={isFavorite ? '#ef4444' : 'currentColor'} />}
-            onClick={() => setIsFavorite(!isFavorite)}
+            leftIcon={<Heart size={16} fill={isFav ? '#ff385c' : 'none'} color={isFav ? '#ff385c' : 'currentColor'} />}
+            onClick={() => toggleFavorite(tour)}
           >
-            {isFavorite ? 'Bəyənildi' : 'Yadda saxla'}
+            {isFav ? 'Bəyənildi' : 'Yadda saxla'}
           </Button>
         </div>
       </div>

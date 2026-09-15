@@ -57,6 +57,12 @@ export interface TourReview {
   verifiedBooking?: boolean;
 }
 
+export interface TourReviewsResponse {
+  reviews: TourReview[];
+  averageRating: number;
+  totalReviews: number;
+}
+
 export interface Tour {
   id: string;
   title: string;
@@ -66,6 +72,8 @@ export interface Tour {
   region: TourRegion | string;
   destinationCountry?: string;
   basePrice: number;
+  price?: number;
+  isVIP?: boolean;
   currency: string;
   startDate: string;
   endDate: string;
@@ -92,7 +100,16 @@ export interface Tour {
   destination?: string;
   isGuaranteed?: boolean;
   earlyBirdDiscount?: number;
-  company?: any;
+  company?: {
+    id: string;
+    name: string;
+    legalName?: string;
+    logoUrl?: string | null;
+    rating: number;
+    phoneNumber?: string;
+    city?: string;
+    isVerified: boolean;
+  } | null;
   isKarabakh?: boolean;
   hasVisaSupport?: boolean;
   hasFlight?: boolean;
@@ -108,6 +125,8 @@ export interface Tour {
 
 export interface TourFilterParams {
   type?: TourType;
+  category?: string;
+  companyId?: string;
   region?: string;
   minPrice?: number;
   maxPrice?: number;

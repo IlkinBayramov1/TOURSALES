@@ -69,8 +69,57 @@ export const bookingApi = {
     return res.data?.data;
   },
 
-  initPayment: async (payload: { bookingId: string; paymentMethod: string }) => {
-    const res = await axiosClient.post(API_ENDPOINTS.PAYMENTS.INIT, payload);
+  getVoucherDetail: async (bookingId: string) => {
+    try {
+      const res = await axiosClient.get<{
+        status: string;
+        data: {
+          booking: Booking;
+          company?: any;
+          qrToken: string;
+          pdfUrl: string;
+        };
+      }>(API_ENDPOINTS.VOUCHERS.DETAIL(bookingId));
+      return res.data?.data;
+    } catch {
+      const res = await axiosClient.get<{ status: string; data: Booking }>(
+        API_ENDPOINTS.BOOKINGS.DETAIL(bookingId)
+      );
+      const booking = res.data?.data || (res.data as any);
+      return {
+        booking,
+        company: booking?.tour?.company,
+        qrToken: booking?.bookingNumber || booking?.id,
+        pdfUrl: API_ENDPOINTS.VOUCHERS.PDF(bookingId),
+      };
+    }
+  },
+
+  getPdfVoucherUrl: (bookingId: string) => {
+    return `/api/v1/vouchers/${bookingId}/pdf`;
+  },
+
+  getProviders: async () => {
+    const res = await axiosClient.get<{ status: string; data: string[] }>(
+      API_ENDPOINTS.PAYMENTS.PROVIDERS
+    );
+    return res.data?.data || [];
+  },
+
+  initPayment: async (payload: {
+    bookingId: string;
+    amount?: number;
+    currency?: string;
+    provider?: string;
+    paymentMethod?: string;
+    returnUrl?: string;
+    cancelUrl?: string;
+  }) => {
+    const provider = payload.provider || payload.paymentMethod || 'BIRBANK';
+    const res = await axiosClient.post(API_ENDPOINTS.PAYMENTS.INIT, {
+      ...payload,
+      provider,
+    });
     return res.data?.data || res.data;
   },
 };

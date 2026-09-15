@@ -307,6 +307,105 @@ class CompaniesService {
 
     return generateExcel(formattedData, columns, 'Agentliklər');
   }
+
+  // İctimai müştəri vitrini: Təsdiqlənmiş lisenziyalı şirkətin profili və aktiv turları
+  async getPublicCompanyProfile(id) {
+    const company = await prisma.company.findUnique({
+      where: { id, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        legalName: true,
+        logoUrl: true,
+        coverUrl: true,
+        description: true,
+        rating: true,
+        city: true,
+        address: true,
+        phoneNumber: true,
+        email: true,
+        website: true,
+        workingHours: true,
+        socialLinks: true,
+        voen: true,
+        status: true,
+        createdAt: true,
+        tours: {
+          where: { status: 'Active', deletedAt: null },
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            price: true,
+            images: true,
+            startDate: true,
+            destinationCountry: true,
+            busCapacity: true,
+            maxParticipants: true
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 12
+        }
+      }
+    });
+
+    if (!company) {
+      throw ApiError.notFound('Şirkət profili tapılmadı');
+    }
+
+    const formattedTours = (company.tours || []).map((t) => {
+      let parsedImages = [];
+      try {
+        parsedImages = typeof t.images === 'string' ? JSON.parse(t.images) : t.images;
+      } catch {
+        parsedImages = [t.images];
+      }
+      return {
+        ...t,
+        price: Number(t.price) || 0,
+        images: parsedImages
+      };
+    });
+
+    return {
+      ...formatCompanyResponse(company),
+      tours: formattedTours
+    };
+  }
+
+  // İctimai tərəfdaş şirkətlərin kataloq siyahısı (Web directory)
+  async getPublicCompanies(limit = 20) {
+    const companies = await prisma.company.findMany({
+      where: { status: 'Active', deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        legalName: true,
+        logoUrl: true,
+        coverUrl: true,
+        description: true,
+        rating: true,
+        city: true,
+        address: true,
+        phoneNumber: true,
+        email: true,
+        website: true,
+        workingHours: true,
+        _count: {
+          select: {
+            tours: { where: { status: 'Active', deletedAt: null } }
+          }
+        }
+      },
+      orderBy: { rating: 'desc' },
+      take: parseInt(limit, 10) || 20
+    });
+
+    return companies.map((c) => ({
+      ...formatCompanyResponse(c),
+      activeTourCount: c._count?.tours || 0
+    }));
+  }
 }
 
 export const companiesService = new CompaniesService();

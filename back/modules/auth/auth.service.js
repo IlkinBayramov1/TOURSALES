@@ -157,6 +157,8 @@ class AuthService {
       companyId = company.id;
     }
 
+    const initialLoyaltyPoints = (data.role && data.role !== 'User') ? 0 : 100;
+
     const user = await prisma.user.create({
       data: {
         id: userId,
@@ -165,9 +167,23 @@ class AuthService {
         hashAlgorithm: 'BCRYPT',
         name: data.name,
         role: data.role || 'User',
-        companyId: companyId
+        companyId: companyId,
+        loyaltyPoints: initialLoyaltyPoints
       }
     });
+
+    if (initialLoyaltyPoints > 0) {
+      const historyId = await generateUniqueId('LYH', 'loyaltyHistory');
+      await prisma.loyaltyHistory.create({
+        data: {
+          id: historyId,
+          userId: user.id,
+          actionType: 'EARNED',
+          points: initialLoyaltyPoints,
+          description: 'Qeydiyyat üçün 100 Xoş Gəldin xalı'
+        }
+      });
+    }
 
     const accessToken = this.generateAccessToken(user);
     const refreshSession = await this.createRefreshSession(user.id, ipAddress, userAgent);

@@ -30,10 +30,16 @@ class CampaignsController {
   });
 
   validatePromo = asyncHandler(async (req, res) => {
-    const { code } = req.body;
+    const code = req.body.promoCode || req.body.code;
     if (!code) throw ApiError.badRequest('Promokod daxil edilməlidir.');
-    const result = await campaignsService.validatePromoCode(code, req.user.id);
+    const userId = req.user ? req.user.id : null;
+    const result = await campaignsService.validatePromoCode(code, userId);
     return res.json({ status: 'success', msg: 'Promokod etibarlıdır.', data: result });
+  });
+
+  getActiveCampaigns = asyncHandler(async (req, res) => {
+    const result = await campaignsService.getActiveCampaigns();
+    return res.json({ status: 'success', msg: 'Aktiv kampaniyalar gətirildi', data: result });
   });
 
   getKPI = asyncHandler(async (req, res) => {

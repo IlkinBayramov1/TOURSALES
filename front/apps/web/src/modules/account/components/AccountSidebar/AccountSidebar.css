@@ -141,3 +141,25 @@
   background: var(--danger-50, #fef2f2);
   color: var(--danger-700, #b91c1c);
 }
+
+.web-account-login-nav-btn {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--border-light, #f1f5f9);
+  padding-top: 1rem;
+  color: var(--primary-600, #2563eb);
+}
+
+.web-account-login-nav-btn:hover {
+  background: var(--primary-50, #eff6ff);
+  color: var(--primary-700, #1d4ed8);
+}
+
+.web-account-badge-count {
+  background: #ff385c;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  margin-right: 0.5rem;
+}

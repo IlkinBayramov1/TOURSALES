@@ -12,6 +12,8 @@ import './VoucherPage.css';
 export const VoucherPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [qrToken, setQrToken] = useState<string>('');
+  const [pdfUrl, setPdfUrl] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,8 +22,14 @@ export const VoucherPage: React.FC = () => {
       if (!id) return;
       try {
         setLoading(true);
-        const res = await bookingApi.getBookingById(id);
-        setBooking(res.data);
+        const data = await bookingApi.getVoucherDetail(id);
+        if (data?.booking) {
+          setBooking(data.booking);
+          setQrToken(data.qrToken || data.booking.bookingNumber || id);
+          setPdfUrl(data.pdfUrl || bookingApi.getPdfVoucherUrl(id));
+        } else {
+          setError('Bilet məlumatları tapılmadı.');
+        }
       } catch (err: any) {
         console.error('Bilet tapılmadı:', err);
         setError('Bilet məlumatları yüklənərkən xəta baş verdi və ya bilet mövcud deyil.');
@@ -37,7 +45,7 @@ export const VoucherPage: React.FC = () => {
     return (
       <div className="web-voucher-loading">
         <Spinner size="lg" />
-        <p>Bilet məlumatları hazırlanır...</p>
+        <p>Rəsmi elektron bilet hazırlanır...</p>
       </div>
     );
   }
@@ -55,6 +63,8 @@ export const VoucherPage: React.FC = () => {
     );
   }
 
+  const bNumber = booking.bookingNumber || booking.id;
+
   return (
     <div className="web-voucher-container">
       <div className="web-voucher-top-bar">
@@ -62,7 +72,11 @@ export const VoucherPage: React.FC = () => {
           <ArrowLeft size={18} />
           <span>Sifarişlərimə Qayıt</span>
         </Link>
-        <PrintVoucherButton bookingNumber={booking.bookingNumber} />
+        <PrintVoucherButton
+          bookingId={booking.id}
+          bookingNumber={bNumber}
+          pdfUrl={pdfUrl}
+        />
       </div>
 
       <div className="web-voucher-banner">
@@ -80,8 +94,9 @@ export const VoucherPage: React.FC = () => {
       <div className="web-voucher-main-layout">
         <div className="web-voucher-left-col">
           <LiveQrCodeCard
-            bookingNumber={booking.bookingNumber}
-            isCheckedIn={booking.status === 'COMPLETED'}
+            bookingNumber={bNumber}
+            qrToken={qrToken}
+            isCheckedIn={booking.status === 'COMPLETED' || (booking as any).isCheckedIn}
           />
         </div>
 

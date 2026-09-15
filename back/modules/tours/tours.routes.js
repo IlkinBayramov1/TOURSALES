@@ -1,5 +1,6 @@
 import express from 'express';
 import { toursController } from './tours.controller.js';
+import { reviewsController } from '../reviews/reviews.controller.js';
 import { validateTour, validateTourUpdate } from './tours.validation.js';
 import { authMiddleware } from '../auth/auth.middleware.js';
 import { roleMiddleware } from '../../middlewares/role.middleware.js';
@@ -16,15 +17,15 @@ router.get('/my-performance', authMiddleware(), roleMiddleware(ROLES.VENDOR), to
 router.get('/export/excel', authMiddleware(), toursController.exportTours);
 router.get('/', toursController.getAll);
 router.get('/:id', toursController.getById);
+router.get('/:id/reviews', reviewsController.getTourReviews);
+router.post('/:id/reviews', authMiddleware(), reviewsController.create);
 router.post('/:id/calculate-price', authMiddleware({ isPublic: true }), toursController.calculatePrice);
 router.get('/:id/seats', toursController.getSeatMatrix);
+router.post('/:id/seats/lock', authMiddleware({ isPublic: true }), toursController.lockSeat);
+router.post('/:id/seats/release', authMiddleware({ isPublic: true }), toursController.releaseSeat);
 
 // Qorunan marşrutlar (Mütləq autentifikasiya tələb edir)
 router.use(authMiddleware());
-
-// Oturacaq Kilidlənməsi marşrutları
-router.post('/:id/seats/lock', toursController.lockSeat);
-router.post('/:id/seats/release', toursController.releaseSeat);
 
 // Gözləmə Siyahısı marşrutları (Hər hansı autentifikasiyalı istifadəçi növbəyə yazıla/çıxa bilər)
 router.post('/:id/waiting-list', toursController.joinWaitingList);

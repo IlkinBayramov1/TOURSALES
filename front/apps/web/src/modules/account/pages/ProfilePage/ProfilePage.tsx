@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Lock, Shield, Check, AlertCircle } from 'lucide-react';
 import { Card, Button, Input, Badge } from '@toursales/ui';
 import { useAuth } from '@/shared/hooks/useAuth';
@@ -12,8 +12,16 @@ export const ProfilePage: React.FC = () => {
   const { addToast } = useToast();
 
   const [name, setName] = useState(user?.name || '');
-  const [phone, setPhone] = useState(user?.phone || '');
+  const [phone, setPhone] = useState(user?.phone || (user as any)?.phoneNumber || '');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (user.name && !name) setName(user.name);
+      const userPhone = user.phone || (user as any).phoneNumber;
+      if (userPhone && !phone) setPhone(userPhone);
+    }
+  }, [user]);
 
   // Password fields
   const [oldPassword, setOldPassword] = useState('');
@@ -113,7 +121,7 @@ export const ProfilePage: React.FC = () => {
                   <label className="web-role-label">Hesab Növü</label>
                   <div className="web-role-badge-row">
                     <Badge variant="primary" pill>
-                      {user?.role === 'CUSTOMER' ? 'Müştəri (B2C)' : user?.role}
+                      {(user?.role as string) === 'CUSTOMER' || (user?.role as string) === 'User' ? 'Müştəri (B2C)' : user?.role || 'Müştəri'}
                     </Badge>
                     <span className="web-verified-text">
                       <Shield size={14} /> Təsdiqlənmiş İstifadəçi

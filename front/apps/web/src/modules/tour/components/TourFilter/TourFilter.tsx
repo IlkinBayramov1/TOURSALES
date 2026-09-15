@@ -1,6 +1,8 @@
-import React from 'react';
-import { SlidersHorizontal, RotateCcw, ChevronDown, Star, Search } from 'lucide-react';
-import { TourFilterParams, TourType } from '@toursales/types';
+import React, { useState, useEffect } from 'react';
+import { SlidersHorizontal, RotateCcw, ChevronDown, Star, Search, Building2, MapPin } from 'lucide-react';
+import { TourFilterParams, TourType, CompanyPublic } from '@toursales/types';
+import { companyApi } from '@/modules/company/api/companyApi';
+import { useCurrency } from '@/shared/context/CurrencyContext';
 import './TourFilter.css';
 
 interface TourFilterProps {
@@ -14,21 +16,13 @@ const REGIONS = [
   { value: 'Shusha', label: 'Şuşa (Qarabağ)' },
   { value: 'Khankendi', label: 'Xankəndi & Ağdam' },
   { value: 'Lachin', label: 'Laçın & Kəlbəcər' },
-  { value: 'Quba', label: 'Quba' },
-  { value: 'Qusar', label: 'Qusar (Şahdağ)' },
-  { value: 'Sheki', label: 'Şəki' },
-  { value: 'Gabala', label: 'Qəbələ' },
+  { value: 'Quba', label: 'Quba & Qusar' },
+  { value: 'Gabala', label: 'Qəbələ & Şəki' },
   { value: 'Lankaran', label: 'Lənkəran & Lerik' },
   { value: 'Georgia', label: 'Gürcüstan (Tbilisi/Batumi)' },
-  { value: 'Turkey', label: 'Türkiyə' },
+  { value: 'Turkey', label: 'Türkiyə (İstanbul/Antalya)' },
   { value: 'Europe', label: 'Avropa Turları' },
-];
-
-const CATEGORIES = [
-  { id: 'nature', label: 'Təbiət və Dağlar', count: 45 },
-  { id: 'culture', label: 'Mədəniyyət və Tarix', count: 28 },
-  { id: 'beach', label: 'Dəniz və Çimərlik', count: 12 },
-  { id: 'extreme', label: 'Aktiv və Ekstremal', count: 8 },
+  { value: 'UAE', label: 'BƏƏ (Dubay)' },
 ];
 
 export const TourFilter: React.FC<TourFilterProps> = ({
@@ -36,6 +30,23 @@ export const TourFilter: React.FC<TourFilterProps> = ({
   onChange,
   onReset,
 }) => {
+  const { currency } = useCurrency();
+  const [companies, setCompanies] = useState<CompanyPublic[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    companyApi.getPublicCompanies(30).then((data: CompanyPublic[]) => {
+      if (isMounted) {
+        setCompanies(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'TRY' ? '₺' : currency === 'RUB' ? '₽' : '₼';
+
   return (
     <div className="web-tour-filter-box">
       {/* Header */}
@@ -61,7 +72,7 @@ export const TourFilter: React.FC<TourFilterProps> = ({
           <input
             type="text"
             className="web-filter-text-input"
-            placeholder="Tur adı və ya təsvir..."
+            placeholder="Tur adı, məkan və ya şirkət..."
             value={filters.search || ''}
             onChange={(e) => onChange({ ...filters, search: e.target.value, page: 1 })}
           />
@@ -70,7 +81,7 @@ export const TourFilter: React.FC<TourFilterProps> = ({
 
       {/* Tour Type */}
       <div className="web-filter-group">
-        <label className="web-filter-label">Tur Tipi</label>
+        <label className="web-filter-label">Tur İstiqaməti</label>
         <div className="web-filter-pill-group">
           {(['', 'DOMESTIC', 'FOREIGN'] as (TourType | '')[]).map((type) => (
             <button
@@ -91,9 +102,35 @@ export const TourFilter: React.FC<TourFilterProps> = ({
         </div>
       </div>
 
+      {/* Partner Agencies Filter */}
+      <div className="web-filter-group">
+        <label className="web-filter-label">Partnyor Agentlik</label>
+        <div className="web-filter-select-wrap">
+          <select
+            className="web-filter-select"
+            value={filters.companyId || ''}
+            onChange={(e) =>
+              onChange({
+                ...filters,
+                companyId: e.target.value || undefined,
+                page: 1,
+              })
+            }
+          >
+            <option value="">Bütün Agentliklər</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} {c.isVerified ? '✓' : ''}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="web-filter-select-arrow" />
+        </div>
+      </div>
+
       {/* Region Dropdown */}
       <div className="web-filter-group">
-        <label className="web-filter-label">Region / İstiqamət</label>
+        <label className="web-filter-label">Region / Şəhər</label>
         <div className="web-filter-select-wrap">
           <select
             className="web-filter-select"
@@ -118,7 +155,7 @@ export const TourFilter: React.FC<TourFilterProps> = ({
 
       {/* Price Range */}
       <div className="web-filter-group">
-        <label className="web-filter-label">Qiymət Aralığı (₼)</label>
+        <label className="web-filter-label">Qiymət Aralığı ({currencySymbol})</label>
         <div className="web-price-inputs-row">
           <div className="web-price-input-wrap">
             <span>Min</span>
@@ -152,48 +189,6 @@ export const TourFilter: React.FC<TourFilterProps> = ({
             />
           </div>
         </div>
-        <div className="web-range-slider-track">
-          <div className="web-range-slider-fill" style={{ left: '0%', right: '35%' }} />
-          <div className="web-range-thumb" style={{ left: '0%' }} />
-          <div className="web-range-thumb" style={{ left: '65%' }} />
-        </div>
-      </div>
-
-      {/* Category Checkboxes */}
-      <div className="web-filter-group">
-        <label className="web-filter-label">Kateqoriya</label>
-        <div className="web-checkbox-list">
-          {CATEGORIES.map((cat) => (
-            <label key={cat.id} className="web-checkbox-label">
-              <input type="checkbox" defaultChecked={cat.id === 'nature'} />
-              <span className="web-custom-checkbox" />
-              <span className="web-checkbox-text">{cat.label}</span>
-              <span className="web-checkbox-count">({cat.count})</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Duration Options */}
-      <div className="web-filter-group">
-        <label className="web-filter-label">Müddət</label>
-        <div className="web-checkbox-list">
-          <label className="web-checkbox-label">
-            <input type="checkbox" />
-            <span className="web-custom-checkbox" />
-            <span className="web-checkbox-text">1 Günlük (Gündəlik)</span>
-          </label>
-          <label className="web-checkbox-label">
-            <input type="checkbox" defaultChecked />
-            <span className="web-custom-checkbox" />
-            <span className="web-checkbox-text">2 - 3 Gün (Həftəsonu)</span>
-          </label>
-          <label className="web-checkbox-label">
-            <input type="checkbox" />
-            <span className="web-custom-checkbox" />
-            <span className="web-checkbox-text">4+ Gün (Uzunmüddətli)</span>
-          </label>
-        </div>
       </div>
 
       {/* Customer Rating */}
@@ -201,24 +196,28 @@ export const TourFilter: React.FC<TourFilterProps> = ({
         <label className="web-filter-label">Müştəri Reytinqi</label>
         <div className="web-checkbox-list">
           <label className="web-checkbox-label">
-            <input type="radio" name="rating-filter" defaultChecked />
+            <input 
+              type="radio" 
+              name="rating-filter" 
+              checked={!filters.rating} 
+              onChange={() => onChange({ ...filters, rating: undefined, page: 1 })}
+            />
+            <span className="web-custom-radio" />
+            <span className="web-rating-text-label">Bütün reytinqlər</span>
+          </label>
+          <label className="web-checkbox-label">
+            <input 
+              type="radio" 
+              name="rating-filter" 
+              checked={filters.rating === 4.5} 
+              onChange={() => onChange({ ...filters, rating: 4.5, page: 1 })}
+            />
             <span className="web-custom-radio" />
             <div className="web-rating-stars-row">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star key={s} size={14} fill="#f59e0b" color="#f59e0b" />
               ))}
-              <span className="web-rating-text-label">və yuxarı</span>
-            </div>
-          </label>
-          <label className="web-checkbox-label">
-            <input type="radio" name="rating-filter" />
-            <span className="web-custom-radio" />
-            <div className="web-rating-stars-row">
-              {[1, 2, 3, 4].map((s) => (
-                <Star key={s} size={14} fill="#f59e0b" color="#f59e0b" />
-              ))}
-              <Star size={14} color="#cbd5e1" />
-              <span className="web-rating-text-label">4.0+</span>
+              <span className="web-rating-text-label">4.5+</span>
             </div>
           </label>
         </div>

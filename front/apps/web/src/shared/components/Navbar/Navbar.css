@@ -414,3 +414,114 @@
     align-items: center;
   }
 }
+
+/* ==========================================================================
+   Favorites & Wishlist Pill Styles
+   ========================================================================== */
+.web-favorites-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  position: relative;
+}
+
+.web-favorites-pill:hover {
+  border-color: #ff385c;
+  box-shadow: 0 4px 14px rgba(255, 56, 92, 0.15);
+  transform: translateY(-1px);
+}
+
+.web-favorites-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.web-favorites-pill-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.web-favorites-pill:hover .web-favorites-pill-text {
+  color: #ff385c;
+}
+
+.web-fav-icon {
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.web-fav-icon-active {
+  color: #ff385c;
+  transform: scale(1.08);
+  filter: drop-shadow(0 2px 4px rgba(255, 56, 92, 0.25));
+}
+
+.web-favorites-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background: linear-gradient(135deg, #ff385c 0%, #e11d48 100%);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(255, 56, 92, 0.3);
+  animation: web-fav-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.web-dropdown-item-fav-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.web-menu-count-badge {
+  background: #ff385c;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 1px 7px;
+  margin-left: auto;
+}
+
+.web-mobile-fav-link {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@keyframes web-fav-pop {
+  0% { transform: scale(0.5); }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 640px) {
+  .web-favorites-pill-text {
+    display: none;
+  }
+  .web-favorites-pill {
+    padding: 6px 10px;
+  }
+}

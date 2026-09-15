@@ -4,30 +4,321 @@
   gap: 1.5rem;
 }
 
-.web-passenger-card {
-  padding: 1.5rem;
+/* Compliance Notice Banner */
+.web-passenger-compliance-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
 }
 
-.web-passenger-card-header {
-  margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--border-glass);
-  padding-bottom: 0.75rem;
+.compliance-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(37, 99, 235, 0.15);
+  color: #3b82f6;
+  flex-shrink: 0;
 }
 
-.web-passenger-title {
-  font-size: 1.15rem;
+.compliance-content {
+  flex: 1;
+}
+
+.compliance-title {
+  font-size: 0.95rem;
   font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0 0 0.25rem 0;
+}
+
+.compliance-text {
+  font-size: 0.825rem;
+  color: var(--text-secondary, #64748b);
+  line-height: 1.5;
   margin: 0;
 }
 
+/* Passenger Card */
+.web-passenger-card {
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-glass, rgba(226, 232, 240, 0.8));
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
+}
+
+.web-passenger-card:hover {
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.08);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.web-passenger-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-glass, #e2e8f0);
+  padding-bottom: 1rem;
+}
+
+.web-passenger-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.passenger-avatar-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+
+.web-passenger-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+}
+
+.web-passenger-subtags {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+.seat-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.primary-passenger-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+/* Copy Button */
+.web-passenger-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: rgba(241, 245, 249, 0.8);
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 0.775rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.web-passenger-copy-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+  border-color: #94a3b8;
+}
+
+.web-passenger-copy-btn.copied {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: #10b981;
+  color: #059669;
+}
+
+/* Inputs Grid */
 .web-passenger-inputs-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
 }
 
+.web-fin-input-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.web-field-top-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.field-label-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary, #334155);
+}
+
+.fin-status-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+
+.fin-status-pill.status-empty {
+  background: rgba(148, 163, 184, 0.15);
+  color: #64748b;
+}
+
+.fin-status-pill.status-incomplete {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+
+.fin-status-pill.status-valid {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+/* Styled Native Date Input */
+.web-date-input-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.web-native-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+
+.input-icon-decor {
+  position: absolute;
+  left: 0.75rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.web-styled-native-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem 0.625rem 2.25rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: var(--bg-primary, #ffffff);
+  color: var(--text-primary, #0f172a);
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.web-styled-native-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Gender Selector */
+.web-gender-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.web-gender-options {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.web-gender-btn {
+  flex: 1;
+  padding: 0.625rem 1rem;
+  border: 1px solid #cbd5e1;
+  background: var(--bg-primary, #ffffff);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.web-gender-btn:hover {
+  border-color: #94a3b8;
+}
+
+.web-gender-btn.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* Full Width Notes */
+.web-passenger-notes-span {
+  grid-column: 1 / -1;
+}
+
+/* FIN Guide Box */
+.web-passenger-fin-guide {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  background: rgba(100, 116, 139, 0.06);
+  border: 1px dashed rgba(100, 116, 139, 0.25);
+}
+
+.guide-icon {
+  color: #64748b;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.guide-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #475569);
+  line-height: 1.45;
+}
+
+.guide-text strong {
+  color: var(--text-primary, #1e293b);
+}
+
 @media (max-width: 640px) {
   .web-passenger-inputs-grid {
     grid-template-columns: 1fr;
+  }
+
+  .web-passenger-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .web-passenger-copy-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

@@ -63,6 +63,18 @@ class CompaniesController {
     res.setHeader('Content-Disposition', 'attachment; filename=agencies.xlsx');
     return res.send(buffer);
   });
+
+  // İctimai metodlar (Web Müştərilər üçün)
+  getPublicProfile = asyncHandler(async (req, res) => {
+    const result = await companiesService.getPublicCompanyProfile(req.params.id);
+    return res.json({ status: 'success', msg: 'Şirkət profili gətirildi', data: result });
+  });
+
+  getPublicCompanies = asyncHandler(async (req, res) => {
+    const { limit } = req.query;
+    const result = await companiesService.getPublicCompanies(limit);
+    return res.json({ status: 'success', msg: 'Tərəfdaş şirkətlər gətirildi', data: result });
+  });
 }
 
 export const companiesController = new CompaniesController();

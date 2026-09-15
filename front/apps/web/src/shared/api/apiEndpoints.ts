@@ -31,9 +31,17 @@ export const API_ENDPOINTS = {
     VERIFY_QR: '/api/v1/bookings/verify-qr',
   },
 
+  // Vouchers & Tickets
+  VOUCHERS: {
+    DETAIL: (bookingId: string) => `/api/v1/vouchers/${bookingId}`,
+    PDF: (bookingId: string) => `/api/v1/vouchers/${bookingId}/pdf`,
+    VERIFY: (token: string) => `/api/v1/vouchers/${token}/verify`,
+  },
+
   // Payments
   PAYMENTS: {
     INIT: '/api/v1/payments/init',
+    PROVIDERS: '/api/v1/payments/providers',
     STATUS: (id: string) => `/api/v1/payments/${id}/status`,
   },
 
@@ -43,11 +51,39 @@ export const API_ENDPOINTS = {
     GEOFENCE: '/api/v1/common/geofence',
   },
 
-  // Campaigns & CMS
-  CAMPAIGNS: {
-    ACTIVE: '/api/v1/campaigns',
-    VALIDATE_PROMO: '/api/v1/campaigns/validate-promo',
+  // Sponsored Ads
+  ADS: {
+    PUBLIC: '/api/v1/ads/public',
+    CLICK: (id: string) => `/api/v1/ads/${id}/click`,
   },
+
+  // Partner Companies / Agencies
+  COMPANIES: {
+    PUBLIC_LIST: '/api/v1/companies/public',
+    PUBLIC_DETAIL: (id: string) => `/api/v1/companies/public/${id}`,
+  },
+
+  // Campaigns & Promotions
+  CAMPAIGNS: {
+    ACTIVE: '/api/v1/campaigns/active',
+    VALIDATE_PROMO: '/api/v1/campaigns/validate',
+  },
+
+  // Loyalty Program
+  LOYALTY: {
+    OFFERS: '/api/v1/loyalty/offers',
+    REDEEM: '/api/v1/loyalty/redeem',
+    HISTORY: '/api/v1/loyalty/history',
+    OVERVIEW: '/api/v1/users/loyalty',
+  },
+
+  // Tour Reviews
+  REVIEWS: {
+    CREATE: '/api/v1/reviews',
+    TOUR_REVIEWS: (tourId: string) => `/api/v1/reviews/tour/${tourId}`,
+  },
+
+  // CMS
   CMS: {
     BLOGS: '/api/v1/cms/blogs',
     FAQS: '/api/v1/cms/faqs',

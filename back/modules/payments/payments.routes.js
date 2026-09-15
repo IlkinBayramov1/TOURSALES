@@ -9,6 +9,7 @@ router.get('/providers', paymentsController.getProviders);
 
 // Ödəniş başlatma (Autentifikasiyalı və ya qonaq üçün public token ilə)
 router.post('/initiate', authMiddleware({ isPublic: true }), paymentsController.initiatePayment);
+router.post('/init', authMiddleware({ isPublic: true }), paymentsController.initiatePayment);
 
 // Bank Webhook-ları (İctimai - hər bir bank provayderi öz təhlükəsizlik imzası ilə göndərir)
 router.post('/webhook/:provider', paymentsController.handleWebhook);

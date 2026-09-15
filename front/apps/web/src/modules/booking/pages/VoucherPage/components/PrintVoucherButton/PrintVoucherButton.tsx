@@ -1,15 +1,35 @@
-import React from 'react';
-import { Printer, Download, Share2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Printer, Download, Share2, Check } from 'lucide-react';
 import { Button } from '@toursales/ui';
+import { bookingApi } from '@/modules/booking/api/bookingApi';
+import { useToast } from '@/shared/context/ToastContext';
 import './PrintVoucherButton.css';
 
 interface PrintVoucherButtonProps {
+  bookingId?: string;
   bookingNumber: string;
+  pdfUrl?: string;
 }
 
-export const PrintVoucherButton: React.FC<PrintVoucherButtonProps> = ({ bookingNumber }) => {
+export const PrintVoucherButton: React.FC<PrintVoucherButtonProps> = ({
+  bookingId,
+  bookingNumber,
+  pdfUrl,
+}) => {
+  const { addToast } = useToast();
+  const [copied, setCopied] = useState(false);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPdf = () => {
+    const id = bookingId || bookingNumber;
+    const directUrl = pdfUrl
+      ? (pdfUrl.startsWith('http') ? pdfUrl : `http://127.0.0.1:5000${pdfUrl}`)
+      : bookingApi.getPdfVoucherUrl(id);
+    window.open(directUrl, '_blank');
+    addToast({ type: 'success', message: 'Rəsmi PDF vauçer endirilir...' });
   };
 
   const handleShare = async () => {
@@ -25,7 +45,9 @@ export const PrintVoucherButton: React.FC<PrintVoucherButtonProps> = ({ bookingN
       }
     } else {
       await navigator.clipboard.writeText(window.location.href);
-      alert('Bilet linki kopyalandı!');
+      setCopied(true);
+      addToast({ type: 'success', message: 'Bilet linki kopyalandı!' });
+      setTimeout(() => setCopied(false), 2500);
     }
   };
 
@@ -33,20 +55,29 @@ export const PrintVoucherButton: React.FC<PrintVoucherButtonProps> = ({ bookingN
     <div className="web-voucher-actions">
       <Button
         variant="primary"
-        onClick={handlePrint}
-        className="web-print-btn"
+        onClick={handleDownloadPdf}
+        className="web-pdf-btn"
+        leftIcon={<Download size={18} />}
       >
-        <Printer size={18} />
-        <span>Çap Et / PDF Yüklə</span>
+        PDF Endir
       </Button>
 
       <Button
         variant="secondary"
+        onClick={handlePrint}
+        className="web-print-btn"
+        leftIcon={<Printer size={18} />}
+      >
+        Çap Et
+      </Button>
+
+      <Button
+        variant="ghost"
         onClick={handleShare}
         className="web-share-btn"
+        leftIcon={copied ? <Check size={18} /> : <Share2 size={18} />}
       >
-        <Share2 size={18} />
-        <span>Paylaş</span>
+        {copied ? 'Kopyalandı' : 'Paylaş'}
       </Button>
     </div>
   );

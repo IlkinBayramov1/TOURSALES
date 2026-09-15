@@ -1,0 +1,153 @@
+/* ==========================================================================
+   FLOATING WHATSAPP BUTTON - ULTRA PREMIUM (2026)
+   ========================================================================== */
+
+.web-floating-whatsapp-container {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.web-floating-whatsapp-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.45), 0 4px 12px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  text-decoration: none;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.web-floating-whatsapp-btn:hover {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 12px 30px -4px rgba(37, 211, 102, 0.6), 0 6px 16px rgba(0, 0, 0, 0.16);
+}
+
+.web-wa-main-icon {
+  fill: #ffffff;
+  color: #ffffff;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+/* Pulsing Ripple Animation */
+.web-wa-ripple-effect {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid #25d366;
+  animation: web-wa-pulse 2.2s infinite cubic-bezier(0.24, 0, 0.38, 1);
+  pointer-events: none;
+}
+
+@keyframes web-wa-pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* Tooltip Card */
+.web-floating-whatsapp-tooltip {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.15);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.96);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.web-floating-whatsapp-tooltip.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.web-wa-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.web-wa-avatar-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #25d366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.web-wa-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.web-wa-status {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.web-wa-prompt {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+  margin: 0 0 8px 0;
+}
+
+.web-wa-number {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #128c7e;
+  background: #f0fdf4;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+@media (max-width: 640px) {
+  .web-floating-whatsapp-container {
+    bottom: 20px;
+    right: 20px;
+  }
+  .web-floating-whatsapp-btn {
+    width: 52px;
+    height: 52px;
+  }
+  .web-floating-whatsapp-tooltip {
+    display: none;
+  }
+}

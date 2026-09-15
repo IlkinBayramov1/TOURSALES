@@ -90,6 +90,76 @@ class VoucherService {
 
     return PDFGenerator.generateVoucherPDF(booking);
   }
+
+  // 4. Get Full Voucher Details with Cryptographic QR Token
+  async getVoucherDetails(bookingId) {
+    const booking = await prisma.booking.findFirst({
+      where: { id: bookingId, deletedAt: null },
+      include: {
+        tour: {
+          include: {
+            company: {
+              select: {
+                id: true,
+                name: true,
+                legalName: true,
+                logoUrl: true,
+                phoneNumber: true,
+                email: true,
+                rating: true,
+                address: true,
+              }
+            }
+          }
+        },
+        company: {
+          select: {
+            id: true,
+            name: true,
+            legalName: true,
+            logoUrl: true,
+            phoneNumber: true,
+            email: true,
+            rating: true,
+            address: true,
+          }
+        }
+      }
+    });
+
+    if (!booking) throw ApiError.notFound('Bilet və ya rezervasiya tapılmadı.');
+
+    const qrToken = this.generateQrToken(booking.id);
+    let passengers = [];
+    if (booking.passengersData) {
+      try {
+        passengers = JSON.parse(booking.passengersData);
+      } catch (e) {
+        passengers = [];
+      }
+    }
+
+    const company = booking.tour?.company || booking.company;
+
+    return {
+      booking: {
+        ...booking,
+        passengers: passengers.length > 0 ? passengers : [
+          {
+            seatNumber: booking.busSeatNumber ? parseInt(booking.busSeatNumber.split(',')[0], 10) : 1,
+            fullName: `${booking.passengerName} ${booking.passengerSurname}`,
+            phone: booking.contactNumber,
+            finCode: booking.passengerPassport,
+          }
+        ],
+        totalPrice: Number(booking.totalAmount),
+        companyName: company?.name || 'Lisenziyalı Turizm Partnyoru',
+      },
+      company,
+      qrToken,
+      pdfUrl: `/api/v1/vouchers/${booking.id}/pdf`,
+    };
+  }
 }
 
 export const voucherService = new VoucherService();

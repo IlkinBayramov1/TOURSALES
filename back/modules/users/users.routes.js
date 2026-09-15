@@ -8,6 +8,15 @@ const router = express.Router();
 
 router.use(authMiddleware());
 
+// Müştərinin şəxsi profil marşrutları
+router.get('/profile', usersController.getProfile);
+router.put('/profile', usersController.updateProfile);
+router.put('/change-password', usersController.changePassword);
+router.get('/loyalty', usersController.getLoyalty);
+router.get('/favorites', usersController.getFavorites);
+router.post('/favorites/sync', usersController.syncFavorites);
+router.post('/favorites/:tourId', usersController.toggleFavorite);
+
 // Müştərinin özünü anonimləşdirməsi (silməsi)
 router.post('/me/anonymize', usersController.anonymizeMe);
 

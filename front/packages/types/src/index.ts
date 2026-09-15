@@ -5,3 +5,4 @@ export * from './booking.types';
 export * from './finance.types';
 export * from './company.types';
 export * from './common.types';
+export * from './loyalty.types';

@@ -30,10 +30,11 @@ export const BookingPage: React.FC = () => {
     setStep,
     passengers,
     updatePassenger,
+    copyPassengerDetailsToAll,
     promoCode,
     setPromoCode,
     priceBreakdown,
-  } = useBookingFlow(tour);
+  } = useBookingFlow(tour, selectedSeats);
 
   if (tourLoading || !tour) {
     return (
@@ -54,11 +55,78 @@ export const BookingPage: React.FC = () => {
   };
 
   const handleProceedToCheckout = () => {
-    const incomplete = passengers.some((p: any) => !p.fullName.trim() || !p.phone.trim());
-    if (incomplete) {
-      addToast({ type: 'warning', message: 'Zəhmət olmasa bütün sərnişinlərin ad və əlaqə nömrəsini doldurun' });
+    if (passengers.length === 0) {
+      addToast({ type: 'warning', message: 'Davam etmək üçün ən azı 1 sərnişin olmalıdır' });
       return;
     }
+
+    const isForeign = tour.type === 'FOREIGN';
+
+    // Validate each passenger individually with explicit feedback
+    for (let i = 0; i < passengers.length; i++) {
+      const p = passengers[i];
+      const pLabel = `Sərnişin #${i + 1} (Oturacaq ${p.seatNumber})`;
+
+      if (!p.fullName || p.fullName.trim().split(/\s+/).length < 2) {
+        addToast({
+          type: 'warning',
+          message: `${pLabel}: Ad və soyad tam daxil edilməlidir (məs: Əli Məmmədov)`,
+        });
+        return;
+      }
+
+      const digitsOnlyPhone = (p.phone || '').replace(/\D/g, '');
+      if (!digitsOnlyPhone || digitsOnlyPhone.length < 9) {
+        addToast({
+          type: 'warning',
+          message: `${pLabel}: Ən azı 9 rəqəmli əlaqə nömrəsi daxil edilməlidir`,
+        });
+        return;
+      }
+
+      const fin = (p.finCode || p.idNumber || '').trim().toUpperCase();
+      if (!fin || !/^[A-Z0-9]{7}$/.test(fin)) {
+        addToast({
+          type: 'warning',
+          message: `${pLabel}: 7 simvollu FİN kod düzgün daxil edilməlidir (məs: 7ABC123)`,
+        });
+        return;
+      }
+
+      if (isForeign) {
+        if (!p.passportNumber || p.passportNumber.trim().length < 6) {
+          addToast({
+            type: 'warning',
+            message: `${pLabel}: Xarici pasport nömrəsi tələb olunur`,
+          });
+          return;
+        }
+
+        if (!p.birthDate) {
+          addToast({
+            type: 'warning',
+            message: `${pLabel}: Doğum tarixi daxil edilməlidir`,
+          });
+          return;
+        }
+
+        if (!p.gender) {
+          addToast({
+            type: 'warning',
+            message: `${pLabel}: Cinsiyyət seçilməlidir (Kişi / Qadın)`,
+          });
+          return;
+        }
+      }
+    }
+
+    // Normalized passengers payload
+    const normalizedPassengers = passengers.map((p) => ({
+      ...p,
+      finCode: (p.finCode || p.idNumber || '').toUpperCase().trim(),
+      idNumber: (p.finCode || p.idNumber || '').toUpperCase().trim(),
+      passportNumber: p.passportNumber ? p.passportNumber.toUpperCase().trim() : undefined,
+    }));
 
     // Save booking state in sessionStorage for CheckoutPage
     sessionStorage.setItem(
@@ -67,7 +135,7 @@ export const BookingPage: React.FC = () => {
         tourId: tour.id,
         tour,
         selectedSeats,
-        passengers,
+        passengers: normalizedPassengers,
         promoCode,
         priceBreakdown,
       })
@@ -121,6 +189,7 @@ export const BookingPage: React.FC = () => {
                 <PassengerDetailsStep
                   passengers={passengers}
                   onUpdatePassenger={updatePassenger}
+                  onCopyDetailsToAll={copyPassengerDetailsToAll}
                   isForeignTour={tour.type === 'FOREIGN'}
                 />
 

@@ -108,16 +108,20 @@ class ToursController {
   });
 
   lockSeat = asyncHandler(async (req, res) => {
-    const { seatNumber } = req.body;
-    if (!seatNumber) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
-    const result = await seatService.lockSeat(req.params.id, seatNumber, req.user.id);
+    const { seatNumber, seatNumbers } = req.body;
+    const targetSeat = seatNumber || (Array.isArray(seatNumbers) ? seatNumbers[0] : null);
+    if (!targetSeat) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
+    const userId = req.user?.id || req.headers['x-guest-id'] || req.ip || 'guest';
+    const result = await seatService.lockSeat(req.params.id, targetSeat, userId);
     return res.json({ status: 'success', msg: 'Oturacaq uğurla kilidləndi', data: result });
   });
 
   releaseSeat = asyncHandler(async (req, res) => {
-    const { seatNumber } = req.body;
-    if (!seatNumber) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
-    const result = await seatService.releaseSeat(req.params.id, seatNumber, req.user.id);
+    const { seatNumber, seatNumbers } = req.body;
+    const targetSeat = seatNumber || (Array.isArray(seatNumbers) ? seatNumbers[0] : null);
+    if (!targetSeat) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
+    const userId = req.user?.id || req.headers['x-guest-id'] || req.ip || 'guest';
+    const result = await seatService.releaseSeat(req.params.id, targetSeat, userId);
     return res.json({ status: 'success', msg: 'Oturacaq kilidi azad edildi', data: result });
   });
 

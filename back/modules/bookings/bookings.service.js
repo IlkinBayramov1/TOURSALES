@@ -110,9 +110,12 @@ class BookingsService {
 
     const totalAmount = activePrice * requestedSeats;
     
-    // SISTEMDƏ BORC YOXDUR: 100% Məbləğ anında nağd/onlayn ödənilməlidir
-    const paidAmount = data.paidAmount ? parseFloat(data.paidAmount) : totalAmount;
-    if (paidAmount < totalAmount) {
+    const isPendingPayment = data.paymentStatus === 'PENDING';
+    const paidAmount = isPendingPayment ? 0.0 : (data.paidAmount !== undefined ? parseFloat(data.paidAmount) : totalAmount);
+    const remainingAmount = isPendingPayment ? totalAmount : Math.max(0, totalAmount - paidAmount);
+    const paymentStatus = isPendingPayment ? 'PENDING' : (paidAmount >= totalAmount ? 'PAID' : 'PARTIALLY_PAID');
+
+    if (!isPendingPayment && paidAmount < totalAmount) {
       throw ApiError.badRequest(`Sistemdə nisyə/borc bron rejimi mövcud deyil. Tam ödənilməli məbləğ: ${totalAmount} AZN`);
     }
 
@@ -125,7 +128,7 @@ class BookingsService {
 
     const riskAssessment = riskEngine.evaluateBookingRisk({
       email: data.contactEmail,
-      amount: paidAmount,
+      amount: totalAmount,
       userBookingCount,
       recentBookingsIn10Min
     });
@@ -134,13 +137,14 @@ class BookingsService {
       throw ApiError.forbidden(`Təhlükəsizlik xəbərdarlığı: Rezervasiya fırıldaqçılıq riskinə görə rədd edildi (${riskAssessment.reasons.join(', ')}).`);
     }
 
-    const remainingAmount = 0.0;
-    const paymentStatus = 'PAID';
-
-    // Daxili turlar üçün avtobus oturacaq nömrəsi
+    // Avtobus oturacaq nömrəsi təyini
     let busSeatNumber = null;
-    if (tour.type === 'DOMESTIC') {
-      busSeatNumber = data.busSeatNumber || null;
+    if (data.busSeatNumber) {
+      busSeatNumber = String(data.busSeatNumber);
+    } else if (Array.isArray(data.seatNumbers) && data.seatNumbers.length > 0) {
+      busSeatNumber = data.seatNumbers.join(',');
+    } else if (Array.isArray(data.passengers) && data.passengers.length > 0) {
+      busSeatNumber = data.passengers.map(p => p.seatNumber).filter(Boolean).join(',');
     }
 
     const documentPaths = files.map(file => file.path);
@@ -153,10 +157,14 @@ class BookingsService {
     const commissionAmount = (paidAmount * commissionRate) / 100;
     const netAmount = paidAmount - commissionAmount;
 
+    const passengersData = Array.isArray(data.passengers)
+      ? JSON.stringify(data.passengers)
+      : (data.passengersData || null);
+
     // --- DOUBLE DEFENSE CONCURRENCY LOCKING INSIDE ATOMIC TRANSACTION ---
     const result = await prisma.$transaction(async (tx) => {
       const activeBookings = await tx.booking.findMany({
-        where: { tourId: data.tourId, status: 'CONFIRMED', deletedAt: null }
+        where: { tourId: data.tourId, status: { in: ['CONFIRMED', 'PENDING'] }, deletedAt: null }
       });
       const currentSoldSeats = activeBookings.reduce((sum, b) => sum + b.seats, 0);
 
@@ -177,47 +185,50 @@ class BookingsService {
           contactEmail: data.contactEmail,
           seats: requestedSeats,
           busSeatNumber,
-          status: 'CONFIRMED',
+          status: isPendingPayment ? 'PENDING' : 'CONFIRMED',
           paymentStatus,
           paidAmount,
           remainingAmount,
           totalAmount,
+          passengersData,
           documents: JSON.stringify(documentPaths),
           bookingChannel
         }
       });
 
-      const txId = await generateUniqueId('TX', 'transaction');
-      await tx.transaction.create({
-        data: {
-          id: txId,
-          companyId: targetCompanyId,
+      if (paidAmount > 0) {
+        const txId = await generateUniqueId('TX', 'transaction');
+        await tx.transaction.create({
+          data: {
+            id: txId,
+            companyId: targetCompanyId,
+            bookingId: id,
+            type: 'TICKET_SALE',
+            amount: paidAmount,
+            commission: commissionAmount,
+            netAmount: netAmount,
+            status: 'Completed',
+            description: `${tour.title} turu üçün bilet satışı.`
+          }
+        });
+
+        // İkiqat Yazılışlı Maliyyə Baş Kitabında (Financial Ledger) qeydiyyat
+        await ledgerService.recordBookingSale({
           bookingId: id,
-          type: 'TICKET_SALE',
-          amount: paidAmount,
-          commission: commissionAmount,
+          companyId: targetCompanyId,
+          totalAmount: paidAmount,
+          commissionAmount: commissionAmount,
           netAmount: netAmount,
-          status: 'Completed',
-          description: `${tour.title} turu üçün bilet satışı.`
-        }
-      });
+          description: `${tour.title} turu üçün Tam Ödənişli Bilet Satışı`
+        }, tx);
 
-      // İkiqat Yazılışlı Maliyyə Baş Kitabında (Financial Ledger) qeydiyyat
-      await ledgerService.recordBookingSale({
-        bookingId: id,
-        companyId: targetCompanyId,
-        totalAmount: paidAmount,
-        commissionAmount: commissionAmount,
-        netAmount: netAmount,
-        description: `${tour.title} turu üçün Tam Ödənişli Bilet Satışı`
-      }, tx);
-
-      await tx.company.update({
-        where: { id: targetCompanyId },
-        data: {
-          availableBalance: { increment: netAmount }
-        }
-      });
+        await tx.company.update({
+          where: { id: targetCompanyId },
+          data: {
+            availableBalance: { increment: netAmount }
+          }
+        });
+      }
 
       if (customer) {
         const pointsEarned = tour.type === 'DOMESTIC' ? 10 : 20;
@@ -813,6 +824,119 @@ class BookingsService {
     }));
 
     return generateExcel(formattedData, columns, `Manifest`);
+  }
+
+  async getMyBookings(userEmail, userId = null) {
+    if (!userEmail && !userId) {
+      return [];
+    }
+
+    const where = {
+      deletedAt: null,
+      OR: [
+        { contactEmail: userEmail }
+      ]
+    };
+
+    return prisma.booking.findMany({
+      where,
+      include: {
+        tour: true,
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logoUrl: true,
+            phoneNumber: true,
+            rating: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async cancelBooking(bookingId, user, reason = '') {
+    const booking = await prisma.booking.findFirst({
+      where: { id: bookingId, deletedAt: null },
+      include: { tour: true, company: true }
+    });
+
+    if (!booking) {
+      throw ApiError.notFound('Rezervasiya tapılmadı.');
+    }
+
+    // Permission check
+    const isOwner = user && (booking.contactEmail === user.email || booking.passengerName?.toLowerCase() === user.name?.toLowerCase());
+    const isCompanyStaff = user && user.companyId === booking.companyId;
+    const isSuperAdmin = user && user.role === 'SuperAdmin';
+
+    if (!isOwner && !isCompanyStaff && !isSuperAdmin) {
+      throw ApiError.forbidden('Bu rezervasiyanı ləğv etmək hüququnuz yoxdur.');
+    }
+
+    if (booking.status === 'CANCELLED') {
+      throw ApiError.badRequest('Bu rezervasiya artıq ləğv edilmişdir.');
+    }
+
+    // Dynamic penalty calculation based on time left until departure
+    const now = new Date();
+    const startDate = new Date(booking.tour.startDate);
+    const diffHours = (startDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    let refundPercent = 0;
+    if (diffHours >= 72) {
+      refundPercent = 100; // >= 3 days: 100% full refund
+    } else if (diffHours >= 24) {
+      refundPercent = 70;  // 24-72 hours: 70% refund (30% penalty)
+    } else if (diffHours > 0) {
+      refundPercent = 30;  // < 24 hours: 30% refund (70% penalty)
+    } else {
+      refundPercent = 0;   // Tour already started/completed: 0% refund
+    }
+
+    const paid = Number(booking.paidAmount || 0);
+    const refundAmount = Number(((paid * refundPercent) / 100).toFixed(2));
+    const penaltyAmount = Number((paid - refundAmount).toFixed(2));
+
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: 'CANCELLED',
+          deleteReason: reason || 'Müştəri tərəfindən ləğv edildi',
+          deletedAt: new Date()
+        },
+        include: { tour: true, company: true }
+      });
+
+      if (refundAmount > 0) {
+        const txId = await generateUniqueId('TX', 'transaction');
+        await tx.transaction.create({
+          data: {
+            id: txId,
+            companyId: booking.companyId,
+            bookingId: booking.id,
+            type: 'REFUND',
+            amount: refundAmount,
+            commission: 0,
+            netAmount: -refundAmount,
+            status: 'Completed',
+            description: `${booking.tour.title} turu ləğv edildi. Geri qaytarma (${refundPercent}%): ${refundAmount} AZN`
+          }
+        });
+      }
+
+      return {
+        bookingId: updated.id,
+        status: updated.status,
+        tourTitle: booking.tour.title,
+        paidAmount: paid,
+        refundPercent,
+        refundAmount,
+        penaltyAmount
+      };
+    });
   }
 }
 

@@ -293,6 +293,92 @@ class AdsService {
       campaigns: detailedAds
     };
   }
+
+  // İctimai müştəri reklamları (Web Portal üçün)
+  async getPublicAds(options = {}) {
+    const { position, limit = 10 } = options;
+    const now = new Date();
+    const where = {
+      status: 'Active',
+      endDate: { gte: now }
+    };
+    if (position && position !== 'ALL') {
+      where.position = position;
+    }
+
+    const ads = await prisma.ad.findMany({
+      where,
+      include: {
+        tour: {
+          select: {
+            id: true,
+            title: true,
+            price: true,
+            images: true,
+            type: true,
+            destinationCountry: true
+          }
+        },
+        package: {
+          select: { name: true, durationDays: true }
+        },
+        company: {
+          select: { id: true, name: true, logoUrl: true, rating: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: parseInt(limit, 10) || 10
+    });
+
+    // İzlənmə sayını (viewCount) asinxron artırırıq
+    if (ads.length > 0) {
+      const adIds = ads.map((a) => a.id);
+      prisma.ad.updateMany({
+        where: { id: { in: adIds } },
+        data: { viewCount: { increment: 1 } }
+      }).catch((err) => console.error('[Ads] View count increment xətası:', err));
+    }
+
+    return ads.map((ad) => {
+      let parsedImages = [];
+      if (ad.tour?.images) {
+        try {
+          parsedImages = typeof ad.tour.images === 'string' ? JSON.parse(ad.tour.images) : ad.tour.images;
+        } catch {
+          parsedImages = [ad.tour.images];
+        }
+      }
+
+      return {
+        id: ad.id,
+        title: ad.title || ad.tour?.title || 'Xüsusi Tur Təklifi',
+        imageUrl: ad.imageUrl || (parsedImages[0] || null),
+        linkUrl: ad.linkUrl || (ad.tour ? `/tours/${ad.tour.id}` : '/tours'),
+        position: ad.position,
+        companyId: ad.companyId,
+        companyName: ad.company?.name || 'Toursales Tərəfdaşı',
+        companyLogo: ad.company?.logoUrl || null,
+        companyRating: Number(ad.company?.rating) || 5.0,
+        tour: ad.tour ? {
+          ...ad.tour,
+          price: Number(ad.tour.price) || 0,
+          images: parsedImages
+        } : null
+      };
+    });
+  }
+
+  // Reklam kliklənməsi qeydiyyatı
+  async recordAdClick(adId) {
+    const ad = await prisma.ad.findUnique({ where: { id: adId } });
+    if (!ad) throw ApiError.notFound('Reklam tapılmadı.');
+
+    return prisma.ad.update({
+      where: { id: adId },
+      data: { clicksCount: { increment: 1 } },
+      select: { id: true, clicksCount: true, linkUrl: true }
+    });
+  }
 }
 
 export const adsService = new AdsService();

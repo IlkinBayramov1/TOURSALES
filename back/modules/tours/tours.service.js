@@ -32,25 +32,60 @@ class ToursService {
     const cached = cacheService.get(cacheKey);
     if (cached) return cached;
 
-    const { search, status, type } = filters;
+    const { 
+      search, 
+      status, 
+      type, 
+      category, 
+      minPrice, 
+      maxPrice, 
+      region, 
+      companyId: queryCompanyId,
+      sortBy 
+    } = filters;
 
     const where = {
       deletedAt: null
     };
-    if (companyId) {
-      where.companyId = companyId;
+    const targetCompanyId = companyId || queryCompanyId;
+    if (targetCompanyId) {
+      where.companyId = targetCompanyId;
     }
     if (status) {
       where.status = status;
     }
-    if (type) {
-      where.type = type;
+    const targetType = type || category;
+    if (targetType) {
+      where.type = targetType;
+    }
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.price = {};
+      if (minPrice !== undefined && minPrice !== '') where.price.gte = Number(minPrice);
+      if (maxPrice !== undefined && maxPrice !== '') where.price.lte = Number(maxPrice);
+    }
+    if (region) {
+      where.OR = [
+        ...(where.OR || []),
+        { destinationCountry: { contains: region } },
+        { regions: { some: { name: { contains: region } } } }
+      ];
     }
     if (search) {
       where.OR = [
+        ...(where.OR || []),
         { title: { contains: search } },
-        { id: { contains: search } }
+        { id: { contains: search } },
+        { description: { contains: search } }
       ];
+    }
+
+    let orderBy = { createdAt: 'desc' };
+    if (sortBy === 'price_asc') {
+      orderBy = { price: 'asc' };
+    } else if (sortBy === 'price_desc') {
+      orderBy = { price: 'desc' };
+    } else if (sortBy === 'newest') {
+      orderBy = { createdAt: 'desc' };
     }
 
     const tours = await prisma.tour.findMany({
@@ -61,10 +96,19 @@ class ToursService {
           where: { status: 'CONFIRMED' }
         },
         company: {
-          select: { name: true }
+          select: {
+            id: true,
+            name: true,
+            legalName: true,
+            logoUrl: true,
+            rating: true,
+            phoneNumber: true,
+            city: true,
+            status: true
+          }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy
     });
 
     const result = tours.map((tour) => {
@@ -139,6 +183,18 @@ class ToursService {
       passportVisaRequired: !!tour.passportVisaRequired,
       hasFlight: !!tour.flightIncluded,
       hasVisaSupport: !!tour.passportVisaRequired,
+      company: tour.company
+        ? {
+            id: tour.company.id,
+            name: tour.company.name,
+            legalName: tour.company.legalName || tour.company.name,
+            logoUrl: tour.company.logoUrl || null,
+            rating: Number(tour.company.rating) || 5.0,
+            phoneNumber: tour.company.phoneNumber || '',
+            city: tour.company.city || 'Bakı',
+            isVerified: tour.company.status === 'Active'
+          }
+        : null,
       companyName: tour.company?.name || ''
     };
   }

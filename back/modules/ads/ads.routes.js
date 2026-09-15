@@ -7,7 +7,11 @@ import { ROLES } from '../../config/constants.js';
 
 const router = express.Router();
 
-// Bütün reklam marşrutları üçün auth tələb olunur
+// İctimai reklam marşrutları (Web müştərilər üçün - Autentifikasiyasız)
+router.get('/public', adsController.getPublicAds);
+router.post('/:id/click', adsController.recordClick);
+
+// Bütün daxili idarəetmə reklam marşrutları üçün auth tələb olunur
 router.use(authMiddleware());
 
 // Paket marşrutları

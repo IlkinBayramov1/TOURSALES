@@ -46,6 +46,69 @@ class UsersController {
     res.setHeader('Content-Disposition', 'attachment; filename=customers.xlsx');
     return res.send(buffer);
   });
+
+  getProfile = asyncHandler(async (req, res) => {
+    const profile = await usersService.getProfile(req.user.id);
+    return res.json({
+      status: 'success',
+      msg: 'İstifadəçi profili gətirildi.',
+      data: profile
+    });
+  });
+
+  updateProfile = asyncHandler(async (req, res) => {
+    const updated = await usersService.updateProfile(req.user.id, req.body);
+    return res.json({
+      status: 'success',
+      msg: 'Profiliniz uğurla yeniləndi.',
+      data: updated
+    });
+  });
+
+  changePassword = asyncHandler(async (req, res) => {
+    await usersService.changePassword(req.user.id, req.body);
+    return res.json({
+      status: 'success',
+      msg: 'Şifrəniz uğurla dəyişdirildi.'
+    });
+  });
+
+  getLoyalty = asyncHandler(async (req, res) => {
+    const loyalty = await usersService.getLoyalty(req.user.id);
+    return res.json({
+      status: 'success',
+      msg: 'Loyallıq məlumatları gətirildi.',
+      data: loyalty
+    });
+  });
+
+  getFavorites = asyncHandler(async (req, res) => {
+    const favorites = await usersService.getFavorites(req.user.id);
+    return res.json({
+      status: 'success',
+      msg: 'Seçilmiş turlar gətirildi.',
+      data: favorites
+    });
+  });
+
+  toggleFavorite = asyncHandler(async (req, res) => {
+    const result = await usersService.toggleFavorite(req.user.id, req.params.tourId);
+    return res.json({
+      status: 'success',
+      msg: 'Bəyənmə statusu yeniləndi.',
+      data: result
+    });
+  });
+
+  syncFavorites = asyncHandler(async (req, res) => {
+    const tourIds = req.body.tourIds || [];
+    const result = await usersService.syncFavorites(req.user.id, tourIds);
+    return res.json({
+      status: 'success',
+      msg: 'Seçilmiş turlar sinxronlaşdırıldı.',
+      data: result
+    });
+  });
 }
 
 export const usersController = new UsersController();

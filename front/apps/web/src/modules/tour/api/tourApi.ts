@@ -1,6 +1,6 @@
 import { axiosClient } from '../../../shared/api/axiosClient';
 import { API_ENDPOINTS } from '../../../shared/api/apiEndpoints';
-import { Tour, TourFilterParams, PaginatedResponse, SeatMatrix, PriceCalculationResult, TourReview } from '@toursales/types';
+import { Tour, TourFilterParams, PaginatedResponse, SeatMatrix, PriceCalculationResult, TourReview, TourReviewsResponse } from '@toursales/types';
 
 export const tourApi = {
   getTours: async (params?: TourFilterParams) => {
@@ -15,6 +15,13 @@ export const tourApi = {
 
   getTourById: async (id: string) => {
     const res = await axiosClient.get<{ success: boolean; data: Tour }>(API_ENDPOINTS.TOURS.DETAIL(id));
+    return res.data?.data;
+  },
+
+  getTourReviews: async (id: string) => {
+    const res = await axiosClient.get<{ success: boolean; data: TourReviewsResponse }>(
+      API_ENDPOINTS.TOURS.REVIEWS(id)
+    );
     return res.data?.data;
   },
 

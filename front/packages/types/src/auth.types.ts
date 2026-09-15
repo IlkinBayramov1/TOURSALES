@@ -9,6 +9,8 @@ export interface User {
   isTwoFactorEnabled: boolean;
   companyId?: string | null;
   avatarUrl?: string;
+  loyaltyPoints?: number;
+  loyaltyTier?: string;
   createdAt: string;
   updatedAt: string;
 }

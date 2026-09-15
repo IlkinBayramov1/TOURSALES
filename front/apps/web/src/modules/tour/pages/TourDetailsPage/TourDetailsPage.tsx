@@ -11,6 +11,7 @@ import { TourInclusionsCard } from './components/TourInclusionsCard/TourInclusio
 import { TourMeetingLocation } from './components/TourMeetingLocation/TourMeetingLocation';
 import { TourReviewsSection } from './components/TourReviewsSection/TourReviewsSection';
 import { TourStickyBookingBar } from './components/TourStickyBookingBar/TourStickyBookingBar';
+import { TourAgencyCard } from './components/TourAgencyCard/TourAgencyCard';
 import { Spinner, Button } from '@toursales/ui';
 import './TourDetailsPage.css';
 
@@ -152,9 +153,10 @@ export const TourDetailsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Sticky Booking Card */}
+          {/* Right Column: Sticky Booking Card & Licensed Agency Box */}
           <div className="web-tour-right-col">
             <TourStickyBookingBar tour={tour} />
+            <TourAgencyCard company={tour.company} />
           </div>
         </div>
       </div>

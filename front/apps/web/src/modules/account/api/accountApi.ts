@@ -57,4 +57,8 @@ export const accountApi = {
   getLoyaltyInfo: async (): Promise<ApiResponse<LoyaltyData>> => {
     return axiosClient.get('/users/loyalty');
   },
+
+  syncFavorites: async (tourIds: string[]): Promise<ApiResponse<Tour[]>> => {
+    return axiosClient.post('/users/favorites/sync', { tourIds });
+  },
 };

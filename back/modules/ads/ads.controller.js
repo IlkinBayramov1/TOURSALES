@@ -49,6 +49,17 @@ class AdsController {
     const result = await adsService.getAdsKPI(companyId);
     return res.json({ status: 'success', msg: 'Reklam KPI hesabatı gətirildi', data: result });
   });
+
+  getPublicAds = asyncHandler(async (req, res) => {
+    const { position, limit } = req.query;
+    const result = await adsService.getPublicAds({ position, limit });
+    return res.json({ status: 'success', msg: 'İctimai reklamlar gətirildi', data: result });
+  });
+
+  recordClick = asyncHandler(async (req, res) => {
+    const result = await adsService.recordAdClick(req.params.id);
+    return res.json({ status: 'success', msg: 'Klik qeydə alındı', data: result });
+  });
 }
 
 export const adsController = new AdsController();

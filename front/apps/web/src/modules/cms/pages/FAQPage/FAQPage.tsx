@@ -3,6 +3,7 @@ import { HelpCircle, MessageCircle, Mail, Phone } from 'lucide-react';
 import { Spinner, Card, Button } from '@toursales/ui';
 import { cmsApi, FAQItem } from '../../api/cmsApi';
 import { FAQAccordion } from '../../components/FAQAccordion/FAQAccordion';
+import { SUPPORT_CONTACTS } from '@/shared/constants/contacts';
 import './FAQPage.css';
 
 export const FAQPage: React.FC = () => {
@@ -15,9 +16,9 @@ export const FAQPage: React.FC = () => {
       try {
         setLoading(true);
         const res = await cmsApi.getFaqs();
-        setFaqs(res.data || []);
+        setFaqs(res.data);
       } catch (err) {
-        console.error('Suallar yüklənərkən xəta:', err);
+        console.error('FAQ yüklənərkən xəta:', err);
       } finally {
         setLoading(false);
       }
@@ -26,32 +27,26 @@ export const FAQPage: React.FC = () => {
     fetchFaqs();
   }, []);
 
-  const categories = ['ALL', ...Array.from(new Set(faqs.map((f) => f.category)))];
+  const categories = ['ALL', ...Array.from(new Set(faqs.map((item) => item.category)))];
 
-  const filteredFaqs = faqs.filter(
-    (faq) => selectedCategory === 'ALL' || faq.category === selectedCategory
-  );
+  const filteredFaqs = selectedCategory === 'ALL' 
+    ? faqs 
+    : faqs.filter((item) => item.category === selectedCategory);
 
   return (
-    <div className="web-faq-page">
-      <div className="web-faq-hero">
-        <div className="web-faq-hero-badge">
-          <HelpCircle size={16} />
-          <span>KÖMƏK VƏ DƏSTƏK</span>
-        </div>
+    <div className="web-faq-page-container">
+      <div className="web-faq-header">
         <h1>Tez-tez Verilən Suallar</h1>
-        <p>
-          Rezervasiya, ödənişlər, Qarabağ turları icazələri və ləğvetmə şərtləri haqqında bütün sualların cavabları.
-        </p>
+        <p>Səyahətiniz, rezervasiya qaydaları və ödənişlə bağlı ən çox soruşulan sualların cavabları.</p>
       </div>
 
-      <div className="web-faq-container">
-        <div className="web-faq-category-row">
+      <div className="web-faq-content-layout">
+        {/* Category Filter Pills */}
+        <div className="web-faq-category-pills">
           {categories.map((cat) => (
             <button
               key={cat}
-              type="button"
-              className={`web-faq-category-btn ${selectedCategory === cat ? 'active' : ''}`}
+              className={`web-category-pill ${selectedCategory === cat ? 'active' : ''}`}
               onClick={() => setSelectedCategory(cat)}
             >
               {cat === 'ALL' ? 'Bütün Suallar' : cat}
@@ -59,19 +54,21 @@ export const FAQPage: React.FC = () => {
           ))}
         </div>
 
-        {loading ? (
-          <div className="web-faq-loading">
-            <Spinner size="lg" />
-            <p>Məlumatlar yüklənir...</p>
-          </div>
-        ) : (
-          <div className="web-faq-accordion-wrapper">
+        {/* FAQ List */}
+        <div className="web-faq-list-section">
+          {loading ? (
+            <div className="web-faq-loading">
+              <Spinner size="lg" />
+              <p>Məlumatlar hazırlanır...</p>
+            </div>
+          ) : (
             <FAQAccordion items={filteredFaqs} />
-          </div>
-        )}
+          )}
+        </div>
 
-        <Card variant="default" className="web-faq-support-card">
-          <div className="web-support-icon">
+        {/* Support CTA Card */}
+        <Card variant="default" className="web-support-cta-card">
+          <div className="web-support-icon-wrap">
             <MessageCircle size={32} />
           </div>
           <div className="web-support-content">
@@ -82,13 +79,13 @@ export const FAQPage: React.FC = () => {
           </div>
           <div className="web-support-actions">
             <a
-              href="https://wa.me/994500000000"
+              href={SUPPORT_CONTACTS.whatsappUrlWithText('Salam, TOURSALES platforması ilə bağlı sualım var.')}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
             >
               <Button variant="primary">
                 <Phone size={16} />
-                <span>WhatsApp Dəstək</span>
+                <span>WhatsApp Dəstək (+994 77 599 00 95)</span>
               </Button>
             </a>
           </div>

@@ -18,6 +18,10 @@ export const formatCurrency = (
       return `$${formatted}`;
     case 'EUR':
       return `€${formatted}`;
+    case 'TRY':
+      return `₺${formatted}`;
+    case 'RUB':
+      return `${formatted} ₽`;
     default:
       return `${formatted} ${currency}`;
   }

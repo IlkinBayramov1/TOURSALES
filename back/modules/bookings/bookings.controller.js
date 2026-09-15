@@ -12,8 +12,13 @@ class BookingsController {
     return res.json({ status: 'success', msg: 'Rezervasiyalar uğurla gətirildi', data: result });
   });
 
+  getMyBookings = asyncHandler(async (req, res) => {
+    const result = await bookingsService.getMyBookings(req.user.email, req.user.id);
+    return res.json({ status: 'success', msg: 'Sifarişləriniz uğurla gətirildi', data: result });
+  });
+
   getById = asyncHandler(async (req, res) => {
-    const companyId = req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId;
+    const companyId = req.user ? (req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId) : null;
     const result = await bookingsService.getById(req.params.id, companyId);
     if (!result) throw ApiError.notFound('Rezervasiya tapılmadı');
     return res.json({ status: 'success', msg: 'Rezervasiya tapıldı', data: result });
@@ -21,15 +26,16 @@ class BookingsController {
 
   create = asyncHandler(async (req, res) => {
     const files = req.files || [];
-    const companyId = req.user.role === ROLES.VENDOR ? req.user.companyId : null;
-    const channel = req.user.role === ROLES.VENDOR ? 'MANUAL' : 'PLATFORM';
+    const companyId = req.user?.role === ROLES.VENDOR ? req.user.companyId : null;
+    const channel = req.user?.role === ROLES.VENDOR ? 'MANUAL' : 'PLATFORM';
 
-    const result = await bookingsService.create(req.body, companyId, channel, files);
+    const result = await bookingsService.create(req.body, companyId, channel, files, req.user?.id || null);
     return res.status(201).json({ status: 'success', msg: 'Rezervasiya uğurla yaradıldı', data: result });
   });
 
   cancel = asyncHandler(async (req, res) => {
-    const result = await bookingsService.cancelBooking(req.params.id, req.user);
+    const reason = req.body.reason || '';
+    const result = await bookingsService.cancelBooking(req.params.id, req.user, reason);
     return res.json({
       status: 'success',
       msg: `Rezervasiya uğurla ləğv edildi. Geri ödənilən məbləğ (${result.refundPercent}%): ${result.refundAmount} AZN`,

@@ -5,11 +5,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCurrency } from '../../context/CurrencyContext';
+import { useFavorites } from '../../context/FavoritesContext';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const { currency, setCurrency } = useCurrency();
+  const { favoritesCount } = useFavorites();
   const navigate = useNavigate();
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -141,14 +143,39 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Loyalty Points Badge */}
-          <Link to="/account/loyalty" className="web-loyalty-pill">
+          <Link to="/loyalty" className="web-loyalty-pill" title="Səyahət Xalları və Hədiyyələr">
             <div className="web-loyalty-icon-circle">
               <Gift size={14} />
             </div>
             <div className="web-loyalty-text">
-              <span className="web-loyalty-amount">1,420</span>
-              <span className="web-loyalty-label">Xal</span>
+              {isAuthenticated && user ? (
+                <>
+                  <span className="web-loyalty-amount">{(user.loyaltyPoints ?? 0).toLocaleString()}</span>
+                  <span className="web-loyalty-label">Xal</span>
+                </>
+              ) : (
+                <>
+                  <span className="web-loyalty-amount">Bonus</span>
+                  <span className="web-loyalty-label">Qazan</span>
+                </>
+              )}
             </div>
+          </Link>
+
+          {/* Favorites / Wishlist Pill */}
+          <Link to="/account/favorites" className="web-favorites-pill" title="Seçilmiş Turlar">
+            <div className="web-favorites-icon-wrap">
+              <Heart 
+                size={18} 
+                className={favoritesCount > 0 ? "web-fav-icon-active" : "web-fav-icon"} 
+                fill={favoritesCount > 0 ? "#ff385c" : "none"} 
+                color={favoritesCount > 0 ? "#ff385c" : "currentColor"} 
+              />
+              {favoritesCount > 0 && (
+                <span className="web-favorites-badge">{favoritesCount}</span>
+              )}
+            </div>
+            <span className="web-favorites-pill-text">Seçilmişlər</span>
           </Link>
 
           {/* User Menu or Login Button */}
@@ -189,7 +216,10 @@ export const Navbar: React.FC = () => {
                     onClick={() => setIsUserMenuOpen(false)}
                   >
                     <Heart size={16} className="web-dropdown-icon" />
-                    <span>İstək Siyahısı</span>
+                    <span className="web-dropdown-item-fav-label">
+                      <span>İstək Siyahısı</span>
+                      {favoritesCount > 0 && <span className="web-menu-count-badge">{favoritesCount}</span>}
+                    </span>
                   </Link>
                   <div className="web-dropdown-divider"></div>
                   <button 
@@ -232,6 +262,10 @@ export const Navbar: React.FC = () => {
           <NavLink to="/domestic" onClick={() => setMobileOpen(false)}>Daxili Turlar</NavLink>
           <NavLink to="/foreign" onClick={() => setMobileOpen(false)}>Xarici Turlar</NavLink>
           <NavLink to="/campaigns" onClick={() => setMobileOpen(false)}>Kampaniyalar</NavLink>
+          <NavLink to="/account/favorites" onClick={() => setMobileOpen(false)} className="web-mobile-fav-link">
+            <span>Seçilmiş Turlar</span>
+            {favoritesCount > 0 && <span className="web-menu-count-badge">{favoritesCount}</span>}
+          </NavLink>
           <NavLink to="/account/loyalty" onClick={() => setMobileOpen(false)}>Səyahət Xalları (1,420 Xal)</NavLink>
           <a href="http://localhost:5174" target="_blank" rel="noreferrer">Tərəfdaşlıq (B2B)</a>
           {!isAuthenticated && (

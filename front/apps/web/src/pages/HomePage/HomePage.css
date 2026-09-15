@@ -1170,3 +1170,278 @@
     padding: 32px 24px;
   }
 }
+
+/* ==========================================================================
+   9. SPONSORED ADS & VENDOR BRANDING
+   ========================================================================== */
+.web-sponsored-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  margin-bottom: 12px;
+}
+
+.web-slide-company-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  backdrop-filter: blur(12px);
+  margin-top: 16px;
+}
+
+.web-slide-company-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* ==========================================================================
+   10. PARTNER AGENCIES / COMPANIES SHOWCASE
+   ========================================================================== */
+.web-companies-section {
+  margin-bottom: 90px;
+}
+
+.web-companies-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.web-company-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 24px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+}
+
+.web-company-card:hover {
+  transform: translateY(-4px);
+  border-color: #3b82f6;
+  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.12), 0 8px 10px -6px rgba(59, 130, 246, 0.08);
+}
+
+.web-company-avatar-box {
+  width: 76px;
+  height: 76px;
+  border-radius: 20px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.web-company-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.web-company-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.web-company-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.web-company-city {
+  font-size: 13px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.web-company-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 14px;
+  border-top: 1px dashed #e2e8f0;
+  font-size: 13px;
+}
+
+.web-company-rating-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.web-company-tours-count {
+  color: #3b82f6;
+  font-weight: 600;
+  background: #eff6ff;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   11. PROMO COPY BUTTON & BADGES
+   ========================================================================== */
+.web-promo-code-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  margin-top: 10px;
+}
+
+.web-promo-code-text {
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+}
+
+.web-btn-copy-promo {
+  background: #ffffff;
+  color: #1e293b;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.web-btn-copy-promo:hover {
+  background: #f1f5f9;
+  transform: scale(1.04);
+}
+
+/* ==========================================================================
+   12. SKELETON LOADING
+   ========================================================================== */
+.web-skeleton-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+  height: 380px;
+  position: relative;
+}
+
+.web-skeleton-thumb {
+  width: 100%;
+  height: 200px;
+  background: #f1f5f9;
+  position: relative;
+  overflow: hidden;
+}
+
+.web-skeleton-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.web-skeleton-line {
+  height: 16px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.web-skeleton-line-sm {
+  width: 40%;
+  height: 12px;
+}
+
+.web-skeleton-line-md {
+  width: 70%;
+}
+
+.web-skeleton-line-lg {
+  width: 90%;
+}
+
+.web-skeleton-line::after,
+.web-skeleton-thumb::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.4) 20%,
+    rgba(255, 255, 255, 0.8) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: web-shimmer 2s infinite;
+}
+
+@keyframes web-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: 1080px) {
+  .web-companies-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .web-companies-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
