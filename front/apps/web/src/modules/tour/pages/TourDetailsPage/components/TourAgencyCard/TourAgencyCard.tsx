@@ -15,9 +15,10 @@ interface TourAgencyCardProps {
     city?: string;
     isVerified: boolean;
   } | null;
+  tourId?: string;
 }
 
-export const TourAgencyCard: React.FC<TourAgencyCardProps> = ({ company }) => {
+export const TourAgencyCard: React.FC<TourAgencyCardProps> = ({ company, tourId }) => {
   if (!company) {
     return (
       <div className="web-agency-card web-agency-card-placeholder">
@@ -100,6 +101,24 @@ export const TourAgencyCard: React.FC<TourAgencyCardProps> = ({ company }) => {
 
       {/* Quick Action Contacts */}
       <div className="web-agency-contact-actions">
+        <button 
+          type="button" 
+          className="web-btn-agency-wa" 
+          style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: '#fff', border: 'none', cursor: 'pointer' }}
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('open-chat', {
+              detail: {
+                companyId: company.id,
+                contextType: 'TOUR',
+                contextTourId: tourId,
+              }
+            }));
+          }}
+          title="Onlayn Çat"
+        >
+          <MessageCircle size={15} />
+          <span>Canlı Çat</span>
+        </button>
         {company.phoneNumber && (
           <a href={`tel:${company.phoneNumber}`} className="web-btn-agency-call" title="Zəng et">
             <Phone size={14} />

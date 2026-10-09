@@ -15,24 +15,48 @@ class ApiKeysController {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
     }
-    const result = await apiKeysService.createKey(req.user.companyId, req.body);
+    const result = await apiKeysService.createKey(req.user.companyId, req.body, req.user);
     return res.status(201).json({ status: 'success', msg: 'API açarı uğurla yaradıldı', data: result });
+  });
+
+  updateKey = asyncHandler(async (req, res) => {
+    if (!req.user.companyId) {
+      throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
+    }
+    const result = await apiKeysService.updateKey(req.user.companyId, req.params.id, req.body, req.user);
+    return res.json({ status: 'success', msg: 'API açarı yeniləndi', data: result });
   });
 
   revokeKey = asyncHandler(async (req, res) => {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
     }
-    const result = await apiKeysService.revokeKey(req.user.companyId, req.params.id);
+    const result = await apiKeysService.revokeKey(req.user.companyId, req.params.id, req.user);
     return res.json({ status: 'success', msg: 'API açarı ləğv edildi', data: result });
+  });
+
+  regenerateKey = asyncHandler(async (req, res) => {
+    if (!req.user.companyId) {
+      throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
+    }
+    const result = await apiKeysService.regenerateKey(req.user.companyId, req.params.id, req.user);
+    return res.json({ status: 'success', msg: 'API açarı yenidən generasiya edildi (Roll Key)', data: result });
   });
 
   deleteKey = asyncHandler(async (req, res) => {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
     }
-    const result = await apiKeysService.deleteKey(req.user.companyId, req.params.id);
+    const result = await apiKeysService.deleteKey(req.user.companyId, req.params.id, req.user);
     return res.json({ status: 'success', msg: result.message });
+  });
+
+  simulateRequest = asyncHandler(async (req, res) => {
+    if (!req.user.companyId) {
+      throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
+    }
+    const result = await apiKeysService.simulateRequest(req.user.companyId, req.body, req.user);
+    return res.json({ status: 'success', msg: 'API sorğusu uğurla icra edildi', data: result });
   });
 
   getStats = asyncHandler(async (req, res) => {
@@ -55,15 +79,23 @@ class ApiKeysController {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
     }
-    const result = await apiKeysService.createWebhook(req.user.companyId, req.body);
+    const result = await apiKeysService.createWebhook(req.user.companyId, req.body, req.user);
     return res.status(201).json({ status: 'success', msg: 'Webhook uğurla yaradıldı', data: result });
+  });
+
+  updateWebhook = asyncHandler(async (req, res) => {
+    if (!req.user.companyId) {
+      throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
+    }
+    const result = await apiKeysService.updateWebhook(req.user.companyId, req.params.id, req.body, req.user);
+    return res.json({ status: 'success', msg: 'Webhook uğurla yeniləndi', data: result });
   });
 
   testWebhook = asyncHandler(async (req, res) => {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
     }
-    const result = await apiKeysService.testWebhook(req.user.companyId, req.params.id);
+    const result = await apiKeysService.testWebhook(req.user.companyId, req.params.id, req.user);
     return res.json({ status: 'success', msg: result.message, data: result.delivery });
   });
 
@@ -71,7 +103,7 @@ class ApiKeysController {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
     }
-    const result = await apiKeysService.deleteWebhook(req.user.companyId, req.params.id);
+    const result = await apiKeysService.deleteWebhook(req.user.companyId, req.params.id, req.user);
     return res.json({ status: 'success', msg: result.message });
   });
 }

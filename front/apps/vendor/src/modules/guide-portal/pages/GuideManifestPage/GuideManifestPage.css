@@ -1,0 +1,821 @@
+.manifest-container {
+  padding: 1.25rem;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+/* Nav & Toolbar */
+.manifest-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.manifest-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #475569;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #f1f5f9;
+  transition: all 0.15s ease;
+}
+
+.manifest-back-link:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.manifest-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.manifest-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.manifest-action-btn.bulk-btn {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.manifest-action-btn.bulk-btn:hover:not(:disabled) {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+
+.manifest-action-btn.bulk-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.manifest-action-btn.excel-btn {
+  background: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.manifest-action-btn.excel-btn:hover:not(:disabled) {
+  background: #dcfce7;
+}
+
+.manifest-action-btn.excel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.manifest-action-btn.refresh-btn {
+  background: #ffffff;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.manifest-action-btn.refresh-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* Header Card */
+.manifest-header-card {
+  background: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e2e8f0);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.manifest-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.625rem;
+}
+
+.manifest-tour-title {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.manifest-guide-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: #ecfdf5;
+  color: #065f46;
+  padding: 0.375rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  border: 1px solid #a7f3d0;
+}
+
+.guide-phone-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  margin-left: 0.25rem;
+  text-decoration: none;
+}
+
+.guide-phone-link:hover {
+  background: #059669;
+}
+
+.manifest-tour-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  font-size: 0.875rem;
+  color: #475569;
+  margin-bottom: 0.875rem;
+}
+
+.manifest-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.manifest-map-link {
+  color: #0284c7;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 0.25rem;
+}
+
+.manifest-map-link:hover {
+  text-decoration: underline;
+}
+
+.manifest-departure-notes {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  margin-bottom: 1rem;
+}
+
+/* 5-KPI Stats Grid */
+.manifest-stats-grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.625rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+@media (max-width: 900px) {
+  .manifest-stats-grid-5 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .manifest-stats-grid-5 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.manifest-stat-card {
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+}
+
+.manifest-stat-card.checked {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.manifest-stat-card.pending {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.manifest-stat-card.total {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #e2e8f0;
+}
+
+.manifest-stat-card.debt {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.manifest-stat-card.debt.has-debt:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.15);
+}
+
+.manifest-stat-card.revenue {
+  background: #f0fdfa;
+  color: #0f766e;
+  border-color: #99f6e4;
+}
+
+.manifest-stat-num {
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.manifest-stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-top: 0.25rem;
+  opacity: 0.9;
+}
+
+/* Tabs */
+.manifest-tab-bar {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 1.25rem;
+}
+
+.manifest-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.15s ease;
+}
+
+.manifest-tab-btn.active {
+  color: #0284c7;
+  border-bottom-color: #0284c7;
+}
+
+/* Realistic 2+2 Bus Scheme */
+.bus-layout-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.bus-cockpit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #ffffff;
+  border-radius: 1rem 1rem 0.5rem 0.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 8px -2px rgba(15, 23, 42, 0.15);
+}
+
+.bus-driver-bay {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bus-cockpit-icon {
+  font-size: 1.75rem;
+}
+
+.bus-driver-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+}
+
+.bus-driver-sub {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.bus-door-bay {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.bus-door-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.bus-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-dot.checked {
+  background: #22c55e;
+}
+
+.legend-dot.pending {
+  background: #f59e0b;
+}
+
+.legend-dot.debt {
+  background: #ef4444;
+}
+
+.legend-dot.empty {
+  background: #cbd5e1;
+}
+
+.bus-body-container {
+  max-width: 620px;
+  margin: 0 auto;
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 1rem;
+  padding: 1.25rem 1rem;
+}
+
+.bus-rows-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bus-aisle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.bus-seat-pair {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.bus-seat-slot.empty-slot {
+  flex: 1;
+  aspect-ratio: 1.1;
+  border: 1px dashed #e2e8f0;
+  border-radius: 0.625rem;
+  background: #ffffff;
+}
+
+.bus-center-aisle {
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.aisle-row-marker {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bus-seat-unit {
+  flex: 1;
+  aspect-ratio: 1.1;
+  border-radius: 0.625rem;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bus-seat-unit:active {
+  transform: scale(0.95);
+}
+
+.bus-seat-unit.checked-in {
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #15803d;
+}
+
+.bus-seat-unit.reserved {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.bus-seat-unit.debtor-seat {
+  box-shadow: 0 0 0 2px #ef4444 inset;
+}
+
+.bus-seat-unit.empty {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  cursor: default;
+}
+
+.seat-badge-top {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.seat-debt-dot {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.625rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seat-passenger-abbr {
+  font-size: 0.625rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  margin-top: 0.125rem;
+}
+
+.seat-empty-text {
+  font-size: 0.625rem;
+  font-weight: 600;
+  margin-top: 0.125rem;
+}
+
+.bus-rear-banner {
+  margin-top: 1.25rem;
+  padding: 0.625rem;
+  text-align: center;
+  background: #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+/* Passenger List */
+.passenger-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.passenger-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+}
+
+.search-icon-pos {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.passenger-search-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem 0.625rem 2.25rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.passenger-search-input:focus {
+  border-color: #0284c7;
+}
+
+.passenger-filter-buttons {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.filter-pill-btn {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-pill-btn.active-all {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.filter-pill-btn.active-checked {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+}
+
+.filter-pill-btn.active-pending {
+  background: #d97706;
+  color: #ffffff;
+  border-color: #d97706;
+}
+
+.filter-pill-btn.active-debt {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+.passenger-empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: #f8fafc;
+  border-radius: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.passenger-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: background 0.15s ease;
+}
+
+.passenger-card.checked-in {
+  border-left: 5px solid #22c55e;
+}
+
+.passenger-card.pending {
+  border-left: 5px solid #f59e0b;
+}
+
+.passenger-card.has-debt-card {
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.1);
+}
+
+.passenger-info {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex: 1;
+}
+
+.passenger-seat-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 0.625rem;
+  background: #0284c7;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.passenger-seat-badge.checked {
+  background: #10b981;
+}
+
+.passenger-details-col {
+  flex: 1;
+}
+
+.passenger-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.passenger-name-text {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.passenger-debt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.passenger-debt-badge.warning {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.passenger-debt-badge.paid {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.passenger-meta-sub {
+  font-size: 0.8125rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.passenger-notes-badge {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  display: inline-block;
+}
+
+.passenger-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-icon-round {
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  text-decoration: none;
+}
+
+.btn-icon-round.wa {
+  background: #25d366;
+  color: #ffffff;
+}
+
+.btn-icon-round.wa:hover {
+  transform: scale(1.05);
+}
+
+.btn-icon-round.tel {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.btn-icon-round.tel:hover {
+  transform: scale(1.05);
+}
+
+.btn-toggle-checkin {
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all 0.15s ease;
+}
+
+.btn-toggle-checkin.checked {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.btn-toggle-checkin.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Floating QR Camera Button */
+.floating-qr-scan-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.5);
+  cursor: pointer;
+  z-index: 50;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.floating-qr-scan-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px -5px rgba(2, 132, 199, 0.6);
+}

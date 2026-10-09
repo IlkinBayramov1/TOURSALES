@@ -24,13 +24,26 @@ class CampaignsService {
       where.type = type;
     }
 
-    return prisma.campaign.findMany({
+    const campaigns = await prisma.campaign.findMany({
       where,
       include: {
         company: { select: { name: true } },
         _count: { select: { usages: true } }
       },
       orderBy: { createdAt: 'desc' }
+    });
+
+    const now = new Date();
+    return campaigns.map((c) => {
+      let isExpired = c.endDate < now;
+      let effectiveStatus = c.status;
+      if (isExpired && effectiveStatus === 'Active') {
+        effectiveStatus = 'Expired';
+      }
+      return {
+        ...c,
+        status: effectiveStatus
+      };
     });
   }
 
@@ -41,15 +54,25 @@ class CampaignsService {
     });
   }
 
-  async create(data, companyId = null) {
+  async create(data, companyId = null, user = null) {
+    const promoCodeUpper = data.promoCode.trim().toUpperCase();
+
+    // Promokod unikallığı yoxlanışı
+    const existing = await prisma.campaign.findUnique({
+      where: { promoCode: promoCodeUpper }
+    });
+    if (existing) {
+      throw ApiError.conflict('Bu promokod artıq mövcuddur. Zəhmət olmasa, başqa bir kod seçin.');
+    }
+
     const id = await generateUniqueId('CP', 'campaign');
 
-    return prisma.campaign.create({
+    const createdCampaign = await prisma.campaign.create({
       data: {
         id,
         companyId,
         type: data.type || 'DISCOUNT',
-        promoCode: data.promoCode.toUpperCase(),
+        promoCode: promoCodeUpper,
         discountType: data.discountType || 'PERCENTAGE',
         discountValue: parseFloat(data.discountValue),
         usageLimit: parseInt(data.usageLimit || 0, 10),
@@ -59,14 +82,92 @@ class CampaignsService {
         status: 'Active'
       }
     });
+
+    // Audit Log qeydiyyatı
+    if (companyId) {
+      await prisma.auditLog.create({
+        data: {
+          id: await generateUniqueId('AUD', 'auditLog'),
+          tenantId: companyId,
+          entityName: 'Campaign',
+          entityId: createdCampaign.id,
+          action: 'CREATE_PROMO',
+          performedBy: `${user?.name || 'Rəhbər'} (${(user?.agencyRole || 'OWNER').toUpperCase()})`,
+          newValues: JSON.stringify({
+            promoCode: createdCampaign.promoCode,
+            discountType: createdCampaign.discountType,
+            discountValue: createdCampaign.discountValue,
+            usageLimit: createdCampaign.usageLimit
+          })
+        }
+      }).catch((err) => console.error('[AuditLog] CREATE_PROMO xətası:', err));
+    }
+
+    return createdCampaign;
   }
 
-  async delete(id, companyId = null) {
+  // Kampaniya (promokod) statusunun dəyişdirilməsi (Active <-> Paused)
+  async toggleStatus(id, companyId = null, user = null) {
+    const campaign = await prisma.campaign.findUnique({ where: { id } });
+    if (!campaign) throw ApiError.notFound('Kampaniya tapılmadı.');
+    if (companyId && campaign.companyId !== companyId) {
+      throw ApiError.forbidden('Bu kampaniyanı dəyişməyə icazəniz yoxdur.');
+    }
+
+    const now = new Date();
+    if (campaign.endDate < now) {
+      throw ApiError.badRequest('Müddəti bitmiş kampaniyanın statusunu dəyişmək mümkün deyil.');
+    }
+
+    const newStatus = campaign.status === 'Active' ? 'Paused' : 'Active';
+    const updated = await prisma.campaign.update({
+      where: { id },
+      data: { status: newStatus }
+    });
+
+    // Audit Log qeydiyyatı
+    const tenantTarget = campaign.companyId || companyId;
+    if (tenantTarget) {
+      await prisma.auditLog.create({
+        data: {
+          id: await generateUniqueId('AUD', 'auditLog'),
+          tenantId: tenantTarget,
+          entityName: 'Campaign',
+          entityId: campaign.id,
+          action: 'TOGGLE_PROMO_STATUS',
+          performedBy: `${user?.name || 'Rəhbər'} (${(user?.agencyRole || 'OWNER').toUpperCase()})`,
+          oldValues: JSON.stringify({ status: campaign.status }),
+          newValues: JSON.stringify({ status: newStatus })
+        }
+      }).catch((err) => console.error('[AuditLog] TOGGLE_PROMO_STATUS xətası:', err));
+    }
+
+    return updated;
+  }
+
+  async delete(id, companyId = null, user = null) {
     const campaign = await prisma.campaign.findUnique({ where: { id } });
     if (!campaign) return false;
     if (companyId && campaign.companyId !== companyId) return false;
 
     await prisma.campaign.delete({ where: { id } });
+
+    // Audit Log qeydiyyatı
+    const tenantTarget = campaign.companyId || companyId;
+    if (tenantTarget) {
+      await prisma.auditLog.create({
+        data: {
+          id: await generateUniqueId('AUD', 'auditLog'),
+          tenantId: tenantTarget,
+          entityName: 'Campaign',
+          entityId: campaign.id,
+          action: 'DELETE_PROMO',
+          performedBy: `${user?.name || 'Rəhbər'} (${(user?.agencyRole || 'OWNER').toUpperCase()})`,
+          oldValues: JSON.stringify({ promoCode: campaign.promoCode, discountValue: campaign.discountValue })
+        }
+      }).catch((err) => console.error('[AuditLog] DELETE_PROMO xətası:', err));
+    }
+
     return true;
   }
 

@@ -181,7 +181,15 @@ export const SubscriptionPage: React.FC = () => {
           </div>
 
           {/* 4. Full Feature Comparison Matrix */}
-          <PlanComparisonMatrix currentPlanId={currentPlanId} />
+          <PlanComparisonMatrix
+            currentPlanId={currentPlanId}
+            onSelectPlan={(planId) => {
+              const target = plans.find((p) => p.id === planId);
+              if (target) {
+                handleOpenUpgradeModal(target);
+              }
+            }}
+          />
 
           {/* 5. Invoices & Billing History Table */}
           <BillingInvoicesTable

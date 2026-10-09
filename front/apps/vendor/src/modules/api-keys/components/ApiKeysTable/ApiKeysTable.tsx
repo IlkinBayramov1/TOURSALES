@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Key, Copy, Check, Ban, Trash2 } from 'lucide-react';
+import { Key, Copy, Check, Ban, Trash2, Edit2, RotateCw } from 'lucide-react';
 import { ApiKey } from '@toursales/types';
 import './ApiKeysTable.css';
 
@@ -8,13 +8,17 @@ interface ApiKeysTableProps {
   loading?: boolean;
   onRevoke: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onEdit?: (key: ApiKey) => void;
+  onRegenerate?: (key: ApiKey) => void;
 }
 
 export const ApiKeysTable: React.FC<ApiKeysTableProps> = ({
   keys,
   loading,
   onRevoke,
-  onDelete
+  onDelete,
+  onEdit,
+  onRegenerate
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -168,7 +172,27 @@ export const ApiKeysTable: React.FC<ApiKeysTableProps> = ({
 
                 {/* Actions */}
                 <td>
-                  <div className="ad-actions-cell" style={{ justifyContent: 'flex-end' }}>
+                  <div className="ad-actions-cell" style={{ justifyContent: 'flex-end', display: 'flex', gap: '0.375rem' }}>
+                    {!isRevoked && onEdit && (
+                      <button
+                        type="button"
+                        className="ad-action-btn"
+                        title="Açarı Redaktə Et"
+                        onClick={() => onEdit(k)}
+                      >
+                        <Edit2 size={14} color="#2563eb" />
+                      </button>
+                    )}
+                    {!isRevoked && onRegenerate && (
+                      <button
+                        type="button"
+                        className="ad-action-btn"
+                        title="Gizli Açar Kodunu Yenilə (Roll / Regenerate)"
+                        onClick={() => onRegenerate(k)}
+                      >
+                        <RotateCw size={14} color="#d97706" />
+                      </button>
+                    )}
                     {!isRevoked && (
                       <button
                         type="button"
@@ -180,7 +204,7 @@ export const ApiKeysTable: React.FC<ApiKeysTableProps> = ({
                           }
                         }}
                       >
-                        <Ban size={14} color="#d97706" />
+                        <Ban size={14} color="#dc2626" />
                       </button>
                     )}
                     <button

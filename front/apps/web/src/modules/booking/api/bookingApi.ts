@@ -106,12 +106,60 @@ export const bookingApi = {
     return res.data?.data || [];
   },
 
+  detectBin: async (payload: { cardNumberOrBin: string; amount?: number; currency?: string }) => {
+    const res = await axiosClient.post<{ status: string; data: any }>(
+      '/payments/detect-bin',
+      payload
+    );
+    return res.data?.data;
+  },
+
+  getBalanceInfo: async (bookingId: string, token?: string) => {
+    const res = await axiosClient.get<{ status: string; data: any }>(
+      `/payments/balance-info/${bookingId}`,
+      { params: { token } }
+    );
+    return res.data?.data;
+  },
+
+  payBalance: async (payload: {
+    bookingId: string;
+    provider?: string;
+    token?: string;
+    installmentMonths?: number;
+    returnUrl?: string;
+    cancelUrl?: string;
+  }) => {
+    const res = await axiosClient.post<{ status: string; data: any }>(
+      '/payments/pay-balance',
+      payload
+    );
+    return res.data?.data;
+  },
+
+  sendBalanceReminderWhatsApp: async (bookingId: string) => {
+    const res = await axiosClient.post<{ status: string; msg: string; data: any }>(
+      `/bookings/notifications/whatsapp/balance-reminder/${bookingId}`
+    );
+    return res.data;
+  },
+
+  simulateSuccess: async (payload: { bookingId: string; paymentType?: string; amount?: number }) => {
+    const res = await axiosClient.post<{ status: string; data: any }>(
+      '/payments/simulate-success',
+      payload
+    );
+    return res.data?.data;
+  },
+
   initPayment: async (payload: {
     bookingId: string;
     amount?: number;
     currency?: string;
     provider?: string;
     paymentMethod?: string;
+    paymentType?: string;
+    installmentMonths?: number;
     returnUrl?: string;
     cancelUrl?: string;
   }) => {

@@ -125,14 +125,176 @@
   font-weight: 600;
 }
 
+.vendor-roster-bulk-btn {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+  color: white !important;
+}
+
+.vendor-roster-bulk-btn:hover {
+  background: #15803d !important;
+}
+
+.vendor-roster-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.vendor-roster-pill {
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vendor-roster-pill:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.vendor-roster-pill.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
+}
+
+.vendor-roster-pill.warning.active {
+  background: #d97706;
+  border-color: #d97706;
+  color: white;
+}
+
+.vendor-printable-run-sheet {
+  display: none;
+}
+
 @media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   .vendor-sidebar,
   .vendor-header,
   .vendor-table-toolbar,
+  .vendor-roster-header,
   .vendor-roster-actions,
+  .vendor-roster-stats-strip,
+  .vendor-roster-filter-pills,
   .vendor-page-header,
   .vendor-bookings-toolbar,
-  .vendor-bookings-kpi-grid {
+  .vendor-bookings-kpi-grid,
+  .vendor-roster-wrapper > div:not(.vendor-printable-run-sheet),
+  .no-print {
     display: none !important;
+  }
+
+  .vendor-printable-run-sheet {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #000000 !important;
+  }
+
+  .vprs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #000;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+
+  .vprs-branding h2 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 0 0 4px 0;
+    text-transform: uppercase;
+  }
+
+  .vprs-branding p {
+    font-size: 10pt;
+    color: #444;
+    margin: 0;
+  }
+
+  .vprs-print-date {
+    font-size: 8pt;
+    color: #666;
+  }
+
+  .vprs-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px 16px;
+    border: 1px solid #999;
+    background: #fdfdfd;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    font-size: 9pt;
+  }
+
+  .vprs-meta-item strong {
+    font-weight: bold;
+    display: inline-block;
+    min-width: 90px;
+  }
+
+  .vprs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 8.5pt;
+  }
+
+  .vprs-table th,
+  .vprs-table td {
+    border: 1px solid #333 !important;
+    padding: 4px 6px !important;
+    vertical-align: middle;
+  }
+
+  .vprs-table th {
+    background: #eaeaea !important;
+    font-weight: bold;
+    text-align: left;
+    color: black !important;
+  }
+
+  .vprs-debt-text {
+    font-weight: bold;
+    color: #000;
+  }
+
+  .vprs-sign-cell {
+    border-bottom: 1px solid #333;
+  }
+
+  .vprs-signatures {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    padding-top: 15px;
+    font-size: 10pt;
+  }
+
+  .vprs-sig-block {
+    min-width: 250px;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
   }
 }

@@ -12,6 +12,7 @@ import { TourMeetingLocation } from './components/TourMeetingLocation/TourMeetin
 import { TourReviewsSection } from './components/TourReviewsSection/TourReviewsSection';
 import { TourStickyBookingBar } from './components/TourStickyBookingBar/TourStickyBookingBar';
 import { TourAgencyCard } from './components/TourAgencyCard/TourAgencyCard';
+import { TourHotelCrossSell } from '../../../hotel/components/TourHotelCrossSell/TourHotelCrossSell';
 import { Spinner, Button } from '@toursales/ui';
 import './TourDetailsPage.css';
 
@@ -151,12 +152,15 @@ export const TourDetailsPage: React.FC = () => {
                 />
               )}
             </div>
+
+            {/* Faza 3: Dynamic Tour Hotel Cross-Sell */}
+            <TourHotelCrossSell tourId={tour.id} />
           </div>
 
           {/* Right Column: Sticky Booking Card & Licensed Agency Box */}
           <div className="web-tour-right-col">
             <TourStickyBookingBar tour={tour} />
-            <TourAgencyCard company={tour.company} />
+            <TourAgencyCard company={tour.company} tourId={tour.id} />
           </div>
         </div>
       </div>

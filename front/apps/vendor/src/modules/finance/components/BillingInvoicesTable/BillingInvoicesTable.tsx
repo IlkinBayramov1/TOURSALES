@@ -33,6 +33,26 @@ export const BillingInvoicesTable: React.FC<BillingInvoicesTableProps> = ({
     loadInvoices();
   }, [refreshKey]);
 
+  const formatAzeriDate = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '—';
+    const months = [
+      'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun',
+      'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'
+    ];
+    return `${d.getDate().toString().padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  };
+
+  const mapPaymentMethod = (method: string | null | undefined): string => {
+    if (!method) return '—';
+    const upper = method.toUpperCase();
+    if (upper === 'BALANCE') return 'Platforma Balansı';
+    if (upper === 'CARD') return 'Bank Kartı';
+    if (upper === 'BANK_TRANSFER') return 'B2B Bank Köçürməsi';
+    return method;
+  };
+
   return (
     <div className="invoices-section-card">
       <div className="invoices-header-row">
@@ -58,12 +78,8 @@ export const BillingInvoicesTable: React.FC<BillingInvoicesTableProps> = ({
           {
             header: 'Tarix',
             render: (inv: SubscriptionPaymentItem) => (
-              <span>
-                {new Date(inv.paymentDate).toLocaleDateString('az-AZ', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                })}
+              <span className="text-sm font-medium text-slate-700">
+                {formatAzeriDate(inv.paymentDate)}
               </span>
             ),
           },
@@ -86,8 +102,8 @@ export const BillingInvoicesTable: React.FC<BillingInvoicesTableProps> = ({
           {
             header: 'Ödəniş Üsulu',
             render: (inv: SubscriptionPaymentItem) => (
-              <span className="text-secondary text-sm">
-                {inv.paymentMethod}
+              <span className="text-secondary text-sm font-medium">
+                {mapPaymentMethod(inv.paymentMethod)}
               </span>
             ),
           },

@@ -7,7 +7,7 @@ import {
   Tooltip as RechartsTooltip, 
   ResponsiveContainer 
 } from 'recharts';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Lock } from 'lucide-react';
 import './RevenueChart.css';
 
 interface MonthlyData {
@@ -18,6 +18,7 @@ interface MonthlyData {
 
 interface RevenueChartProps {
   data?: MonthlyData[];
+  isFinancialMasked?: boolean;
 }
 
 const EMPTY_DATA: MonthlyData[] = [
@@ -48,7 +49,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
+export const RevenueChart: React.FC<RevenueChartProps> = ({ data, isFinancialMasked = false }) => {
   const chartData = data && data.length > 0 ? data : EMPTY_DATA;
 
   return (
@@ -63,44 +64,56 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
         </button>
       </div>
 
-      <div className="vendor-recharts-container">
-        <ResponsiveContainer width="100%" height={260}>
-          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <defs>
-              <linearGradient id="vendorColorTotal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#635bff" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#635bff" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis
-              dataKey="month"
-              stroke="#94a3b8"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              stroke="#94a3b8"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `${value}₼`}
-            />
-            <RechartsTooltip
-              content={<CustomTooltip />}
-              cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }}
-            />
-            <Area
-              type="monotone"
-              dataKey="revenue"
-              stroke="#635bff"
-              strokeWidth={3}
-              fillOpacity={1}
-              fill="url(#vendorColorTotal)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+      {isFinancialMasked ? (
+        <div className="vendor-chart-masked-overlay">
+          <div className="vendor-chart-masked-icon">
+            <Lock size={26} />
+          </div>
+          <h4 className="vendor-chart-masked-title">Maliyyə Məxfiliyi Təmin Edilib</h4>
+          <p className="vendor-chart-masked-text">
+            Gəlir analitikası və dövriyyə qrafiki yalnız şirkət rəhbərliyi və maliyyə şöbəsi üçün əlçatandır.
+          </p>
+        </div>
+      ) : (
+        <div className="vendor-recharts-container">
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="vendorColorTotal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#635bff" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#635bff" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="month"
+                stroke="#94a3b8"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="#94a3b8"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${value}₼`}
+              />
+              <RechartsTooltip
+                content={<CustomTooltip />}
+                cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }}
+              />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#635bff"
+                strokeWidth={3}
+                fillOpacity={1}
+                fill="url(#vendorColorTotal)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 };

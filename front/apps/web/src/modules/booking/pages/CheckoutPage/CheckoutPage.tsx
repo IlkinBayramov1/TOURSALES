@@ -26,7 +26,9 @@ export const CheckoutPage: React.FC = () => {
   const { addToast } = useToast();
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('BIRBANK');
+  const [paymentScheme, setPaymentScheme] = useState<'FULL' | 'DEPOSIT'>('FULL');
   const [installmentMonths, setInstallmentMonths] = useState<number>(1);
+  const [detectedCard, setDetectedCard] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [codeCopied, setCodeCopied] = useState<boolean>(false);
   const [terminalModal, setTerminalModal] = useState<TerminalModalState | null>(null);
@@ -68,13 +70,25 @@ export const CheckoutPage: React.FC = () => {
     setTimeout(() => setCodeCopied(false), 3000);
   };
 
+  const tourPrice = Number((bookingData?.tour as any)?.price ?? (bookingData?.tour as any)?.basePrice ?? 0);
+  const totalAmount =
+    bookingData?.priceBreakdown?.totalPrice ?? (tourPrice * (bookingData?.selectedSeats.length || 1));
+
+  const isDepositAllowed = bookingData?.tour?.allowDeposit !== false;
+  const depositPercent = Number(bookingData?.tour?.depositPercentage || 30);
+  const depositAmount = Math.round(((totalAmount * depositPercent) / 100) * 100) / 100;
+  const remainingAmount = Math.max(0, totalAmount - depositAmount);
+
+  const tourStartDate = bookingData?.tour?.startDate ? new Date(bookingData.tour.startDate) : new Date(Date.now() + 10 * 86400000);
+  const dueDays = bookingData?.tour?.depositDueDaysBefore || 5;
+  const depositDueDate = new Date(tourStartDate.getTime() - (dueDays * 86400000));
+
+  const chargeAmount = paymentScheme === 'DEPOSIT' ? depositAmount : totalAmount;
+
   const handlePayment = async () => {
     if (!bookingData) return;
     setLoading(true);
 
-    const tourPrice = Number((bookingData.tour as any).price ?? (bookingData.tour as any).basePrice ?? 0);
-    const totalAmount =
-      bookingData.priceBreakdown?.totalPrice ?? tourPrice * bookingData.selectedSeats.length;
     const isTerminal = paymentMethod === 'EMANAT' || paymentMethod === 'MILLION';
 
     try {
@@ -84,21 +98,24 @@ export const CheckoutPage: React.FC = () => {
       const passengerName = parts[0] || 'Müştəri';
       const passengerSurname = parts.slice(1).join(' ') || 'Sərnişin';
 
-      // 1. Create booking in backend
+      // 1. Create booking in backend with paymentType (FULL / DEPOSIT)
       const booking = await bookingApi.createBooking({
         tourId: bookingData.tour.id,
         seatNumbers: bookingData.selectedSeats,
         passengers: bookingData.passengers,
         promoCode: bookingData.promoCode,
         paymentMethod,
+        paymentType: paymentScheme,
+        installmentMonths: installmentMonths || 1,
+        installmentCardType: detectedCard?.cardName || paymentMethod,
         ...({
           passengerName,
           passengerSurname,
           contactNumber: primary?.phone || '+994500000000',
           contactEmail: 'guest@toursales.az',
           seats: bookingData.selectedSeats.length,
-          paidAmount: isTerminal ? 0 : totalAmount,
-          paymentStatus: isTerminal ? 'PENDING' : 'PAID',
+          paidAmount: isTerminal ? 0 : chargeAmount,
+          paymentStatus: isTerminal ? 'PENDING' : (paymentScheme === 'DEPOSIT' ? 'PARTIALLY_PAID' : 'PAID'),
         } as any),
       });
 
@@ -108,9 +125,11 @@ export const CheckoutPage: React.FC = () => {
 
       await bookingApi.initPayment({
         bookingId: booking.id,
-        amount: totalAmount,
+        amount: chargeAmount,
         currency: bookingData.tour.currency || 'AZN',
         provider: providerKey,
+        paymentType: paymentScheme,
+        installmentMonths,
         returnUrl: `${window.location.origin}/voucher/${booking.id}`,
         cancelUrl: `${window.location.origin}/checkout/${bookingData.tour.id}`,
       });
@@ -123,15 +142,22 @@ export const CheckoutPage: React.FC = () => {
           provider: paymentMethod === 'EMANAT' ? 'eManat' : 'MilliÖN',
           bookingId: booking.id,
           terminalCode,
-          amount: totalAmount,
+          amount: chargeAmount,
           currency: bookingData.tour.currency || 'AZN',
         });
       } else {
         // Card payment success
-        addToast({
-          type: 'success',
-          message: 'Ödəniş uğurla tamamlandı! Elektron biletiniz və QR vauçeriniz hazırlandı.',
-        });
+        if (paymentScheme === 'DEPOSIT') {
+          addToast({
+            type: 'success',
+            message: `30% depozit ödənişi uğurla tamamlandı! Qalan ${remainingAmount} AZN üçün ödəniş linki nömrənizə göndərildi.`,
+          });
+        } else {
+          addToast({
+            type: 'success',
+            message: 'Ödəniş uğurla tamamlandı! Elektron biletiniz və QR vauçeriniz hazırlandı.',
+          });
+        }
         sessionStorage.removeItem('toursales_checkout_data');
         navigate(`/voucher/${booking.id}`);
       }
@@ -152,11 +178,6 @@ export const CheckoutPage: React.FC = () => {
     );
   }
 
-  const calculatedTotal =
-    bookingData.priceBreakdown?.totalPrice ??
-    Number((bookingData.tour as any).price ?? (bookingData.tour as any).basePrice ?? 0) *
-      bookingData.selectedSeats.length;
-
   return (
     <div className="web-checkout-page">
       <div className="web-container">
@@ -164,15 +185,75 @@ export const CheckoutPage: React.FC = () => {
         <CheckoutTimer onExpire={handleTimerExpire} />
 
         <div className="web-checkout-layout">
-          {/* Left Column: Payment Method Selection */}
+          {/* Left Column: Payment Scheme + Payment Method Selection */}
           <div className="web-checkout-left">
+            {/* 1. FinTech Payment Scheme Selector (Full vs 30% Deposit) */}
+            {isDepositAllowed && (
+              <div className="web-payment-scheme-card">
+                <div className="scheme-card-header">
+                  <h4>Ödəniş Modelini Seçin</h4>
+                  <span className="scheme-subtitle">İstəyinizə uyğun rahat ödəniş sxemini təyin edin</span>
+                </div>
+
+                <div className="scheme-toggle-pills">
+                  <button
+                    type="button"
+                    className={`scheme-pill-btn ${paymentScheme === 'FULL' ? 'active' : ''}`}
+                    onClick={() => setPaymentScheme('FULL')}
+                  >
+                    <div className="scheme-pill-title">100% Tam Ödəniş</div>
+                    <div className="scheme-pill-sub">Birdəfəlik və ya Taksitlə</div>
+                    <div className="scheme-pill-price">{totalAmount.toFixed(2)} {bookingData.tour.currency || 'AZN'}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`scheme-pill-btn ${paymentScheme === 'DEPOSIT' ? 'active' : ''}`}
+                    onClick={() => setPaymentScheme('DEPOSIT')}
+                  >
+                    <div className="scheme-pill-badge">Çox Satılan</div>
+                    <div className="scheme-pill-title">30% Depozit Seçimi</div>
+                    <div className="scheme-pill-sub">İndi cəmi 30%, qalan 70% sonra</div>
+                    <div className="scheme-pill-price">{depositAmount.toFixed(2)} {bookingData.tour.currency || 'AZN'} indi</div>
+                  </button>
+                </div>
+
+                {paymentScheme === 'DEPOSIT' && (
+                  <div className="deposit-explanation-box">
+                    <div className="deposit-steps-visual">
+                      <div className="step-badge active">
+                        <span className="step-num">1</span>
+                        <div className="step-info">
+                          <strong>İndi Ödənilir (30%):</strong>
+                          <span>{depositAmount.toFixed(2)} {bookingData.tour.currency || 'AZN'}</span>
+                        </div>
+                      </div>
+                      <div className="step-divider" />
+                      <div className="step-badge future">
+                        <span className="step-num">2</span>
+                        <div className="step-info">
+                          <strong>Qalan 70% (Son tarix: {depositDueDate.toLocaleDateString('az-AZ')}):</strong>
+                          <span>{remainingAmount.toFixed(2)} {bookingData.tour.currency || 'AZN'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="deposit-note-text">
+                      💡 Yerləriniz dərhal adınıza rəsmi qeydiyyata alınır. Qalan 70% məbləği turun çıxışına {dueDays} gün qalmışadək WhatsApp ilə göndəriləcək 1-klik ödəniş linki vasitəsilə rahatlıqla tamamlaya bilərsiniz.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 2. Payment Method Selector */}
             <PaymentMethodSelector
               selectedMethod={paymentMethod}
               onSelectMethod={setPaymentMethod}
-              totalAmount={calculatedTotal}
+              totalAmount={chargeAmount}
               currency={bookingData.tour.currency || 'AZN'}
               selectedInstallment={installmentMonths}
               onSelectInstallment={setInstallmentMonths}
+              onCardDetected={setDetectedCard}
             />
 
             <div className="web-checkout-back-link">
@@ -193,6 +274,9 @@ export const CheckoutPage: React.FC = () => {
               priceBreakdown={bookingData.priceBreakdown}
               onPay={handlePayment}
               isLoading={loading}
+              paymentScheme={paymentScheme}
+              depositAmount={depositAmount}
+              remainingAmount={remainingAmount}
             />
           </div>
         </div>

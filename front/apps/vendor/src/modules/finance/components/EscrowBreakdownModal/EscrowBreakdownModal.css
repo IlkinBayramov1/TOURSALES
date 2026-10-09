@@ -1,0 +1,250 @@
+.escrow-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.25rem;
+}
+
+.escrow-modal-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+  max-width: 650px;
+  width: 100%;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.escrow-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 16px;
+}
+
+.escrow-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.escrow-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.escrow-title-group h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.escrow-title-group p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
+
+.escrow-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #94a3b8;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+}
+
+.escrow-close-btn:hover {
+  color: #0f172a;
+}
+
+/* Hero Card */
+.escrow-hero-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 14px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.escrow-hero-lbl {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.escrow-hero-val {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0284c7;
+  margin-top: 4px;
+}
+
+.escrow-hero-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #0284c7;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #bae6fd;
+}
+
+/* Rule Banner */
+.escrow-rule-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.escrow-rule-banner .rule-icon {
+  color: #0284c7;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.escrow-rule-banner p {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* Table */
+.escrow-items-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.escrow-items-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.escrow-count-pill {
+  background-color: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.escrow-loading-box,
+.escrow-empty-box {
+  padding: 36px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.escrow-empty-box h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.escrow-empty-box p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+  max-width: 400px;
+}
+
+.escrow-table-wrap {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.escrow-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.escrow-table th {
+  background-color: #f8fafc;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.escrow-table td {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.escrow-table tr:last-child td {
+  border-bottom: none;
+}
+
+.escrow-tour-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.escrow-passenger-name {
+  color: #475569;
+  font-weight: 500;
+}
+
+.escrow-date {
+  color: #64748b;
+  font-size: 12.5px;
+}
+
+.escrow-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+}

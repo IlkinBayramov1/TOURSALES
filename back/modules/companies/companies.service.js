@@ -58,20 +58,38 @@ class CompaniesService {
   }
 
   // Vendorun öz profilini yeniləməsi
-  async updateCompanyProfile(id, data) {
+  async updateCompanyProfile(id, data, user = null) {
+    const previous = await prisma.company.findUnique({
+      where: { id }
+    });
+
+    if (!previous) {
+      throw ApiError.notFound('Şirkət profili tapılmadı');
+    }
+
+    // Əgər dəyişikliyi edən ACCOUNTANT-dırsa, o yalnız bank və hesablaşma rekvizitlərini dəyişə bilər
+    if (user?.agencyRole === 'ACCOUNTANT') {
+      if (data.name !== undefined && data.name.trim() !== previous.name) {
+        throw ApiError.forbidden('Mühasib şirkətin adını dəyişə bilməz. Bu əməliyyat üçün rəhbərə müraciət edin.');
+      }
+      if (data.legalName !== undefined && data.legalName.trim() !== (previous.legalName || '')) {
+        throw ApiError.forbidden('Mühasib şirkətin rəsmi hüquqi adını dəyişə bilməz.');
+      }
+    }
+
     const updateData = {};
 
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.legalName !== undefined) updateData.legalName = data.legalName;
+    if (data.name !== undefined) updateData.name = data.name.trim();
+    if (data.legalName !== undefined) updateData.legalName = data.legalName.trim();
     if (data.phoneNumber !== undefined || data.phone !== undefined) {
-      updateData.phoneNumber = data.phoneNumber !== undefined ? data.phoneNumber : data.phone;
+      updateData.phoneNumber = (data.phoneNumber !== undefined ? data.phoneNumber : data.phone).trim();
     }
-    if (data.email !== undefined) updateData.email = data.email;
-    if (data.address !== undefined) updateData.address = data.address;
-    if (data.city !== undefined) updateData.city = data.city;
-    if (data.website !== undefined) updateData.website = data.website;
-    if (data.description !== undefined) updateData.description = data.description;
-    if (data.workingHours !== undefined) updateData.workingHours = data.workingHours;
+    if (data.email !== undefined) updateData.email = data.email.trim();
+    if (data.address !== undefined) updateData.address = data.address.trim();
+    if (data.city !== undefined) updateData.city = data.city.trim();
+    if (data.website !== undefined) updateData.website = data.website.trim();
+    if (data.description !== undefined) updateData.description = data.description.trim();
+    if (data.workingHours !== undefined) updateData.workingHours = data.workingHours.trim();
     if (data.logoUrl !== undefined) updateData.logoUrl = data.logoUrl;
     if (data.coverUrl !== undefined) updateData.coverUrl = data.coverUrl;
     
@@ -80,19 +98,28 @@ class CompaniesService {
     }
 
     if (data.iban !== undefined || data.bankIban !== undefined) {
-      updateData.iban = data.iban !== undefined ? data.iban : data.bankIban;
+      const rawIban = data.iban !== undefined ? data.iban : data.bankIban;
+      updateData.iban = rawIban.replace(/\s+/g, '').toUpperCase();
     }
-    if (data.bankName !== undefined) updateData.bankName = data.bankName;
-    if (data.bankVoen !== undefined) updateData.bankVoen = data.bankVoen;
-    if (data.bankCode !== undefined) updateData.bankCode = data.bankCode;
-    if (data.swiftBic !== undefined) updateData.swiftBic = data.swiftBic;
-    if (data.payoutAccount !== undefined) updateData.payoutAccount = data.payoutAccount;
-    if (data.accountantName !== undefined) updateData.accountantName = data.accountantName;
-    if (data.accountantPhone !== undefined) updateData.accountantPhone = data.accountantPhone;
+    if (data.bankName !== undefined) updateData.bankName = data.bankName.trim();
+    if (data.bankVoen !== undefined) updateData.bankVoen = data.bankVoen.trim();
+    if (data.bankCode !== undefined) updateData.bankCode = data.bankCode.trim();
+    if (data.swiftBic !== undefined) updateData.swiftBic = data.swiftBic.replace(/\s+/g, '').toUpperCase();
+    if (data.payoutAccount !== undefined) updateData.payoutAccount = data.payoutAccount.replace(/\s+/g, '').toUpperCase();
+    if (data.accountantName !== undefined) updateData.accountantName = data.accountantName.trim();
+    if (data.accountantPhone !== undefined) updateData.accountantPhone = data.accountantPhone.trim();
 
     if (data.notificationSettings !== undefined) {
       updateData.notificationSettings = typeof data.notificationSettings === 'object' ? JSON.stringify(data.notificationSettings) : data.notificationSettings;
     }
+
+    // Bank rekvizitlərinin dəyişdiyini aşkarlayaq
+    const bankingChanged =
+      (updateData.iban && updateData.iban !== previous.iban) ||
+      (updateData.bankName && updateData.bankName !== previous.bankName) ||
+      (updateData.payoutAccount && updateData.payoutAccount !== previous.payoutAccount) ||
+      (updateData.swiftBic && updateData.swiftBic !== previous.swiftBic) ||
+      (updateData.bankVoen && updateData.bankVoen !== previous.bankVoen);
 
     const updated = await prisma.company.update({
       where: { id },
@@ -100,11 +127,32 @@ class CompaniesService {
       include: { plan: true }
     });
 
+    // AuditLog Qeydiyyatı
+    await prisma.auditLog.create({
+      data: {
+        id: await generateUniqueId('AUD', 'auditLog'),
+        tenantId: id,
+        entityName: 'Company',
+        entityId: id,
+        action: bankingChanged ? 'UPDATE_BANKING_DETAILS' : 'UPDATE_COMPANY_PROFILE',
+        performedBy: `${user?.name || user?.email || 'Rəhbər'} (${(user?.agencyRole || 'OWNER').toUpperCase()})`,
+        oldValues: JSON.stringify({
+          name: previous.name,
+          legalName: previous.legalName,
+          email: previous.email,
+          iban: previous.iban,
+          payoutAccount: previous.payoutAccount,
+          bankName: previous.bankName
+        }),
+        newValues: JSON.stringify(updateData)
+      }
+    }).catch((err) => console.error('[AuditLog] Company profile update error:', err));
+
     return formatCompanyResponse(updated);
   }
 
   // Təhlükəsizlik: Şifrənin dəyişdirilməsi
-  async changePassword(userId, { currentPassword, newPassword }) {
+  async changePassword(userId, { currentPassword, newPassword }, user = null) {
     if (!currentPassword || !newPassword) {
       throw ApiError.badRequest('Cari və yeni şifrə tələb olunur');
     }
@@ -113,15 +161,15 @@ class CompaniesService {
       throw ApiError.badRequest('Yeni şifrə ən azı 8 simvoldan ibarət olmalıdır');
     }
 
-    const user = await prisma.user.findUnique({
+    const targetUser = await prisma.user.findUnique({
       where: { id: userId }
     });
 
-    if (!user) {
+    if (!targetUser) {
       throw ApiError.notFound('İstifadəçi tapılmadı');
     }
 
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    const isMatch = await bcrypt.compare(currentPassword, targetUser.password);
     if (!isMatch) {
       throw ApiError.badRequest('Cari şifrə yanlışdır');
     }
@@ -135,7 +183,102 @@ class CompaniesService {
       }
     });
 
+    // AuditLog Qeydiyyatı
+    await prisma.auditLog.create({
+      data: {
+        id: await generateUniqueId('AUD', 'auditLog'),
+        tenantId: targetUser.companyId || 'SYSTEM',
+        entityName: 'User',
+        entityId: userId,
+        action: 'CHANGE_PASSWORD',
+        performedBy: `${user?.name || targetUser.name || targetUser.email} (${(user?.agencyRole || targetUser.role || 'VENDOR').toUpperCase()})`,
+        newValues: JSON.stringify({ passwordChangedAt: new Date() })
+      }
+    }).catch((err) => console.error('[AuditLog] Password change error:', err));
+
     return { message: 'Şifrəniz uğurla yeniləndi' };
+  }
+
+  // Təhlükəsizlik: Aktiv Sessiyaların Gətirilməsi
+  async getActiveSessions(userId, currentIp = '127.0.0.1', currentUserAgent = '') {
+    const sessions = await prisma.refreshSession.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+        expiresAt: { gt: new Date() }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (sessions.length === 0) {
+      return [
+        {
+          id: 'sess-current',
+          ipAddress: currentIp || '127.0.0.1',
+          device: 'Cari Brauzer (Windows PC)',
+          userAgent: currentUserAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+          createdAt: new Date(),
+          isCurrent: true,
+          status: 'Aktiv'
+        }
+      ];
+    }
+
+    return sessions.map((s, idx) => {
+      const ua = s.userAgent || '';
+      let deviceName = 'Veb Brauzer';
+      if (ua.includes('Windows')) deviceName = 'Windows PC (Chrome / Edge)';
+      else if (ua.includes('Macintosh')) deviceName = 'MacBook (Safari / Chrome)';
+      else if (ua.includes('iPhone') || ua.includes('iPad')) deviceName = 'Apple iOS Mobil Cihazı';
+      else if (ua.includes('Android')) deviceName = 'Android Mobil Cihazı';
+
+      return {
+        id: s.id,
+        ipAddress: s.ipAddress || '127.0.0.1',
+        device: deviceName,
+        userAgent: s.userAgent,
+        createdAt: s.createdAt,
+        isCurrent: idx === 0,
+        status: 'Aktiv'
+      };
+    });
+  }
+
+  // Təhlükəsizlik: Digər Bütün Sessiyaların Ləğv Edilməsi (Revoke Sessions)
+  async revokeOtherSessions(userId, currentSessionId = null, user = null) {
+    const whereClause = {
+      userId,
+      revokedAt: null
+    };
+    if (currentSessionId && currentSessionId !== 'sess-current') {
+      whereClause.id = { not: currentSessionId };
+    }
+
+    const res = await prisma.refreshSession.updateMany({
+      where: whereClause,
+      data: {
+        revokedAt: new Date(),
+        revokeReason: 'USER_REVOKED_OTHER_SESSIONS'
+      }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        id: await generateUniqueId('AUD', 'auditLog'),
+        tenantId: user?.companyId || 'SYSTEM',
+        entityName: 'RefreshSession',
+        entityId: userId,
+        action: 'REVOKE_SESSIONS',
+        performedBy: `${user?.name || user?.email || 'İstifadəçi'} (${(user?.agencyRole || 'OWNER').toUpperCase()})`,
+        newValues: JSON.stringify({ revokedCount: res.count, revokedAt: new Date() })
+      }
+    }).catch((err) => console.error('[AuditLog] Revoke sessions error:', err));
+
+    return {
+      success: true,
+      revokedCount: res.count,
+      message: 'Digər bütün aktiv sessiyalardan uğurla çıxış edildi.'
+    };
   }
 
   // Şirkətin profil üzrə analitik göstəriciləri

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { PaymentMethod } from '@toursales/types';
+import React from 'react';
+import { PaymentMethod, BinDetectionResult } from '@toursales/types';
 import { CreditCard, QrCode, Building, Terminal, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
+import { BinDetector } from '../../../../components/BinDetector/BinDetector';
 import './PaymentMethodSelector.css';
 
 interface PaymentMethodSelectorProps {
@@ -10,6 +11,7 @@ interface PaymentMethodSelectorProps {
   currency?: string;
   selectedInstallment?: number;
   onSelectInstallment?: (months: number) => void;
+  onCardDetected?: (detection: BinDetectionResult | null) => void;
 }
 
 export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
@@ -19,15 +21,36 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   currency = 'AZN',
   selectedInstallment = 1,
   onSelectInstallment,
+  onCardDetected,
 }) => {
   const methods = [
     {
       id: 'BIRBANK' as PaymentMethod,
-      name: 'BirBank / Birkart',
-      badge: '0% Komissiya + Cashback',
+      name: 'BirBank / Birkart (Kapital Bank)',
+      badge: '0% Taksit + Keşbek',
       badgeType: 'highlight',
-      desc: 'Birkart taksit kartı ilə faizsiz hissə-hissə ödəniş və ya BirBank tətbiqi ilə anında QR kod',
+      bankCode: 'KAPITAL' as const,
+      desc: 'Birkart ilə 2, 3, 6, 12, 18 ay faizsiz hissə-hissə ödəniş və ya BirBank QR ilə anında ödəniş',
       icon: <QrCode size={22} />,
+      supportsInstallments: true,
+    },
+    {
+      id: 'TAMKART' as PaymentMethod,
+      name: 'Tamkart (ABB)',
+      badge: '0% Faizsiz Taksit',
+      badgeType: 'highlight',
+      bankCode: 'ABB' as const,
+      desc: 'ABB Tamkart ilə 2, 3, 6, 12, 18 ay faizsiz taksit imkanı və əlavə keşbek',
+      icon: <CreditCard size={22} />,
+      supportsInstallments: true,
+    },
+    {
+      id: 'BOLKART' as PaymentMethod,
+      name: 'Bolkart (Bank of Baku)',
+      badge: '3, 6, 12 Ay Taksit',
+      bankCode: 'BANK_OF_BAKU' as const,
+      desc: 'Bolkart ilə səyahətinizi rahat aylıq hissələrə bölün',
+      icon: <CreditCard size={22} />,
       supportsInstallments: true,
     },
     {
@@ -58,13 +81,6 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       desc: 'MilliÖN terminallarında "Turizm və Səyahət" bölməsindən rezervasiya kodu ilə ödəniş',
       icon: <Terminal size={22} />,
     },
-  ];
-
-  const installmentOptions = [
-    { months: 1, label: 'Tam ödəniş (1 dəfə)' },
-    { months: 2, label: '2 ay faizsiz' },
-    { months: 3, label: '3 ay faizsiz' },
-    { months: 6, label: '6 ay faizsiz' },
   ];
 
   return (
@@ -104,41 +120,20 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                 </div>
               </div>
 
-              {/* Birkart Taksit Options Sub-Panel */}
+              {/* Taksit və BIN Detektoru Paneli */}
               {isSelected && m.supportsInstallments && onSelectInstallment && (
                 <div
                   className="web-payment-installments-subpanel"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="installments-header">
-                    <Sparkles size={15} className="installments-icon" />
-                    <span>Birkart Taksit Müddətini Seçin:</span>
-                  </div>
-                  <div className="installments-pills-row">
-                    {installmentOptions.map((opt) => {
-                      const isOptActive = selectedInstallment === opt.months;
-                      const monthlyCost =
-                        totalAmount > 0
-                          ? (totalAmount / opt.months).toFixed(2)
-                          : '0.00';
-
-                      return (
-                        <button
-                          key={opt.months}
-                          type="button"
-                          className={`installment-pill-btn ${isOptActive ? 'active' : ''}`}
-                          onClick={() => onSelectInstallment(opt.months)}
-                        >
-                          <span className="pill-months-label">{opt.label}</span>
-                          {opt.months > 1 && totalAmount > 0 && (
-                            <span className="pill-cost-preview">
-                              {monthlyCost} {currency}/ay
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <BinDetector
+                    totalAmount={totalAmount}
+                    currency={currency}
+                    selectedInstallment={selectedInstallment}
+                    onSelectInstallment={onSelectInstallment}
+                    onDetectionChange={onCardDetected}
+                    defaultBank={m.bankCode}
+                  />
                 </div>
               )}
 

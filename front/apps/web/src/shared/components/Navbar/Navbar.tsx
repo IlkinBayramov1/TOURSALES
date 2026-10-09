@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { 
-  Globe, Menu, Gift, User, MapPin, Check, LogOut, Heart, Ticket, Compass
+  Globe, Menu, Gift, User, MapPin, Check, LogOut, Heart, Ticket, Compass, LifeBuoy, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCurrency } from '../../context/CurrencyContext';
@@ -71,12 +71,28 @@ export const Navbar: React.FC = () => {
           >
             Xarici Turlar
           </NavLink>
+
+          <NavLink 
+            to="/hotels" 
+            className={({ isActive }) => isActive ? 'web-nav-pill web-nav-pill-active' : 'web-nav-pill'}
+          >
+            Otellər
+          </NavLink>
           
           <NavLink 
             to="/campaigns" 
             className={({ isActive }) => isActive ? 'web-nav-pill web-nav-pill-active' : 'web-nav-pill'}
           >
             Kampaniyalar
+          </NavLink>
+          
+          <NavLink 
+            to="/custom-tour" 
+            className={({ isActive }) => isActive ? 'web-nav-pill web-nav-pill-active' : 'web-nav-pill'}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#6366f1', fontWeight: 600 }}
+          >
+            <Sparkles size={14} style={{ color: '#f59e0b' }} />
+            Öz Turunu Yarat
           </NavLink>
           
           <a 
@@ -92,6 +108,17 @@ export const Navbar: React.FC = () => {
         {/* Right Actions */}
         <div className="web-right-actions">
           
+          {/* AI Concierge Trigger Button */}
+          <button 
+            className="web-btn-ai-trigger"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-ai-concierge'))}
+            title="AI Səyahət Köməkçisi"
+            type="button"
+          >
+            <Sparkles size={14} className="web-ai-sparkle-icon" />
+            <span>AI Planlayıcı</span>
+          </button>
+
           {/* Language & Currency Dropdown */}
           <div className="web-relative-wrap" ref={langRef}>
             <button 
@@ -211,6 +238,14 @@ export const Navbar: React.FC = () => {
                     <span>Biletlərim və Səfərlər</span>
                   </Link>
                   <Link 
+                    to="/account/custom-tours" 
+                    className="web-dropdown-item-user" 
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <Sparkles size={16} className="web-dropdown-icon" style={{ color: '#f59e0b' }} />
+                    <span>Fərdi Turlarım & Tenderlər</span>
+                  </Link>
+                  <Link 
                     to="/account/favorites" 
                     className="web-dropdown-item-user" 
                     onClick={() => setIsUserMenuOpen(false)}
@@ -220,6 +255,14 @@ export const Navbar: React.FC = () => {
                       <span>İstək Siyahısı</span>
                       {favoritesCount > 0 && <span className="web-menu-count-badge">{favoritesCount}</span>}
                     </span>
+                  </Link>
+                  <Link 
+                    to="/account/tickets" 
+                    className="web-dropdown-item-user" 
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <LifeBuoy size={16} className="web-dropdown-icon" />
+                    <span>Dəstək Müraciətləri</span>
                   </Link>
                   <div className="web-dropdown-divider"></div>
                   <button 
@@ -261,12 +304,23 @@ export const Navbar: React.FC = () => {
         <div className="web-mobile-drawer">
           <NavLink to="/domestic" onClick={() => setMobileOpen(false)}>Daxili Turlar</NavLink>
           <NavLink to="/foreign" onClick={() => setMobileOpen(false)}>Xarici Turlar</NavLink>
+          <NavLink to="/hotels" onClick={() => setMobileOpen(false)}>Otellər</NavLink>
           <NavLink to="/campaigns" onClick={() => setMobileOpen(false)}>Kampaniyalar</NavLink>
+          <NavLink to="/custom-tour" onClick={() => setMobileOpen(false)} style={{ color: '#6366f1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Sparkles size={16} style={{ color: '#f59e0b' }} />
+            Öz Turunu Yarat (Fərdi / Qrup)
+          </NavLink>
           <NavLink to="/account/favorites" onClick={() => setMobileOpen(false)} className="web-mobile-fav-link">
             <span>Seçilmiş Turlar</span>
             {favoritesCount > 0 && <span className="web-menu-count-badge">{favoritesCount}</span>}
           </NavLink>
           <NavLink to="/account/loyalty" onClick={() => setMobileOpen(false)}>Səyahət Xalları (1,420 Xal)</NavLink>
+          {isAuthenticated && (
+            <>
+              <NavLink to="/account/custom-tours" onClick={() => setMobileOpen(false)}>Fərdi Tur Sorğularım</NavLink>
+              <NavLink to="/account/tickets" onClick={() => setMobileOpen(false)}>Dəstək Müraciətləri</NavLink>
+            </>
+          )}
           <a href="http://localhost:5174" target="_blank" rel="noreferrer">Tərəfdaşlıq (B2B)</a>
           {!isAuthenticated && (
             <button 

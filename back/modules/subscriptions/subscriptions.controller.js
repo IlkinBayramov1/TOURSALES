@@ -95,6 +95,15 @@ class SubscriptionsController {
     const result = await subscriptionsService.changePlan(companyId, req.body);
     return res.json({ status: 'success', msg: result.message, data: result });
   });
+
+  triggerAutoRenewals = asyncHandler(async (req, res) => {
+    const results = await subscriptionsService.processSubscriptionAutoRenewals();
+    return res.json({
+      status: 'success',
+      msg: 'Abunəliklərin avtomatik yenilənmə prosesi icra olundu.',
+      data: results
+    });
+  });
 }
 
 export const subscriptionsController = new SubscriptionsController();

@@ -550,3 +550,50 @@
   gap: 1rem;
   width: 100%;
 }
+
+/* FinTech Deposit Box & Action */
+.web-deposit-warning-box {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+
+.web-deposit-alert-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.web-deposit-warning-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  color: #92400e;
+}
+
+.web-deposit-due-date {
+  color: #b45309;
+  font-weight: 500;
+}
+
+.web-btn-pay-balance {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25) !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+.web-btn-pay-balance:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35) !important;
+}
+

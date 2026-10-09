@@ -18,13 +18,19 @@ class CampaignsController {
 
   create = asyncHandler(async (req, res) => {
     const companyId = req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId;
-    const result = await campaignsService.create(req.body, companyId);
+    const result = await campaignsService.create(req.body, companyId, req.user);
     return res.status(201).json({ status: 'success', msg: 'Kampaniya yaradıldı', data: result });
+  });
+
+  toggleStatus = asyncHandler(async (req, res) => {
+    const companyId = req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId;
+    const result = await campaignsService.toggleStatus(req.params.id, companyId, req.user);
+    return res.json({ status: 'success', msg: 'Kampaniya statusu dəyişdirildi', data: result });
   });
 
   delete = asyncHandler(async (req, res) => {
     const companyId = req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId;
-    const result = await campaignsService.delete(req.params.id, companyId);
+    const result = await campaignsService.delete(req.params.id, companyId, req.user);
     if (!result) throw ApiError.notFound('Kampaniya tapılmadı və ya silməyə icazəniz yoxdur.');
     return res.json({ status: 'success', msg: 'Kampaniya silindi' });
   });

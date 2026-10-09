@@ -119,6 +119,86 @@
   margin-top: 4px;
 }
 
+.invite-header-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.invite-quota-tag {
+  font-size: 11.5px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.invite-quota-warning-banner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 12px 14px;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.invite-quota-warning-banner strong {
+  display: block;
+  font-size: 13.5px;
+  color: #78350f;
+}
+
+.invite-quota-warning-banner p {
+  margin: 2px 0 6px 0;
+  font-size: 12px;
+  color: #92400e;
+}
+
+.invite-upgrade-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 12.5px;
+  text-decoration: underline;
+}
+
+.invite-pass-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.invite-pass-label-row label {
+  margin-bottom: 0;
+}
+
+.invite-gen-pass-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.invite-gen-pass-btn:hover:not(:disabled) {
+  background: #dbeafe;
+}
+
 .invite-actions {
   display: flex;
   justify-content: flex-end;

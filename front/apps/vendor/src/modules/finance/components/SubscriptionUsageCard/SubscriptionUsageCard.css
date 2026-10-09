@@ -1,3 +1,7 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - SUBSCRIPTION USAGE CARD & QUOTA TRACKER
+   ========================================================================== */
+
 .sub-usage-card {
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.04) 0%, rgba(16, 185, 129, 0.04) 100%), #ffffff;
   border: 1px solid #e2e8f0;
@@ -6,7 +10,7 @@
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 22px;
 }
 
 .sub-usage-header {
@@ -25,6 +29,12 @@
   gap: 8px;
 }
 
+.sub-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .sub-usage-badge {
   display: inline-flex;
   align-items: center;
@@ -40,6 +50,35 @@
   width: fit-content;
 }
 
+/* Countdown Pill */
+.sub-days-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.sub-days-pill.ok {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.sub-days-pill.warning {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  animation: pulseWarning 2s infinite ease-in-out;
+}
+
+@keyframes pulseWarning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
 .sub-usage-plan-name {
   font-size: 24px;
   font-weight: 800;
@@ -52,7 +91,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 14px;
 }
 
 .sub-meta-pill {
@@ -124,39 +163,58 @@
   color: #334155;
 }
 
-/* Body & Progress */
+/* Body & Multi-Quota Grid */
 .sub-usage-body {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.sub-progress-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.sub-quotas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
 }
 
-.sub-progress-label-row {
+.sub-quota-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+}
+
+.sub-quota-title-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13.5px;
+  font-size: 13px;
 }
 
-.sub-progress-title {
-  color: #64748b;
+.sub-quota-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #475569;
   font-weight: 600;
 }
 
-.sub-progress-val {
+.sub-quota-numbers {
+  font-size: 13px;
   color: #0f172a;
-  font-weight: 600;
+}
+
+.sub-quota-numbers strong {
+  color: #2563eb;
+  font-size: 14px;
 }
 
 .sub-progress-track {
-  height: 10px;
-  background-color: #e2e8f0;
+  height: 8px;
+  background-color: #f1f5f9;
   border-radius: 9999px;
   overflow: hidden;
 }
@@ -168,29 +226,40 @@
   transition: width 0.4s ease;
 }
 
+.sub-progress-bar.info {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+
 .sub-progress-bar.warning {
-  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+}
+
+.sub-quota-footer {
+  font-size: 11.5px;
+  color: #94a3b8;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .sub-progress-hint {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #b45309;
+  gap: 8px;
+  color: #92400e;
   background: #fef3c7;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 12px;
+  border: 1px solid #fde68a;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 12.5px;
   font-weight: 500;
-  margin-top: 4px;
 }
 
-/* Perks Grid */
+/* Financial Perks Grid */
 .sub-perks-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-  margin-top: 4px;
+  gap: 14px;
+  margin-top: 2px;
 }
 
 .sub-perk-item {

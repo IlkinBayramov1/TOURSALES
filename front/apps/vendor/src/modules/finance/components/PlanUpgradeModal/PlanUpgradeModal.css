@@ -1,11 +1,15 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - PLAN UPGRADE & PAYMENT MODAL
+   ========================================================================== */
+
 .upgrade-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(4px);
+  background-color: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,19 +21,21 @@
   background: #ffffff;
   border-radius: 24px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  max-width: 520px;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.16);
+  max-width: 540px;
   width: 100%;
-  padding: 32px;
-  animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 30px;
+  animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
   position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 @keyframes modalPopIn {
-  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
@@ -46,7 +52,7 @@
   gap: 6px;
   background: rgba(37, 99, 235, 0.1);
   color: #2563eb;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 9999px;
   font-size: 11.5px;
   font-weight: 700;
@@ -85,9 +91,34 @@
   border: 1px solid #fecaca;
   color: #b91c1c;
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 13px;
   font-weight: 500;
+}
+
+/* Downgrade Limit Warning */
+.upgrade-downgrade-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: #92400e;
+}
+
+.upgrade-downgrade-warning strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.upgrade-downgrade-warning p {
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin: 0;
 }
 
 /* Transition Row */
@@ -99,7 +130,7 @@
   background: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 16px;
-  padding: 16px;
+  padding: 14px 16px;
 }
 
 .upgrade-plan-box {
@@ -138,10 +169,10 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .upgrade-price-row {
@@ -158,7 +189,6 @@
   margin-top: 2px;
   color: #0f172a;
   font-weight: 600;
-  font-size: 14px;
 }
 
 .upgrade-total-amount {
@@ -167,106 +197,247 @@
   color: #2563eb;
 }
 
-/* Payment Method */
-.upgrade-payment-method {
+/* Payment Section */
+.upgrade-payment-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.upgrade-method-title {
+.upgrade-section-title {
   font-size: 13px;
   font-weight: 700;
   color: #334155;
 }
 
-.upgrade-balance-box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
+.upgrade-methods-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 4px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
 }
 
-.upgrade-balance-box.sufficient {
-  border-color: #86efac;
-  background: #f0fdf4;
-}
-
-.upgrade-balance-box.insufficient {
-  border-color: #fca5a5;
-  background: #fef2f2;
-}
-
-.upgrade-balance-info {
+.upgrade-method-tab {
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.16s ease;
+  white-space: nowrap;
 }
 
-.upgrade-balance-name {
-  font-size: 13px;
-  font-weight: 600;
+.upgrade-method-tab:hover {
   color: #0f172a;
 }
 
-.upgrade-balance-val {
-  font-size: 12px;
+.upgrade-method-tab.active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Tab Contents */
+.upgrade-tab-content {
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 14px 16px;
+  background: #ffffff;
+}
+
+/* Balance tab */
+.upgrade-tab-content.balance.ok {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.upgrade-tab-content.balance.insufficient {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.upgrade-balance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.upgrade-balance-label {
+  font-size: 11.5px;
+  font-weight: 600;
   color: #64748b;
 }
 
-.upgrade-status-badge {
+.upgrade-balance-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.upgrade-badge-pill {
   font-size: 11px;
   font-weight: 700;
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.upgrade-status-badge.ok {
+.upgrade-badge-pill.success {
   background: #dcfce7;
   color: #166534;
 }
 
-.upgrade-status-badge.fail {
+.upgrade-badge-pill.error {
   background: #fee2e2;
   color: #991b1b;
 }
 
-.upgrade-balance-warning {
+.upgrade-balance-hint {
   font-size: 12px;
-  color: #dc2626;
-  margin-top: 2px;
+  margin: 8px 0 0 0;
+  line-height: 1.4;
 }
 
-/* Benefits list */
-.upgrade-benefits {
+.upgrade-balance-hint.error {
+  color: #b91c1c;
+}
+
+.upgrade-balance-hint.success {
+  color: #15803d;
+}
+
+/* Card tab */
+.upgrade-card-desc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+.upgrade-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upgrade-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.upgrade-form-group label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.upgrade-form-group input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.upgrade-form-group input:focus {
+  border-color: #2563eb;
+}
+
+.upgrade-form-row {
+  display: flex;
+  gap: 10px;
+}
+
+/* Transfer tab */
+.upgrade-transfer-info {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.upgrade-benefits-title {
+.transfer-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12.5px;
   font-weight: 700;
+  color: #1e293b;
+}
+
+.upgrade-transfer-info p {
+  font-size: 12px;
   color: #475569;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.transfer-details-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.transfer-details-box div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.transfer-details-box span {
+  color: #64748b;
+}
+
+/* Benefits List */
+.upgrade-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+}
+
+.upgrade-benefits-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
 }
 
 .upgrade-benefits ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .upgrade-benefits li {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 12.5px;
   color: #334155;
 }
 
@@ -275,10 +446,10 @@
   flex-shrink: 0;
 }
 
-/* Actions */
+/* Modal Actions */
 .upgrade-actions {
   display: flex;
-  gap: 12px;
   justify-content: flex-end;
-  margin-top: 8px;
+  gap: 10px;
+  margin-top: 4px;
 }

@@ -358,6 +358,22 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
+        {/* AI Concierge Interactive Prompt Bar */}
+        <div className="web-hero-ai-bar" onClick={() => window.dispatchEvent(new CustomEvent('open-ai-concierge'))}>
+          <div className="web-ai-bar-left">
+            <div className="web-ai-bar-badge">
+              <Sparkles size={14} /> AI Concierge
+            </div>
+            <span className="web-ai-bar-text">
+              "4 nəfərlik ailə üçün 450 AZN büdcə ilə Qəbələdə sakit istirahət..."
+            </span>
+          </div>
+          <div className="web-ai-bar-action">
+            <span>Süni İntellektlə Planla</span>
+            <ArrowRight size={14} />
+          </div>
+        </div>
+
         {/* Integrated Floating Bento Search Engine */}
         <div className="web-search-engine-container">
           <div className="web-search-inner-grid">
@@ -518,6 +534,55 @@ export const HomePage: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* 5.5 CUSTOM TOUR BUILDER & B2B TENDER PROMO BANNER */}
+      <section className="web-custom-tour-promo-section">
+        <div className="web-custom-tour-promo-card">
+          <div className="web-custom-tour-promo-content">
+            <div className="web-custom-tour-tag">
+              <Sparkles size={16} /> Fərdi & Korporativ Səyahət
+            </div>
+            <h2 className="web-custom-tour-title">Standart turlar sizi qane etmir? Öz fərdi marşrutunuzu qurun!</h2>
+            <p className="web-custom-tour-desc">
+              İstiqamətləri, nəqliyyat növünü, otel dərəcəsini və büdcənizi seçin. Tərəfdaş turizm agentlikləri sorğunuz üzrə tenderdə yarışaraq sizə ən sərfəli fərdi təkliflərini göndərsin.
+            </p>
+            <div className="web-custom-tour-features">
+              <div className="web-ct-feat"><Check size={16} color="#10b981" /> Canlı qiymət kalkulyatoru</div>
+              <div className="web-ct-feat"><Check size={16} color="#10b981" /> Agentliklərin birbaşa təklifləri</div>
+              <div className="web-ct-feat"><Check size={16} color="#10b981" /> 30% ilkin depozit və hissə-hissə ödəniş</div>
+            </div>
+            <Link to="/custom-tour" className="web-btn-create-custom-tour">
+              <span>Turunu Quraşdırmağa Başla</span>
+              <ArrowRight size={18} />
+            </Link>
+          </div>
+          <div className="web-custom-tour-visual">
+            <div className="web-custom-tour-preview-card">
+              <div className="web-ct-badge">Canlı Tender Rejimi</div>
+              <h4>Bakı ➔ Şəki ➔ Qax Marşrutu</h4>
+              <p className="web-ct-preview-sub">Mercedes Vito (7 nəfərlik) • 4 Ulduz • Bələdçi daxil</p>
+              <div className="web-ct-bids-pill">
+                <span className="web-ct-bid-count">5 Agentlik Təklif Etdi</span>
+                <span className="web-ct-bid-price">1,250 AZN-dən</span>
+              </div>
+              <div className="web-ct-preview-stats">
+                <div>
+                  <strong>3 Gün / 2 Gecə</strong>
+                  <span>Müddət</span>
+                </div>
+                <div>
+                  <strong>100% Sığortalı</strong>
+                  <span>Lisenziyalı</span>
+                </div>
+                <div>
+                  <strong>30% Depozit</strong>
+                  <span>İlkin ödəniş</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* 6. DYNAMIC CAMPAIGN BANNER WITH 1-CLICK PROMO CODE COPY */}
       <section className="web-campaign-section">

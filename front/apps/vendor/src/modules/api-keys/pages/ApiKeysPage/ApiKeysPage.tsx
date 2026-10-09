@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Button } from '@toursales/ui';
-import { Key, Webhook, Code2, Search, Plus } from 'lucide-react';
+import { Key, Webhook, Code2, Search, Plus, Terminal } from 'lucide-react';
 import { ApiKey, WebhookConfig, ApiIntegrationStats } from '@toursales/types';
 import { apiKeysApi } from '../../apiKeysApi';
 import { ApiKpiCards } from '../../components/ApiKpiCards/ApiKpiCards';
@@ -9,6 +9,10 @@ import { WebhooksTable } from '../../components/WebhooksTable/WebhooksTable';
 import { ApiCodeExamples } from '../../components/ApiCodeExamples/ApiCodeExamples';
 import { CreateKeyModal } from '../../components/CreateKeyModal/CreateKeyModal';
 import { CreateWebhookModal } from '../../components/CreateWebhookModal/CreateWebhookModal';
+import { EditKeyModal } from '../../components/EditKeyModal/EditKeyModal';
+import { RegenerateKeyModal } from '../../components/RegenerateKeyModal/RegenerateKeyModal';
+import { EditWebhookModal } from '../../components/EditWebhookModal/EditWebhookModal';
+import { ApiTestConsoleModal } from '../../components/ApiTestConsoleModal/ApiTestConsoleModal';
 import './ApiKeysPage.css';
 
 type ApiTab = 'KEYS' | 'WEBHOOKS' | 'DOCS';
@@ -25,6 +29,10 @@ export const ApiKeysPage: React.FC = () => {
   // Modals state
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [isWebhookModalOpen, setIsWebhookModalOpen] = useState(false);
+  const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
+  const [regenKey, setRegenKey] = useState<ApiKey | null>(null);
+  const [editingWebhook, setEditingWebhook] = useState<WebhookConfig | null>(null);
+  const [isTestConsoleOpen, setIsTestConsoleOpen] = useState(false);
 
   // Filters state
   const [searchQuery, setSearchQuery] = useState('');
@@ -126,6 +134,15 @@ export const ApiKeysPage: React.FC = () => {
         <div className="apikeys-header-actions">
           <Button
             variant="outline"
+            onClick={() => setIsTestConsoleOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, borderColor: '#0284c7', color: '#0284c7', background: '#f0f9ff' }}
+          >
+            <Terminal size={16} />
+            <span>API Test Konsolu</span>
+          </Button>
+
+          <Button
+            variant="outline"
             onClick={() => setIsWebhookModalOpen(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 6 }}
           >
@@ -218,6 +235,8 @@ export const ApiKeysPage: React.FC = () => {
           loading={loading}
           onRevoke={handleRevokeKey}
           onDelete={handleDeleteKey}
+          onEdit={(k) => setEditingKey(k)}
+          onRegenerate={(k) => setRegenKey(k)}
         />
       )}
 
@@ -227,6 +246,7 @@ export const ApiKeysPage: React.FC = () => {
           loading={loading}
           onTestWebhook={handleTestWebhook}
           onDelete={handleDeleteWebhook}
+          onEdit={(wh) => setEditingWebhook(wh)}
         />
       )}
 
@@ -239,10 +259,38 @@ export const ApiKeysPage: React.FC = () => {
         onSuccess={loadData}
       />
 
+      <EditKeyModal
+        isOpen={!!editingKey}
+        apiKey={editingKey}
+        onClose={() => setEditingKey(null)}
+        onSuccess={loadData}
+      />
+
+      <RegenerateKeyModal
+        isOpen={!!regenKey}
+        apiKey={regenKey}
+        onClose={() => setRegenKey(null)}
+        onSuccess={loadData}
+      />
+
       <CreateWebhookModal
         isOpen={isWebhookModalOpen}
         onClose={() => setIsWebhookModalOpen(false)}
         onSuccess={loadData}
+      />
+
+      <EditWebhookModal
+        isOpen={!!editingWebhook}
+        webhook={editingWebhook}
+        onClose={() => setEditingWebhook(null)}
+        onSuccess={loadData}
+      />
+
+      <ApiTestConsoleModal
+        isOpen={isTestConsoleOpen}
+        keys={keys}
+        initialSelectedKey={keys[0] || null}
+        onClose={() => setIsTestConsoleOpen(false)}
       />
     </div>
   );

@@ -3,6 +3,7 @@ import { adsController } from './ads.controller.js';
 import { validateAdPurchase, validateAdPackage } from './ads.validation.js';
 import { authMiddleware } from '../auth/auth.middleware.js';
 import { roleMiddleware } from '../../middlewares/role.middleware.js';
+import { requireAgencyRole } from '../../middlewares/agency-role.middleware.js';
 import { ROLES } from '../../config/constants.js';
 
 const router = express.Router();
@@ -19,10 +20,10 @@ router.get('/packages', adsController.getPackages);
 router.post('/packages', roleMiddleware(ROLES.SUPERADMIN), validateAdPackage, adsController.createPackage);
 
 // Reklam marşrutları
-router.get('/', adsController.getAds);
-router.get('/kpi', adsController.getKPI);
-router.post('/purchase', roleMiddleware(ROLES.VENDOR), validateAdPurchase, adsController.purchaseAd);
-router.patch('/:id/status', roleMiddleware(ROLES.VENDOR), adsController.toggleStatus);
-router.delete('/:id', roleMiddleware(ROLES.VENDOR), adsController.deleteAd);
+router.get('/', requireAgencyRole('OWNER', 'MANAGER', 'ACCOUNTANT'), adsController.getAds);
+router.get('/kpi', requireAgencyRole('OWNER', 'MANAGER', 'ACCOUNTANT'), adsController.getKPI);
+router.post('/purchase', roleMiddleware(ROLES.VENDOR, ROLES.SUPERADMIN), requireAgencyRole('OWNER', 'MANAGER'), validateAdPurchase, adsController.purchaseAd);
+router.patch('/:id/status', roleMiddleware(ROLES.VENDOR, ROLES.SUPERADMIN), requireAgencyRole('OWNER', 'MANAGER'), adsController.toggleStatus);
+router.delete('/:id', roleMiddleware(ROLES.VENDOR, ROLES.SUPERADMIN), requireAgencyRole('OWNER', 'MANAGER'), adsController.deleteAd);
 
 export default router;

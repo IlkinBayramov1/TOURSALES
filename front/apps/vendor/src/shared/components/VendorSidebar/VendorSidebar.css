@@ -187,3 +187,36 @@
 .vendor-logout-button:hover {
   background: rgba(239, 68, 68, 0.1);
 }
+
+.vendor-company-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+.vendor-sidebar-role-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.125rem 0.4rem;
+  border-radius: 9999px;
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.vendor-sidebar-role-badge.simulated {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.5);
+  animation: pulse-sim 2s infinite ease-in-out;
+}
+
+@keyframes pulse-sim {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}

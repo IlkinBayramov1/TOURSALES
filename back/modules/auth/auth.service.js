@@ -166,6 +166,7 @@ class AuthService {
         password: hashedPassword,
         hashAlgorithm: 'BCRYPT',
         name: data.name,
+        phoneNumber: data.phoneNumber || data.phone || null,
         role: data.role || 'User',
         companyId: companyId,
         loyaltyPoints: initialLoyaltyPoints

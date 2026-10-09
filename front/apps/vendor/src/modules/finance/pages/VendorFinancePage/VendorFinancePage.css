@@ -264,6 +264,367 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+/* Bank Details Card */
+.finance-bank-details-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  flex-wrap: wrap;
+}
+
+.bank-card-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bank-card-icon-wrap {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bank-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bank-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.bank-card-info h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.bank-card-iban-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #475569;
+}
+
+.bank-card-lbl {
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.bank-card-divider {
+  color: #cbd5e1;
+}
+
+/* Action Toast */
+.finance-action-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.finance-action-toast.success {
+  background-color: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #15803d;
+}
+
+.finance-action-toast.error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+/* Payout Cancellation Action Button */
+.finance-payout-cancel-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #e11d48;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.finance-payout-cancel-action-btn:hover {
+  background-color: #ffe4e6;
+  border-color: #fda4af;
+  color: #be123c;
+  transform: translateY(-1px);
+}
+
+/* Cancellation Confirmation Modal */
+.finance-cancel-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.25rem;
+}
+
+.finance-cancel-modal-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+  max-width: 480px;
+  width: 100%;
+  padding: 26px;
+  animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cancel-modal-header {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.cancel-modal-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background-color: #fef2f2;
+  color: #e11d48;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cancel-modal-header h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.cancel-modal-sub {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cancel-modal-summary {
+  background-color: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.cancel-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.cancel-summary-row strong {
+  color: #0f172a;
+}
+
+.cancel-summary-row.highlight {
+  padding-top: 8px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.cancel-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Escrow Breakdown Link */
+.finance-escrow-breakdown-link {
+  background: transparent;
+  border: none;
+  color: #0284c7;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.finance-escrow-breakdown-link:hover {
+  color: #0369a1;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+/* Ledger Search Box */
+.finance-ledger-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.finance-ledger-search-box .search-icon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.finance-ledger-search-box input {
+  padding: 7px 30px 7px 34px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  width: 220px;
+  transition: all 0.15s ease;
+}
+
+.finance-ledger-search-box input:focus {
+  outline: none;
+  border-color: #2563eb;
+  width: 260px;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.finance-search-clear {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.finance-search-clear:hover {
+  color: #0f172a;
+}
+
+/* Transaction Cell Styles */
+.finance-tx-desc-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.finance-tx-main-desc {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 13.5px;
+}
+
+.finance-tx-sub-info {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.finance-tx-sub-info strong {
+  color: #2563eb;
+}
+
+/* Row Action Buttons */
+.finance-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.finance-action-icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.finance-action-icon-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.finance-action-icon-btn.xml {
+  color: #2563eb;
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.finance-action-icon-btn.xml:hover {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.finance-action-icon-btn.pdf {
+  color: #d97706;
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+.finance-action-icon-btn.pdf:hover {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
 @media (max-width: 768px) {
   .vendor-finance-page {
     padding: 20px 16px;
@@ -274,6 +635,11 @@
   }
   
   .finance-card-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .finance-bank-details-card {
     flex-direction: column;
     align-items: flex-start;
   }

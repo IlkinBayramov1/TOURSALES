@@ -153,6 +153,107 @@ class BookingsController {
     res.setHeader('Content-Disposition', `attachment; filename=roster-${req.params.tourId}.xlsx`);
     return res.send(buffer);
   });
+
+  getGuideTours = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.query.companyId;
+    const result = await bookingsService.getGuideTours(
+      req.user.id,
+      companyId,
+      req.user.agencyRole || req.user.role
+    );
+    return res.json({ status: 'success', msg: 'Bələdçi turları gətirildi', data: result });
+  });
+
+  getGuideManifest = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.query.companyId;
+    const result = await bookingsService.getGuideManifest(req.params.tourId, companyId);
+    return res.json({ status: 'success', msg: 'Tur manifesti gətirildi', data: result });
+  });
+
+  scanQrCheckIn = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.body.companyId;
+    const result = await bookingsService.scanQrCheckIn(
+      req.body,
+      req.user.id,
+      req.user.name || req.user.email || 'Bələdçi',
+      companyId
+    );
+    return res.json({
+      status: result.isDuplicate ? 'warning' : 'success',
+      msg: result.message || 'Sərnişin minik qeydiyyatı təsdiqləndi',
+      data: result
+    });
+  });
+
+  toggleGuideCheckIn = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.body.companyId;
+    const result = await bookingsService.toggleGuideCheckIn(
+      req.params.id,
+      req.body.seatNumber,
+      req.user.id,
+      req.user.name || 'Bələdçi',
+      companyId
+    );
+    return res.json({ status: 'success', msg: 'Minik statusu yeniləndi', data: result });
+  });
+
+  syncOfflineCheckIns = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.body.companyId;
+    const result = await bookingsService.syncOfflineCheckIns(
+      req.body.tourId,
+      req.body.checkIns || [],
+      req.user.id,
+      req.user.name || 'Bələdçi',
+      companyId
+    );
+    return res.json({ status: 'success', msg: 'Oflayn qeydiyyatlar sinxronlaşdırıldı', data: result });
+  });
+
+  sendBookingWhatsApp = asyncHandler(async (req, res) => {
+    const result = await bookingsService.sendBookingWhatsApp(req.params.id);
+    return res.json({ status: 'success', msg: 'WhatsApp bildirişi göndərildi', data: result });
+  });
+
+  sendBalanceReminderWhatsApp = asyncHandler(async (req, res) => {
+    const result = await bookingsService.sendBalanceReminderWhatsApp(req.params.id);
+    return res.json({ status: 'success', msg: 'Qalıq ödəniş xatırlatması WhatsApp ilə göndərildi', data: result });
+  });
+
+  getCompanyGuides = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.query.companyId;
+    const result = await bookingsService.getCompanyGuides(companyId);
+    return res.json({ status: 'success', msg: 'Bələdçi heyəti gətirildi', data: result });
+  });
+
+  assignGuideToTour = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.body.companyId;
+    const result = await bookingsService.assignGuideToTour(
+      req.params.tourId,
+      req.body,
+      companyId
+    );
+    return res.json({ status: 'success', msg: 'Bələdçi və minik məlumatları tura uğurla təhkim edildi', data: result });
+  });
+
+  bulkCheckIn = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.body.companyId;
+    const result = await bookingsService.bulkCheckIn(
+      req.body.tourId,
+      req.body.bookingIds,
+      req.user.id,
+      req.user.name || 'Bələdçi',
+      companyId
+    );
+    return res.json({ status: 'success', msg: result.message, data: result });
+  });
+
+  exportGuideManifest = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.query.companyId;
+    const buffer = await bookingsService.exportGuideManifest(req.params.tourId, companyId);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=manifest-${req.params.tourId}.xlsx`);
+    return res.send(buffer);
+  });
 }
 
 export const bookingsController = new BookingsController();

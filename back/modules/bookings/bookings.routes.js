@@ -13,28 +13,44 @@ router.post('/', authMiddleware({ isPublic: true }), secureUpload.array('passpor
 router.get('/my', authMiddleware(), bookingsController.getMyBookings);
 router.get('/my-bookings', authMiddleware(), bookingsController.getMyBookings);
 
-// Rezervasiya detalları (bilet/vauçer üçün qonaq da baxa bilər)
-router.get('/:id', authMiddleware({ isPublic: true }), bookingsController.getById);
+// Admin ixrac marşrutu (/:id-dən əvvəl yerləşməlidir ki, id='export' kimi qəbul olunmasın)
+router.get('/export', authMiddleware(), bookingsController.exportBookings);
 
-// Admin və Vendor üçün autentifikasiya tələb olunan marşrutlar
-router.use(authMiddleware());
+// Vendor marşrutları (Autentifikasiya tələb olunur)
+router.get('/vendor/bookings', authMiddleware(), bookingsController.getVendorBookings);
+router.get('/vendor/stats', authMiddleware(), bookingsController.getVendorStats);
+router.get('/vendor/bookings/:id', authMiddleware(), bookingsController.getVendorBookingById);
+router.get('/vendor/roster/:tourId', authMiddleware(), bookingsController.getVendorRoster);
+router.get('/vendor/roster/:tourId/export', authMiddleware(), bookingsController.exportVendorRoster);
+router.post('/vendor/check-in', authMiddleware(), bookingsController.checkIn);
+router.patch('/vendor/check-in/toggle/:id', authMiddleware(), bookingsController.toggleCheckIn);
+router.post('/vendor/bulk-checkin', authMiddleware(), bookingsController.bulkCheckIn);
+router.get('/vendor/export', authMiddleware(), bookingsController.exportVendorBookings);
 
-router.get('/', bookingsController.getAll);
-router.get('/export', bookingsController.exportBookings);
-// Vendor marşrutları (/:id-dən əvvəl yerləşməlidir)
-router.get('/vendor/bookings', bookingsController.getVendorBookings);
-router.get('/vendor/stats', bookingsController.getVendorStats);
-router.get('/vendor/bookings/:id', bookingsController.getVendorBookingById);
-router.get('/vendor/roster/:tourId', bookingsController.getVendorRoster);
-router.get('/vendor/roster/:tourId/export', bookingsController.exportVendorRoster);
-router.post('/vendor/check-in', bookingsController.checkIn);
-router.patch('/vendor/check-in/toggle/:id', bookingsController.toggleCheckIn);
-router.get('/vendor/export', bookingsController.exportVendorBookings);
+// Bələdçi və Manifest Portalı marşrutları (Faza 1)
+router.get('/guide/tours', authMiddleware(), bookingsController.getGuideTours);
+router.get('/guide/staff', authMiddleware(), bookingsController.getCompanyGuides);
+router.patch('/guide/tours/:tourId/assign', authMiddleware(), bookingsController.assignGuideToTour);
+router.get('/guide/manifest/:tourId', authMiddleware(), bookingsController.getGuideManifest);
+router.get('/guide/manifest/:tourId/export', authMiddleware(), bookingsController.exportGuideManifest);
+router.post('/guide/scan-checkin', authMiddleware(), bookingsController.scanQrCheckIn);
+router.patch('/guide/toggle-checkin/:id', authMiddleware(), bookingsController.toggleGuideCheckIn);
+router.post('/guide/bulk-checkin', authMiddleware(), bookingsController.bulkCheckIn);
+router.post('/guide/sync-offline', authMiddleware(), bookingsController.syncOfflineCheckIns);
+router.post('/notifications/whatsapp/resend/:id', authMiddleware(), bookingsController.sendBookingWhatsApp);
+router.post('/notifications/whatsapp/balance-reminder/:id', authMiddleware(), bookingsController.sendBalanceReminderWhatsApp);
 
 // Pasport sənədlərinin qorunmuş şəkildə endirilməsi marşrutu
-router.get('/:id/documents/:fileId', bookingsController.downloadDocument);
+router.get('/:id/documents/:fileId', authMiddleware(), bookingsController.downloadDocument);
 
 // Rezervasiyanın dinamik cərimə ilə ləğv edilməsi
-router.post('/:id/cancel', bookingsController.cancel);
+router.post('/:id/cancel', authMiddleware(), bookingsController.cancel);
+
+// Ümumi siyahı (Admin)
+router.get('/', authMiddleware(), bookingsController.getAll);
+
+// Rezervasiya detalları (bilet/vauçer üçün qonaq da baxa bilər)
+// Statik /export və digər tək seqmentli marşrutlardan sonra yerləşir
+router.get('/:id', authMiddleware({ isPublic: true }), bookingsController.getById);
 
 export default router;

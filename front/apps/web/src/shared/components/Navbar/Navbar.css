@@ -99,6 +99,33 @@
   gap: 14px;
 }
 
+/* AI Concierge Trigger in Navbar */
+.web-btn-ai-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  color: #6d28d9;
+  border: 1px solid #c4b5fd;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.web-btn-ai-trigger:hover {
+  background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.15);
+}
+
+.web-ai-sparkle-icon {
+  color: #7c3aed;
+}
+
 .web-relative-wrap {
   position: relative;
 }

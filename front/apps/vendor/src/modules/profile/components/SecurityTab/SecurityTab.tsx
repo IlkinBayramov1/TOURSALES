@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { PasswordChangePayload } from '@toursales/types';
+import React, { useState, useEffect } from 'react';
+import { PasswordChangePayload, CompanySession } from '@toursales/types';
 import { Button } from '@toursales/ui';
+import { vendorProfileApi } from '../../vendorProfileApi';
 import './SecurityTab.css';
 
 interface SecurityTabProps {
@@ -21,6 +22,48 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Sessions state
+  const [sessions, setSessions] = useState<CompanySession[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [revokingSessions, setRevokingSessions] = useState(false);
+
+  const loadSessions = async () => {
+    try {
+      setLoadingSessions(true);
+      const data = await vendorProfileApi.getSessions();
+      setSessions(data);
+    } catch (err) {
+      console.error('Failed to load active sessions:', err);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSessions();
+  }, []);
+
+  const handleRevokeOtherSessions = async () => {
+    try {
+      setRevokingSessions(true);
+      const res = await vendorProfileApi.revokeOtherSessions();
+      setNotification({
+        type: 'success',
+        text: res.message || 'Digər bütün aktiv sessiyalardan uğurla çıxış edildi!'
+      });
+      await loadSessions();
+      setTimeout(() => setNotification(null), 5000);
+    } catch (err: any) {
+      console.error('Revoke sessions failed:', err);
+      setNotification({
+        type: 'error',
+        text: 'Sessiyaları ləğv edərkən xəta baş verdi.'
+      });
+    } finally {
+      setRevokingSessions(false);
+    }
+  };
 
   // Password strength calculation
   const hasMinLength = newPassword.length >= 8;
@@ -80,6 +123,14 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
     }
   };
 
+  const getDeviceIcon = (deviceStr: string) => {
+    if (deviceStr.includes('PC') || deviceStr.includes('Windows')) return '💻';
+    if (deviceStr.includes('MacBook') || deviceStr.includes('Macintosh')) return '🍏';
+    if (deviceStr.includes('iOS') || deviceStr.includes('iPhone')) return '📱';
+    if (deviceStr.includes('Android')) return '🤖';
+    return '🌐';
+  };
+
   return (
     <div className="tab-pane-content">
       {notification && (
@@ -91,9 +142,9 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
         </div>
       )}
 
-      {/* Two-Factor Auth Info Card */}
+      {/* Account Security Header Status Card */}
       <div className="security-status-card">
-        <div className="security-status-icon">🔐</div>
+        <div className="security-status-icon">🛡️</div>
         <div className="security-status-info">
           <div className="status-header-line">
             <h4>Hesab Təhlükəsizliyi & Giriş Qoruması</h4>
@@ -105,6 +156,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
         </div>
       </div>
 
+      {/* SECTION 1: CHANGE PASSWORD FORM */}
       <form onSubmit={handleSubmit} className="profile-edit-form">
         <div className="form-card-section">
           <div className="section-title-wrap">
@@ -239,6 +291,76 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           </Button>
         </div>
       </form>
+
+      {/* SECTION 2: ACTIVE SESSIONS & DEVICE MANAGEMENT */}
+      <div className="form-card-section sessions-card-section">
+        <div className="section-title-wrap sessions-header-wrap">
+          <div>
+            <h3 className="section-title">Aktiv Daxilolma Sessiyaları və Cihazlar</h3>
+            <p className="section-desc">Hesabınıza daxil olmuş aktiv brauzerlər və cihazların siyahısı</p>
+          </div>
+          <button
+            type="button"
+            className="revoke-others-btn"
+            onClick={handleRevokeOtherSessions}
+            disabled={revokingSessions || sessions.length <= 1}
+            title="Cari brauzer xaricindəki bütün digər sessiyaları sonlandır"
+          >
+            {revokingSessions ? 'Sonlandırılır...' : '🚫 Digər Sessiyalardan Çıxış Et'}
+          </button>
+        </div>
+
+        {loadingSessions ? (
+          <div className="sessions-loading">Sessiyalar yoxlanılır...</div>
+        ) : (
+          <div className="sessions-list">
+            {sessions.map((sess) => (
+              <div key={sess.id} className={`session-item-row ${sess.isCurrent ? 'is-current' : ''}`}>
+                <div className="session-device-icon">{getDeviceIcon(sess.device)}</div>
+                <div className="session-info-col">
+                  <div className="session-device-title-row">
+                    <strong className="session-device-name">{sess.device}</strong>
+                    {sess.isCurrent ? (
+                      <span className="current-device-badge">Cari Cihaz</span>
+                    ) : (
+                      <span className="active-device-badge">Aktiv Sessiya</span>
+                    )}
+                  </div>
+                  <div className="session-meta-row">
+                    <span className="session-ip">IP: {sess.ipAddress}</span>
+                    <span>•</span>
+                    <span className="session-time">
+                      Giriş: {new Date(sess.createdAt).toLocaleString('az-AZ', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* SECTION 3: TWO-FACTOR AUTH (2FA) PREVIEW */}
+      <div className="form-card-section twofa-card-section">
+        <div className="twofa-content-row">
+          <div className="twofa-icon-col">📱</div>
+          <div className="twofa-text-col">
+            <div className="twofa-title-row">
+              <h3 className="section-title">İki Mərhələli Təsdiqləmə (2FA)</h3>
+              <span className="coming-soon-badge">Tezliklə (V2.0)</span>
+            </div>
+            <p className="section-desc">
+              Hesabınıza giriş zamanı SMS və ya Google Authenticator vasitəsilə 6 rəqəmli təhlükəsizlik kodu tələb ediləcəkdir.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -67,6 +67,7 @@ export const cmsManageApi = {
           imageUrl: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200',
           linkUrl: '/catalog?region=Qarabağ',
           position: 'HERO',
+          status: 'Active',
           isActive: true,
           startDate: '2026-09-01T00:00:00Z',
           endDate: '2026-10-31T23:59:59Z',

@@ -6,16 +6,19 @@ import {
   Trash2, 
   Users, 
   Calendar, 
-  MapPin,
-  Bus,
-  Download,
-  CheckCircle2,
-  AlertTriangle,
-  X,
-  Compass,
-  TrendingUp,
-  Percent,
-  Check
+  MapPin, 
+  Bus, 
+  Download, 
+  CheckCircle2, 
+  AlertTriangle, 
+  X, 
+  Compass, 
+  TrendingUp, 
+  Eye, 
+  Copy, 
+  CheckCheck,
+  Flame,
+  Layers
 } from 'lucide-react';
 import { Badge, Button, Spinner } from '@toursales/ui';
 import { Tour } from '@toursales/types';
@@ -24,16 +27,58 @@ import { tourManageApi } from '../../api/tourManageApi';
 import { SeatMatrixModal } from '../../components/SeatMatrixModal/SeatMatrixModal';
 import './TourListPage.css';
 
+// Az-AZ formatında tarixi zərif göstərən köməkçi (ICU 2026 M04 10 xətasını aradan qaldırır)
+const formatAzDate = (dateStr?: string | Date | null) => {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    const months = [
+      'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun',
+      'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'
+    ];
+    const day = d.getDate();
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day} ${month} ${year}`;
+  } catch {
+    return String(dateStr);
+  }
+};
+
+// Şəkil URL-lərini təhlükəsiz və tam formatda həll edən köməkçi
+const getImageUrl = (url?: string) => {
+  if (!url) return 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=200';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const baseUrl = import.meta.env.VITE_API_URL
+    ? import.meta.env.VITE_API_URL.replace(/\/api\/v1\/?$/, '')
+    : 'http://localhost:5000';
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export const TourListPage: React.FC = () => {
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | 'DOMESTIC' | 'FOREIGN'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'DEACTIVE' | 'NEAR_FULL'>('ALL');
   const [exporting, setExporting] = useState<boolean>(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  // Bulk Selection State
+  const [selectedTourIds, setSelectedTourIds] = useState<string[]>([]);
+  const [bulkUpdating, setBulkUpdating] = useState<boolean>(false);
   
   // Seat Matrix Modal State
   const [seatModalTour, setSeatModalTour] = useState<Tour | null>(null);
   const [isSeatModalOpen, setIsSeatModalOpen] = useState<boolean>(false);
+
+  // Quick Preview Modal State (Stage 3 preview)
+  const [previewTour, setPreviewTour] = useState<Tour | null>(null);
+
+  // Clone Tour Modal State (Stage 3 clone)
+  const [cloneTourTarget, setCloneTourTarget] = useState<Tour | null>(null);
+  const [cloneStartDate, setCloneStartDate] = useState<string>('');
+  const [cloneTitle, setCloneTitle] = useState<string>('');
+  const [isCloning, setIsCloning] = useState<boolean>(false);
 
   // Delete Confirm Modal State
   const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
@@ -69,23 +114,25 @@ export const TourListPage: React.FC = () => {
     fetchTours();
   }, []);
 
+  // Status Toggle
   const handleToggleStatus = async (t: Tour, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       setTogglingId(t.id);
-      const nextStatus = t.status === 'ACTIVE' ? 'Deactive' : 'Active';
+      const isCurrentlyActive = t.status === 'ACTIVE' || t.status === 'Active';
+      const nextStatus = isCurrentlyActive ? 'Deactive' : 'Active';
       const res = await tourManageApi.toggleTourStatus(t.id, nextStatus);
       const updatedTour = res.data;
 
       setTours((prev) =>
         prev.map((item) =>
           item.id === t.id
-            ? { ...item, status: (updatedTour?.status || (t.status === 'ACTIVE' ? 'DEACTIVE' : 'ACTIVE')) as any }
+            ? { ...item, status: (updatedTour?.status || (isCurrentlyActive ? 'DEACTIVE' : 'ACTIVE')) as any }
             : item
         )
       );
       showToast(
-        `“${t.title}” turunun statusu ${t.status === 'ACTIVE' ? 'Deaktiv edildi' : 'Satışa çıxarıldı'}.`
+        `“${t.title}” turunun statusu ${isCurrentlyActive ? 'Deaktiv edildi' : 'Satışa çıxarıldı'}.`
       );
     } catch (err: any) {
       console.error('Status dəyişmə xətası:', err);
@@ -95,6 +142,43 @@ export const TourListPage: React.FC = () => {
     }
   };
 
+  // Bulk Status Update
+  const handleBulkStatus = async (targetStatus: 'Active' | 'Deactive') => {
+    if (selectedTourIds.length === 0) return;
+    try {
+      setBulkUpdating(true);
+      const res = await tourManageApi.bulkToggleStatus(selectedTourIds, targetStatus);
+      const count = res.data?.count ?? selectedTourIds.length;
+      
+      setTours((prev) =>
+        prev.map((item) =>
+          selectedTourIds.includes(item.id)
+            ? { ...item, status: (targetStatus === 'Active' ? 'ACTIVE' : 'DEACTIVE') as any }
+            : item
+        )
+      );
+
+      showToast(
+        `${count} tur uğurla ${targetStatus === 'Active' ? 'Satışa çıxarıldı' : 'Deaktiv edildi'}.`
+      );
+      setSelectedTourIds([]);
+    } catch (err: any) {
+      console.error('Toplu status dəyişmə xətası:', err);
+      showToast(err.response?.data?.message || 'Toplu əməliyyat zamanı xəta baş verdi.', 'error');
+    } finally {
+      setBulkUpdating(false);
+    }
+  };
+
+  // Toggle single item selection
+  const handleToggleSelect = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedTourIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  // Delete Handlers
   const handleOpenDeleteModal = (t: Tour, e: React.MouseEvent) => {
     e.stopPropagation();
     setTourToDelete(t);
@@ -108,6 +192,7 @@ export const TourListPage: React.FC = () => {
       setDeleteError(null);
       await tourManageApi.deleteTour(tourToDelete.id);
       setTours((prev) => prev.filter((t) => t.id !== tourToDelete.id));
+      setSelectedTourIds((prev) => prev.filter((id) => id !== tourToDelete.id));
       showToast(`“${tourToDelete.title}” turu uğurla silindi.`);
       setTourToDelete(null);
     } catch (err: any) {
@@ -118,6 +203,7 @@ export const TourListPage: React.FC = () => {
     }
   };
 
+  // Excel Export
   const handleExportExcel = async () => {
     try {
       setExporting(true);
@@ -131,18 +217,58 @@ export const TourListPage: React.FC = () => {
     }
   };
 
+  // Seat Matrix Modal Handler
   const handleOpenSeatMatrix = (t: Tour, e: React.MouseEvent) => {
     e.stopPropagation();
     setSeatModalTour(t);
     setIsSeatModalOpen(true);
   };
 
-  // Dinamik KPI Hesablamaları
+  // Clone Tour Handler
+  const handleOpenCloneModal = (t: Tour, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCloneTourTarget(t);
+    setCloneTitle(`${t.title} (Yeni Qrup)`);
+    // Default: 7 days after current start date
+    const d = new Date(t.startDate);
+    d.setDate(d.getDate() + 7);
+    setCloneStartDate(d.toISOString().split('T')[0]);
+  };
+
+  const handleConfirmClone = async () => {
+    if (!cloneTourTarget || !cloneStartDate) return;
+    try {
+      setIsCloning(true);
+      const res = await tourManageApi.cloneTour(cloneTourTarget.id, {
+        startDate: cloneStartDate,
+        title: cloneTitle || undefined
+      });
+      if (res.data) {
+        setTours((prev) => [res.data, ...prev]);
+        showToast(`“${res.data.title}” turu uğurla nüsxələndi və əlavə olundu.`);
+      }
+      setCloneTourTarget(null);
+    } catch (err: any) {
+      console.error('Klonlama xətası:', err);
+      showToast(err.response?.data?.message || 'Turu klonlayarkən xəta baş verdi.', 'error');
+    } finally {
+      setIsCloning(false);
+    }
+  };
+
+  // Quick Preview Handler
+  const handleOpenPreview = (t: Tour, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPreviewTour(t);
+  };
+
+  // Dynamic KPI Calculations
   const totalTours = tours.length;
   const domesticCount = tours.filter((t) => (t.type || t.category) !== 'FOREIGN').length;
   const foreignCount = tours.filter((t) => (t.type || t.category) === 'FOREIGN').length;
-  const activeToursCount = tours.filter((t) => t.status === 'ACTIVE').length;
-  
+  const activeToursCount = tours.filter((t) => t.status === 'ACTIVE' || t.status === 'Active').length;
+  const deactiveToursCount = totalTours - activeToursCount;
+
   const totalSoldSeats = tours.reduce((sum, t) => {
     const cap = t.capacity || 48;
     const sold = (t as any).soldSeats !== undefined ? (t as any).soldSeats : Math.max(0, cap - (t.availableSeats ?? cap));
@@ -159,24 +285,86 @@ export const TourListPage: React.FC = () => {
       )
     : 0;
 
+  const nearFullCount = tours.filter((t) => {
+    const cap = t.capacity || 48;
+    const sold = (t as any).soldSeats !== undefined ? (t as any).soldSeats : Math.max(0, cap - (t.availableSeats ?? cap));
+    const fill = cap > 0 ? (sold / cap) * 100 : 0;
+    return fill >= 80;
+  }).length;
+
+  // Filtered Tours according to both category and status filters
   const filteredTours = tours.filter((t) => {
-    if (categoryFilter === 'ALL') return true;
+    // 1. Category filter
     const tourType = t.type || t.category || 'DOMESTIC';
-    return tourType === categoryFilter;
+    if (categoryFilter !== 'ALL' && tourType !== categoryFilter) return false;
+
+    // 2. Status filter
+    const isActive = t.status === 'ACTIVE' || t.status === 'Active';
+    if (statusFilter === 'ACTIVE' && !isActive) return false;
+    if (statusFilter === 'DEACTIVE' && isActive) return false;
+    if (statusFilter === 'NEAR_FULL') {
+      const cap = t.capacity || 48;
+      const sold = (t as any).soldSeats !== undefined ? (t as any).soldSeats : Math.max(0, cap - (t.availableSeats ?? cap));
+      const fill = cap > 0 ? (sold / cap) * 100 : 0;
+      if (fill < 80) return false;
+    }
+
+    return true;
   });
 
+  const isAllFilteredSelected =
+    filteredTours.length > 0 &&
+    filteredTours.every((t) => selectedTourIds.includes(t.id));
+
+  const handleToggleSelectAll = () => {
+    if (isAllFilteredSelected) {
+      const filteredIds = new Set(filteredTours.map((t) => t.id));
+      setSelectedTourIds((prev) => prev.filter((id) => !filteredIds.has(id)));
+    } else {
+      const newSelected = new Set([...selectedTourIds, ...filteredTours.map((t) => t.id)]);
+      setSelectedTourIds(Array.from(newSelected));
+    }
+  };
+
   const columns: Column<Tour>[] = [
+    {
+      key: 'select',
+      width: '44px',
+      header: (
+        <input
+          type="checkbox"
+          className="vendor-table-checkbox"
+          checked={isAllFilteredSelected}
+          onChange={handleToggleSelectAll}
+          title="Bütün səhifəni seç / seçimi qaldır"
+        />
+      ),
+      render: (t: Tour) => (
+        <input
+          type="checkbox"
+          className="vendor-table-checkbox"
+          checked={selectedTourIds.includes(t.id)}
+          onChange={(e) => handleToggleSelect(t.id, e as any)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      ),
+    },
     {
       key: 'title',
       header: 'Turun Adı & İstiqamət',
       render: (t: Tour) => {
         const isForeign = (t.type || t.category) === 'FOREIGN';
+        const imgUrl = getImageUrl(t.images?.[0]);
+
         return (
           <div className="vendor-tour-title-cell">
             <img
-              src={t.images?.[0] || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=120'}
+              src={imgUrl}
               alt={t.title}
               className="vendor-tour-thumb"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=200';
+              }}
             />
             <div className="vendor-tour-info-col">
               <div className="vendor-tour-tag-row">
@@ -209,25 +397,13 @@ export const TourListPage: React.FC = () => {
       render: (t: Tour) => (
         <div className="vendor-date-cell">
           <div className="date-row start">
-            <Calendar size={13} />
-            <span>
-              {new Date(t.startDate).toLocaleDateString('az-AZ', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </span>
+            <Calendar size={13} color="#0284c7" />
+            <span className="date-main-text">{formatAzDate(t.startDate)}</span>
           </div>
           {t.endDate && (
             <div className="date-row end">
               <span className="date-sub-arrow">↳ Dönüş:</span>
-              <span>
-                {new Date(t.endDate).toLocaleDateString('az-AZ', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </span>
+              <span>{formatAzDate(t.endDate)}</span>
             </div>
           )}
         </div>
@@ -287,7 +463,7 @@ export const TourListPage: React.FC = () => {
       key: 'status',
       header: 'Satış Statusu',
       render: (t: Tour) => {
-        const isActive = t.status === 'ACTIVE';
+        const isActive = t.status === 'ACTIVE' || t.status === 'Active';
         const isToggling = togglingId === t.id;
 
         return (
@@ -319,11 +495,34 @@ export const TourListPage: React.FC = () => {
         const isDomestic = (t.type || t.category) !== 'FOREIGN';
         return (
           <div className="vendor-row-actions">
+            {/* Quick Preview Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => handleOpenPreview(t, e)}
+              title="Sürətli Baxış (Preview)"
+            >
+              <Eye size={15} color="#0284c7" />
+            </Button>
+
+            {/* Clone / Duplicate Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => handleOpenCloneModal(t, e)}
+              title="Turu Nüsxələ (Klonla)"
+            >
+              <Copy size={15} color="#8b5cf6" />
+            </Button>
+
+            {/* Passenger Roster */}
             <Link to={`/bookings?tourId=${t.id}`} title="Sərnişin Siyahısı (Roster)">
               <Button variant="ghost" size="sm">
-                <Users size={15} />
+                <Users size={15} color="#059669" />
               </Button>
             </Link>
+
+            {/* Seat Map */}
             {isDomestic && (
               <Button
                 variant="ghost"
@@ -331,14 +530,18 @@ export const TourListPage: React.FC = () => {
                 onClick={(e) => handleOpenSeatMatrix(t, e)}
                 title="Oturacaq Xəritəsi (Seat Map)"
               >
-                <Bus size={15} />
+                <Bus size={15} color="#3b82f6" />
               </Button>
             )}
+
+            {/* Edit */}
             <Link to={`/tours/edit/${t.id}`} title="Redaktə Et">
               <Button variant="ghost" size="sm">
-                <Edit3 size={15} />
+                <Edit3 size={15} color="#d97706" />
               </Button>
             </Link>
+
+            {/* Delete */}
             <Button
               variant="ghost"
               size="sm"
@@ -346,7 +549,7 @@ export const TourListPage: React.FC = () => {
               className="vendor-delete-btn"
               title="Sil"
             >
-              <Trash2 size={15} />
+              <Trash2 size={15} color="#dc2626" />
             </Button>
           </div>
         );
@@ -394,7 +597,7 @@ export const TourListPage: React.FC = () => {
 
       {/* Dynamic KPI Cards Section */}
       <div className="vendor-tour-kpi-grid">
-        <div className="vendor-tour-kpi-card">
+        <div className="vendor-tour-kpi-card" onClick={() => setStatusFilter('ALL')} style={{ cursor: 'pointer' }}>
           <div className="kpi-icon-wrap blue">
             <Compass size={22} />
           </div>
@@ -409,7 +612,7 @@ export const TourListPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="vendor-tour-kpi-card">
+        <div className="vendor-tour-kpi-card" onClick={() => setStatusFilter('ACTIVE')} style={{ cursor: 'pointer' }}>
           <div className="kpi-icon-wrap green">
             <CheckCircle2 size={22} />
           </div>
@@ -449,7 +652,7 @@ export const TourListPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Filter Tabs */}
+      {/* Main Category Tabs */}
       <div className="vendor-filter-tabs">
         <button
           type="button"
@@ -474,6 +677,40 @@ export const TourListPage: React.FC = () => {
         </button>
       </div>
 
+      {/* Sub-Status Filter Bar */}
+      <div className="vendor-sub-status-bar">
+        <div className="status-pill-group">
+          <button
+            type="button"
+            className={`status-filter-btn ${statusFilter === 'ALL' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('ALL')}
+          >
+            Hamısı ({totalTours})
+          </button>
+          <button
+            type="button"
+            className={`status-filter-btn active-btn ${statusFilter === 'ACTIVE' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('ACTIVE')}
+          >
+            🟢 Satışda ({activeToursCount})
+          </button>
+          <button
+            type="button"
+            className={`status-filter-btn deactive-btn ${statusFilter === 'DEACTIVE' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('DEACTIVE')}
+          >
+            ⚪ Deaktiv ({deactiveToursCount})
+          </button>
+          <button
+            type="button"
+            className={`status-filter-btn flame-btn ${statusFilter === 'NEAR_FULL' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('NEAR_FULL')}
+          >
+            🔥 Dolmaq Üzrə ({nearFullCount})
+          </button>
+        </div>
+      </div>
+
       {/* Data Table */}
       <div className="vendor-page-content">
         <DataTable<Tour>
@@ -493,9 +730,48 @@ export const TourListPage: React.FC = () => {
             </Button>
           }
           pageSize={10}
-          emptyMessage="Seçilmiş kateqoriyada heç bir tur tapılmadı."
+          emptyMessage="Seçilmiş kateqoriyada və süzgəcdə heç bir tur tapılmadı."
         />
       </div>
+
+      {/* Docked Floating Bulk Action Toolbar */}
+      {selectedTourIds.length > 0 && (
+        <div className="vendor-bulk-toolbar-dock">
+          <div className="bulk-toolbar-inner">
+            <div className="bulk-info">
+              <span className="bulk-badge">{selectedTourIds.length}</span>
+              <span className="bulk-label">tur seçildi</span>
+            </div>
+
+            <div className="bulk-actions-btns">
+              <button
+                className="bulk-btn activate"
+                onClick={() => handleBulkStatus('Active')}
+                disabled={bulkUpdating}
+              >
+                {bulkUpdating ? <Spinner size="sm" /> : <CheckCircle2 size={15} />}
+                <span>Satışa Çıxar</span>
+              </button>
+
+              <button
+                className="bulk-btn deactivate"
+                onClick={() => handleBulkStatus('Deactive')}
+                disabled={bulkUpdating}
+              >
+                {bulkUpdating ? <Spinner size="sm" /> : <X size={15} />}
+                <span>Deaktiv Et</span>
+              </button>
+
+              <button
+                className="bulk-btn clear"
+                onClick={() => setSelectedTourIds([])}
+              >
+                <span>Seçimi Ləğv Et</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Seat Matrix Modal */}
       <SeatMatrixModal
@@ -503,6 +779,177 @@ export const TourListPage: React.FC = () => {
         onClose={() => setIsSeatModalOpen(false)}
         tour={seatModalTour}
       />
+
+      {/* Quick Preview Modal (Stage 3) */}
+      {previewTour && (
+        <div className="vendor-preview-modal-overlay" onClick={() => setPreviewTour(null)}>
+          <div className="vendor-preview-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="preview-modal-header">
+              <div className="preview-title-wrap">
+                <Badge variant={previewTour.type === 'FOREIGN' ? 'info' : 'success'} pill>
+                  {previewTour.type === 'FOREIGN' ? '✈️ Xarici Tur' : '🇦🇿 Daxili Tur'}
+                </Badge>
+                <h3>{previewTour.title}</h3>
+              </div>
+              <button className="preview-close-btn" onClick={() => setPreviewTour(null)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="preview-modal-body">
+              <div className="preview-hero-img-wrap">
+                <img
+                  src={getImageUrl(previewTour.images?.[0])}
+                  alt={previewTour.title}
+                  className="preview-hero-img"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600';
+                  }}
+                />
+                <div className="preview-hero-overlay">
+                  <span className="preview-price-tag">
+                    {previewTour.basePrice || (previewTour as any).price} {previewTour.currency || 'AZN'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="preview-details-grid">
+                <div className="preview-detail-item">
+                  <Calendar size={16} color="#0284c7" />
+                  <div>
+                    <strong>Tarix:</strong>
+                    <p>{formatAzDate(previewTour.startDate)} — {formatAzDate(previewTour.endDate)}</p>
+                  </div>
+                </div>
+
+                <div className="preview-detail-item">
+                  <MapPin size={16} color="#ef4444" />
+                  <div>
+                    <strong>Toplanış Məntəqəsi:</strong>
+                    <p>{previewTour.meetingPoint || 'Məlumat qeyd edilməyib'}</p>
+                  </div>
+                </div>
+
+                <div className="preview-detail-item">
+                  <Bus size={16} color="#8b5cf6" />
+                  <div>
+                    <strong>Nəqliyyat & Tutum:</strong>
+                    <p>{previewTour.busType || 'Avtobus'} ({previewTour.capacity || 48} yer)</p>
+                  </div>
+                </div>
+
+                <div className="preview-detail-item">
+                  <CheckCheck size={16} color="#10b981" />
+                  <div>
+                    <strong>Satış Statusu:</strong>
+                    <p>{previewTour.status === 'ACTIVE' || previewTour.status === 'Active' ? '🟢 Satışda' : '⚪ Deaktiv'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {previewTour.description && (
+                <div className="preview-desc-section">
+                  <strong>Tur Haqqında:</strong>
+                  <p>{previewTour.description}</p>
+                </div>
+              )}
+
+              {previewTour.inclusions && previewTour.inclusions.length > 0 && (
+                <div className="preview-inclusions-section">
+                  <strong>Qiymətə Daxildir:</strong>
+                  <ul>
+                    {previewTour.inclusions.map((inc, i) => (
+                      <li key={i}>✓ {inc}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div className="preview-modal-footer">
+              <Button variant="secondary" onClick={() => setPreviewTour(null)}>
+                Bağla
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  const id = previewTour.id;
+                  setPreviewTour(null);
+                  navigate(`/tours/edit/${id}`);
+                }}
+              >
+                <Edit3 size={15} />
+                <span>Turu Redaktə Et</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clone Tour Modal (Stage 3) */}
+      {cloneTourTarget && (
+        <div className="vendor-clone-modal-overlay" onClick={() => setCloneTourTarget(null)}>
+          <div className="vendor-clone-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="clone-modal-header">
+              <div className="clone-icon-wrap">
+                <Copy size={22} />
+              </div>
+              <div>
+                <h3>Turu Nüsxələ (Klonla)</h3>
+                <p className="clone-modal-sub">
+                  “<strong>{cloneTourTarget.title}</strong>” turunun bütün marşrut və xidmətləri kopyalanacaq.
+                </p>
+              </div>
+            </div>
+
+            <div className="clone-modal-body">
+              <div className="clone-input-group">
+                <label className="clone-input-label">Yeni Turun Başlığı:</label>
+                <input
+                  type="text"
+                  className="clone-text-input"
+                  value={cloneTitle}
+                  onChange={(e) => setCloneTitle(e.target.value)}
+                  placeholder="Turun adı..."
+                />
+              </div>
+
+              <div className="clone-input-group">
+                <label className="clone-input-label">Yeni Çıxış Tarixi:</label>
+                <input
+                  type="date"
+                  className="clone-date-input"
+                  value={cloneStartDate}
+                  onChange={(e) => setCloneStartDate(e.target.value)}
+                />
+              </div>
+
+              <p className="clone-notice-note">
+                💡 Qeyd: Yeni tur avtomatik olaraq 'Active' statusunda yaradılacaq və təkrar proqram doldurmağa ehtiyac qalmayacaq.
+              </p>
+            </div>
+
+            <div className="clone-modal-footer">
+              <Button
+                variant="secondary"
+                onClick={() => setCloneTourTarget(null)}
+                disabled={isCloning}
+              >
+                İmtina Et
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleConfirmClone}
+                isLoading={isCloning}
+                disabled={!cloneStartDate || !cloneTitle.trim()}
+              >
+                <Copy size={15} />
+                <span>Nüsxələ və Yarat</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Custom Delete Confirmation Modal */}
       {tourToDelete && (
@@ -553,4 +1000,5 @@ export const TourListPage: React.FC = () => {
     </div>
   );
 };
+
 export default TourListPage;

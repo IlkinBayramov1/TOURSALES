@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { VendorSidebar } from '../shared/components/VendorSidebar/VendorSidebar';
 import { VendorHeader } from '../shared/components/VendorHeader/VendorHeader';
+import { SimulationBanner } from '../shared/components/SimulationBanner/SimulationBanner';
 import { QrScannerModal } from '../modules/bookings/components/QrScannerModal/QrScannerModal';
 import './VendorLayout.css';
 
@@ -13,6 +14,7 @@ export const VendorLayout: React.FC = () => {
       <VendorSidebar />
 
       <div className="vendor-layout-main">
+        <SimulationBanner />
         <VendorHeader onOpenScanner={() => setIsScannerOpen(true)} />
 
         <main className="vendor-layout-content">

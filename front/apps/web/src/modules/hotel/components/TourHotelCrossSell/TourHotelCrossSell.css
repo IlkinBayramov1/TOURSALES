@@ -1,0 +1,162 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - TOUR HOTEL CROSS SELL COMPONENT STYLES
+   ========================================================================== */
+
+.tour-hotel-cross-sell-section {
+  margin-top: 36px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.tour-cross-sell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tour-cross-sell-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tour-cross-sell-icon {
+  width: 44px;
+  height: 44px;
+  background: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0284c7;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+}
+
+.tour-cross-sell-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.tour-cross-sell-subtitle {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.tour-cross-sell-badge {
+  background: #22c55e;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tour-cross-sell-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.tour-cross-sell-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.tour-cross-sell-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+  border-color: #38bdf8;
+}
+
+.tour-cross-sell-img-wrap {
+  height: 140px;
+  position: relative;
+  background: #f1f5f9;
+}
+
+.tour-cross-sell-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tour-cross-sell-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.tour-cross-sell-hotel-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.tour-cross-sell-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.tour-cross-sell-pricing-row {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.tour-cross-sell-prices {
+  display: flex;
+  flex-direction: column;
+}
+
+.tour-cross-sell-old-price {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.tour-cross-sell-new-price {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #15803d;
+}
+
+.tour-cross-sell-add-btn {
+  background: #0284c7;
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.2s ease;
+}
+
+.tour-cross-sell-add-btn:hover {
+  background: #0369a1;
+}

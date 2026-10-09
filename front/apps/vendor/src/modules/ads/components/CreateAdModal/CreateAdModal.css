@@ -1,13 +1,13 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1050;
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
 .modal-dialog {
@@ -15,43 +15,69 @@
   border-radius: var(--radius-2xl, 20px);
   width: 100%;
   max-width: 640px;
-  max-height: 90vh;
+  max-height: 92vh;
   overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-dialog-wide {
+  max-width: 1020px;
 }
 
 .modal-header {
-  padding: 1.5rem 1.75rem;
-  border-bottom: 1px solid var(--color-border-subtle, #e5e7eb);
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid var(--color-border-subtle, #e2e8f0);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.modal-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modal-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #d97706;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .modal-header h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text-primary, #111827);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-text-primary, #0f172a);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .modal-close-btn {
   background: none;
   border: none;
-  color: var(--color-text-tertiary, #9ca3af);
+  color: var(--color-text-tertiary, #94a3b8);
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 6px;
-  transition: all 0.15s;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  transition: all 0.15s ease;
 }
 
 .modal-close-btn:hover {
-  color: var(--color-text-primary, #111827);
-  background: #f3f4f6;
+  color: #0f172a;
+  background: #f1f5f9;
 }
 
 .modal-body {
@@ -61,6 +87,39 @@
   gap: 1.25rem;
 }
 
+.create-ad-modal-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1.75rem;
+}
+
+@media (max-width: 860px) {
+  .create-ad-modal-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.ad-config-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ad-preview-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-sticky-wrap {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Form elementləri */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -69,83 +128,144 @@
 
 .form-group label {
   font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-primary, #111827);
+  font-weight: 700;
+  color: var(--color-text-primary, #1e293b);
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 0.625rem 0.875rem;
-  border: 1px solid var(--color-border-subtle, #d1d5db);
+  padding: 0.65rem 0.875rem;
+  border: 1.5px solid #cbd5e1;
   border-radius: 10px;
   font-size: 0.875rem;
-  color: var(--color-text-primary, #111827);
+  color: #0f172a;
   background: #ffffff;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: var(--color-primary, #2563eb);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
+/* Hədəf növü seçimi */
 .target-type-selector {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
 }
 
 .target-type-option {
-  border: 1px solid var(--color-border-subtle, #d1d5db);
+  border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   padding: 0.875rem 1rem;
   cursor: pointer;
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  transition: all 0.15s ease;
+  align-items: flex-start;
+  gap: 0.625rem;
+  transition: all 0.2s ease;
   background: #ffffff;
 }
 
 .target-type-option:hover {
   border-color: #94a3b8;
+  background: #f8fafc;
 }
 
 .target-type-option.active {
-  border-color: var(--color-primary, #2563eb);
-  background: rgba(37, 99, 235, 0.04);
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.05);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
 }
 
 .target-type-radio {
-  accent-color: var(--color-primary, #2563eb);
+  margin-top: 0.2rem;
+  accent-color: #2563eb;
 }
 
 .target-type-label {
   font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-primary, #111827);
+  font-weight: 700;
+  color: #0f172a;
 }
 
-.package-select-grid {
+.target-type-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+/* Mövqe seçimi çipləri */
+.position-select-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
 }
 
-.package-select-card {
-  border: 1.5px solid var(--color-border-subtle, #e5e7eb);
-  border-radius: 12px;
-  padding: 0.875rem 1rem;
+.position-chip {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.625rem 0.75rem;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
   transition: all 0.15s ease;
+  background: #ffffff;
+}
+
+.position-chip:hover {
+  border-color: #94a3b8;
+}
+
+.position-chip.active {
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.05);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12);
+}
+
+.position-chip-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #1e293b;
+}
+
+.position-chip.active .position-chip-header {
+  color: #2563eb;
+}
+
+.position-chip-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.position-chip-desc {
+  font-size: 0.7rem;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+/* Paket seçimi şəbəkəsi */
+.package-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.625rem;
+}
+
+.package-select-card {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem 0.875rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition: all 0.2s ease;
   background: #ffffff;
 }
 
@@ -154,22 +274,136 @@
 }
 
 .package-select-card.active {
-  border-color: var(--color-primary, #2563eb);
-  background: rgba(37, 99, 235, 0.04);
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.05);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
 }
 
 .package-select-name {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-text-secondary, #4b5563);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
 }
 
 .package-select-price {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text-primary, #111827);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f172a;
 }
 
+.package-select-duration {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Multi-Metod Ödəniş Seçimi */
+.payment-method-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.payment-method-card {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  background: #ffffff;
+}
+
+.payment-method-card:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.payment-method-card.active {
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.05);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1);
+}
+
+.payment-method-card.disabled-balance {
+  border-color: #fca5a5;
+  background: #fff5f5;
+}
+
+.payment-method-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.payment-method-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-method-icon.card-icon {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.payment-method-icon.invoice-icon {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.payment-method-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-method-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.payment-method-sub {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.payment-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.payment-badge.success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.payment-badge.danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.payment-badge.info {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.payment-badge.neutral {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+/* Balans və Maliyyə Çeki */
 .balance-check-card {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -184,17 +418,22 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.875rem;
-  color: var(--color-text-secondary, #4b5563);
+  color: #475569;
 }
 
 .balance-row.total {
-  font-weight: 700;
-  color: var(--color-text-primary, #111827);
+  font-weight: 800;
+  color: #0f172a;
   border-top: 1px dashed #cbd5e1;
   padding-top: 0.5rem;
 }
 
-.balance-warning {
+.price-tag-value {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.alert-box {
   padding: 0.75rem 1rem;
   background: #fef2f2;
   border: 1px solid #fca5a5;
@@ -204,13 +443,439 @@
   line-height: 1.4;
 }
 
+/* =========================================================================
+   CANLI MOCKUP PREVIEW DİZAYNI
+   ========================================================================= */
+.preview-container {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.preview-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.preview-position-tag {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+/* 1. HERO Mockup */
+.mockup-hero-banner {
+  height: 200px;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.mockup-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1rem;
+  color: #ffffff;
+}
+
+.mockup-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(239, 68, 68, 0.9);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  width: fit-content;
+  margin-bottom: 0.35rem;
+}
+
+.mockup-hero-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 0 0 0.5rem 0;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.mockup-hero-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mockup-hero-price .price-label {
+  font-size: 0.6875rem;
+  color: #cbd5e1;
+  margin-right: 0.35rem;
+}
+
+.mockup-hero-price .price-val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.mockup-hero-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: default;
+}
+
+/* 2. VIP_LIST Mockup */
+.mockup-vip-card {
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);
+  position: relative;
+}
+
+.mockup-vip-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  z-index: 2;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.mockup-vip-img-box {
+  height: 120px;
+  position: relative;
+}
+
+.mockup-vip-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mockup-vip-price-tag {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.875rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.mockup-vip-content {
+  padding: 0.75rem;
+}
+
+.mockup-vip-content h5 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+}
+
+.mockup-vip-agency {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin: 0 0 0.35rem 0;
+}
+
+.mockup-vip-rating {
+  font-size: 0.75rem;
+  color: #f59e0b;
+}
+
+.mockup-vip-rating span {
+  color: #64748b;
+  font-size: 0.7rem;
+}
+
+/* 3. SIDEBAR Mockup */
+.mockup-sidebar-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: #f8fafc;
+}
+
+.mockup-sidebar-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #2563eb;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.mockup-sidebar-inner {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.mockup-sidebar-inner img {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.mockup-sidebar-info h6 {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.2rem 0;
+  line-height: 1.3;
+}
+
+.mockup-sidebar-price {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #059669;
+}
+
+/* 4. POPUP Mockup */
+.mockup-popup-box {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.mockup-popup-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  z-index: 2;
+}
+
+.mockup-popup-img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+}
+
+.mockup-popup-body {
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.mockup-popup-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #dc2626;
+  text-transform: uppercase;
+}
+
+.mockup-popup-body h6 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin: 0.25rem 0;
+}
+
+.mockup-popup-price {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
+
+.mockup-popup-btn {
+  width: 100%;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.4rem;
+  border-radius: 6px;
+}
+
+/* =========================================================================
+   PROQNOZLAŞDIRMA KALKULYATORU (ESTIMATOR)
+   ========================================================================= */
+.estimator-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.estimator-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.estimator-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.estimator-badge {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.estimator-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+.estimator-metric {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.625rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.metric-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metric-icon.views-icon {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.metric-icon.clicks-icon {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.metric-icon.bookings-icon {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.metric-icon.roi-icon {
+  background: #fdf2f8;
+  color: #db2777;
+}
+
+.metric-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.estimator-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.estimator-note svg {
+  color: #059669;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Modal Actions */
 .modal-actions {
   padding: 1.25rem 1.75rem;
-  border-top: 1px solid var(--color-border-subtle, #e5e7eb);
+  border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  background: var(--color-bg-subtle, #f9fafb);
+  background: #f8fafc;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
 }

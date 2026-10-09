@@ -1,0 +1,193 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - CUSTOMER TICKETS STYLES
+   ========================================================================== */
+
+.web-tickets-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  color: #0f172a;
+}
+
+.web-tickets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.web-tickets-title-wrap h1 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.web-tickets-title-wrap p {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.web-ticket-btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  padding: 12px 22px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.web-ticket-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.web-tickets-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.web-tickets-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.web-ticket-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s ease;
+}
+
+.web-ticket-item-row:last-child {
+  border-bottom: none;
+}
+
+.web-ticket-item-row:hover {
+  background: #f8fafc;
+}
+
+.web-ticket-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.web-ticket-item-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.web-ticket-meta-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.web-ticket-badge-code {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.web-ticket-badge-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.web-ticket-badge-status.open {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.web-ticket-badge-status.resolved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.web-ticket-badge-status.escalated {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.web-ticket-badge-status.waiting {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* Form Styles */
+.web-ticket-form-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.web-ticket-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.web-ticket-field label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.web-ticket-field input,
+.web-ticket-field select,
+.web-ticket-field textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  outline: none;
+}
+
+.web-ticket-field input:focus,
+.web-ticket-field select:focus,
+.web-ticket-field textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.web-ticket-policy-callout {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 0.85rem;
+  color: #166534;
+  line-height: 1.5;
+}

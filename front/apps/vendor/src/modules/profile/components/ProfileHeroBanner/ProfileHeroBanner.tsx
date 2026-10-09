@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Company, CompanyProfileStats } from '@toursales/types';
 import './ProfileHeroBanner.css';
 
@@ -22,22 +22,79 @@ export const ProfileHeroBanner: React.FC<ProfileHeroBannerProps> = ({
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  const [previewLogo, setPreviewLogo] = useState<string | null>(null);
+  const [previewCover, setPreviewCover] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPreviewLogo(null);
+  }, [company.logoUrl]);
+
+  useEffect(() => {
+    setPreviewCover(null);
+  }, [company.coverUrl]);
+
   const defaultCover =
+    previewCover ||
     company.coverUrl ||
     'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80';
   const defaultLogo =
+    previewLogo ||
     company.logoUrl ||
     'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&auto=format&fit=crop&q=80';
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const validateFile = (file: File): string | null => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      return 'Yalnız JPG, PNG və WEBP formatında şəkillər dəstəklənir.';
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return 'Şəkil həcmi çox böyükdür (Maksimum 5 MB yüklənə bilər).';
+    }
+    return null;
+  };
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
     if (e.target.files && e.target.files[0]) {
-      onLogoUpload(e.target.files[0]);
+      const file = e.target.files[0];
+      const error = validateFile(file);
+      if (error) {
+        setUploadError(error);
+        setTimeout(() => setUploadError(null), 5000);
+        return;
+      }
+      const localUrl = URL.createObjectURL(file);
+      setPreviewLogo(localUrl);
+      try {
+        await onLogoUpload(file);
+      } catch {
+        setPreviewLogo(null);
+        setUploadError('Loqo yüklənərkən xəta baş verdi. Yenidən cəhd edin.');
+        setTimeout(() => setUploadError(null), 5000);
+      }
     }
   };
 
-  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
     if (e.target.files && e.target.files[0]) {
-      onCoverUpload(e.target.files[0]);
+      const file = e.target.files[0];
+      const error = validateFile(file);
+      if (error) {
+        setUploadError(error);
+        setTimeout(() => setUploadError(null), 5000);
+        return;
+      }
+      const localUrl = URL.createObjectURL(file);
+      setPreviewCover(localUrl);
+      try {
+        await onCoverUpload(file);
+      } catch {
+        setPreviewCover(null);
+        setUploadError('Örtük şəkli yüklənərkən xəta baş verdi. Yenidən cəhd edin.');
+        setTimeout(() => setUploadError(null), 5000);
+      }
     }
   };
 
@@ -50,6 +107,14 @@ export const ProfileHeroBanner: React.FC<ProfileHeroBannerProps> = ({
 
   return (
     <div className="profile-hero-card">
+      {/* Upload Error Banner */}
+      {uploadError && (
+        <div className="banner-upload-error-pill">
+          <span>⚠️ {uploadError}</span>
+          <button type="button" onClick={() => setUploadError(null)}>✕</button>
+        </div>
+      )}
+
       {/* Cover Image */}
       <div
         className="profile-hero-cover"
@@ -60,7 +125,7 @@ export const ProfileHeroBanner: React.FC<ProfileHeroBannerProps> = ({
           type="file"
           ref={coverInputRef}
           style={{ display: 'none' }}
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           onChange={handleCoverChange}
         />
         <button
@@ -89,19 +154,19 @@ export const ProfileHeroBanner: React.FC<ProfileHeroBannerProps> = ({
           <img
             src={defaultLogo}
             alt={company.name}
-            className="profile-avatar-img"
+            className={`profile-avatar-img ${uploadingLogo ? 'is-uploading' : ''}`}
           />
           <input
             type="file"
             ref={logoInputRef}
             style={{ display: 'none' }}
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             onChange={handleLogoChange}
           />
           <button
             type="button"
             className="avatar-upload-badge"
-            title="Loqonu yenilə"
+            title="Loqonu yenilə (JPG, PNG, WEBP max 5MB)"
             onClick={() => logoInputRef.current?.click()}
             disabled={uploadingLogo}
           >

@@ -153,3 +153,14 @@ export interface ApiIntegrationStats {
   avgLatencyMs: number;
   activeWebhooksCount: number;
 }
+
+export interface CompanySession {
+  id: string;
+  ipAddress: string;
+  device: string;
+  userAgent?: string;
+  createdAt: string;
+  isCurrent: boolean;
+  status: string;
+}
+

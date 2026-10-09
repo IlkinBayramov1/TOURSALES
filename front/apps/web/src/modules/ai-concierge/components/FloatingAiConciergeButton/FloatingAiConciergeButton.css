@@ -1,0 +1,68 @@
+/* FLOATING AI CONCIERGE BUTTON STYLES */
+
+.floating-ai-concierge-btn {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  z-index: 9990;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #6366f1 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 8px 18px 8px 10px;
+  border-radius: 100px;
+  box-shadow: 0 10px 25px -5px rgba(67, 56, 202, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.2);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+}
+
+.floating-ai-concierge-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 14px 30px -5px rgba(67, 56, 202, 0.65), 0 0 16px rgba(168, 85, 247, 0.4);
+  background: linear-gradient(135deg, #312e81 0%, #4f46e5 50%, #7c3aed 100%);
+}
+
+.ai-btn-sparkle-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.5);
+}
+
+.ai-sparkle-spin {
+  animation: ai-twinkle 3s infinite ease-in-out;
+}
+
+@keyframes ai-twinkle {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.15);
+  }
+}
+
+.ai-btn-text {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .floating-ai-concierge-btn {
+    bottom: 20px;
+    left: 16px;
+    padding: 8px 14px 8px 8px;
+  }
+  .ai-btn-text {
+    display: none;
+  }
+}

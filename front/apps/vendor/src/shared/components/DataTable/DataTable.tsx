@@ -5,7 +5,7 @@ import './DataTable.css';
 
 export interface Column<T = any> {
   key?: string;
-  header: string;
+  header: React.ReactNode;
   render?: (item: T, index: number) => React.ReactNode;
   accessor?: keyof T | string | ((item: T, index: number) => React.ReactNode);
   width?: string;

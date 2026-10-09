@@ -1,0 +1,540 @@
+/* Custom Tour Wizard Styling */
+.custom-wizard-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.custom-wizard-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.custom-wizard-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.custom-wizard-subtitle {
+  color: #64748b;
+  font-size: 1.05rem;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+/* Stepper Progress */
+.custom-stepper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.custom-step-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.custom-step-item.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.custom-step-item.completed {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.custom-step-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.custom-step-item.active .custom-step-circle {
+  background: #ffffff;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.custom-stepper-line {
+  width: 24px;
+  height: 2px;
+  background: #cbd5e1;
+}
+
+/* Two Column Layout */
+.custom-wizard-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .custom-wizard-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form Container */
+.custom-step-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.custom-section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-section-desc {
+  font-size: 0.92rem;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+/* Type Pills */
+.custom-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.custom-type-card {
+  padding: 14px 12px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.custom-type-card:hover {
+  border-color: #93c5fd;
+  background: #ffffff;
+}
+
+.custom-type-card.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* Destinations Cards Grid */
+.custom-dest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.custom-dest-card {
+  position: relative;
+  height: 110px;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.custom-dest-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.custom-dest-card:hover .custom-dest-img {
+  transform: scale(1.05);
+}
+
+.custom-dest-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.75) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 10px 12px;
+}
+
+.custom-dest-name {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.custom-dest-sub {
+  color: #e2e8f0;
+  font-size: 0.72rem;
+}
+
+.custom-dest-card.selected {
+  border-color: #2563eb;
+}
+
+.custom-dest-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Dates */
+.custom-dates-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.custom-input-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.custom-input-field {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  outline: none;
+  background: #ffffff;
+  transition: all 0.2s;
+}
+
+.custom-input-field:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Passenger Counters */
+.custom-passengers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.custom-counter-box {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.custom-counter-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.custom-counter-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.custom-counter-btn:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+/* Vehicle Selection Cards */
+.custom-vehicles-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.custom-vehicle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.custom-vehicle-card:hover {
+  border-color: #93c5fd;
+}
+
+.custom-vehicle-card.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.custom-vehicle-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.custom-vehicle-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+}
+
+.custom-vehicle-title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.98rem;
+}
+
+.custom-vehicle-desc {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Hotel & Meal Cards */
+.custom-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.custom-option-pill {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.2s;
+}
+
+.custom-option-pill.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+/* Attractions Checklist */
+.custom-attractions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.custom-attraction-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #334155;
+  transition: all 0.2s;
+}
+
+.custom-attraction-item.selected {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+/* Buttons Nav */
+.custom-wizard-btns {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.custom-btn-back {
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.custom-btn-back:hover {
+  background: #f1f5f9;
+}
+
+.custom-btn-next {
+  padding: 12px 28px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.custom-btn-next:hover:not(:disabled) {
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
+}
+
+.custom-btn-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Right Column: Live Estimator Sticky Card */
+.custom-estimator-card {
+  position: sticky;
+  top: 100px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.04);
+}
+
+.custom-estimator-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.custom-estimator-price-wrap {
+  margin-bottom: 16px;
+}
+
+.custom-estimator-price {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.custom-estimator-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.custom-estimator-breakdown {
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 14px 0;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-est-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.custom-est-row strong {
+  color: #0f172a;
+}
+
+.custom-estimator-info {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 0.8rem;
+  color: #166534;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}

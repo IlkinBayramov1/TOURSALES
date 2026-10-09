@@ -19,12 +19,18 @@ import {
   QrCode,
   Wallet,
   Users,
-  Percent
+  Percent,
+  AlertTriangle,
+  AlertCircle,
+  X,
+  Lock
 } from 'lucide-react';
 import { Spinner } from '@toursales/ui';
 import { RevenueChart } from '../../components/RevenueChart/RevenueChart';
 import { SalesDistributionChart } from '../../components/SalesDistributionChart/SalesDistributionChart';
 import { RecentBookingsTable } from '../../components/RecentBookingsTable/RecentBookingsTable';
+import { QuickManifestModal } from '../../components/QuickManifestModal/QuickManifestModal';
+import { QuickCheckInModal } from '../../components/QuickCheckInModal/QuickCheckInModal';
 import { vendorDashboardApi, VendorStats } from '../../api/vendorDashboardApi';
 import './DashboardPage.css';
 
@@ -42,6 +48,12 @@ export const DashboardPage: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [dateRange, setDateRange] = useState('Bu Ay');
+  const [dismissedAlerts, setDismissedAlerts] = useState<string[]>([]);
+  const [isManifestOpen, setIsManifestOpen] = useState<boolean>(false);
+  const [isCheckInOpen, setIsCheckInOpen] = useState<boolean>(false);
+  const [lastUpdated, setLastUpdated] = useState<string>(() => 
+    new Date().toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  );
 
   const fetchStats = useCallback(async (period: string, isSilent = false) => {
     try {
@@ -51,6 +63,7 @@ export const DashboardPage: React.FC = () => {
       const res = await vendorDashboardApi.getStats(period);
       if (res.data) {
         setStats(res.data);
+        setLastUpdated(new Date().toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
       }
     } catch (err) {
       console.error('Statistika yüklənərkən xəta:', err);
@@ -63,6 +76,16 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => {
     const period = PERIOD_MAP[dateRange] || 'month';
     fetchStats(period);
+  }, [dateRange, fetchStats]);
+
+  // 60 saniyəlik arxa fon avtomatik yenilənməsi (Live Auto-refresh)
+  useEffect(() => {
+    const period = PERIOD_MAP[dateRange] || 'month';
+    const interval = setInterval(() => {
+      fetchStats(period, true);
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, [dateRange, fetchStats]);
 
   const handleRefresh = () => {
@@ -90,6 +113,10 @@ export const DashboardPage: React.FC = () => {
   const pendingDeposits = stats?.pendingDeposits ?? 0;
   const occupancyRate = stats?.occupancyRate ?? 0;
 
+  const activeAlerts = (stats?.operationalAlerts || []).filter(
+    (a) => !dismissedAlerts.includes(a.id)
+  );
+
   return (
     <div className="vendor-dashboard-container">
       {/* Top Filter & Actions Bar */}
@@ -103,6 +130,9 @@ export const DashboardPage: React.FC = () => {
               <Percent size={14} />
               <span>Doluluq: <strong>{occupancyRate}%</strong></span>
             </div>
+            <span className="vendor-last-updated-text" title="Son yenilənmə vaxtı">
+              <Clock size={12} /> {lastUpdated}
+            </span>
           </div>
           <p className="vendor-dash-subtitle">
             Canlı satış dinamikası, real rezervasiyalar və maliyyə statistikası
@@ -150,6 +180,66 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Operational Alerts Banner (Live Platform Ticker) */}
+      {!loading && activeAlerts.length > 0 && (
+        <div className="vendor-alerts-banner-container">
+          {activeAlerts.map((alert) => {
+            const isWarn = alert.type === 'warning';
+            const isDanger = alert.type === 'danger';
+            const isSuccess = alert.type === 'success';
+            const Icon = isDanger ? AlertCircle : isWarn ? AlertTriangle : isSuccess ? CheckCircle2 : Wallet;
+
+            return (
+              <div key={alert.id} className={`vendor-alert-card alert-${alert.type}`}>
+                <div className="vendor-alert-left">
+                  <div className="vendor-alert-icon-box">
+                    <Icon size={18} />
+                  </div>
+                  <div className="vendor-alert-content">
+                    <div className="vendor-alert-title-row">
+                      <span className="vendor-alert-title">{alert.title}</span>
+                      {alert.count !== undefined && (
+                        <span className="vendor-alert-count-pill">{alert.count} ədəd</span>
+                      )}
+                      {alert.amount !== undefined && (
+                        <span className="vendor-alert-count-pill">{Number(alert.amount).toLocaleString()} ₼</span>
+                      )}
+                    </div>
+                    <p className="vendor-alert-desc">{alert.message || alert.desc}</p>
+                  </div>
+                </div>
+                <div className="vendor-alert-right">
+                  {alert.actionLink && (
+                    <button
+                      type="button"
+                      className="vendor-alert-action-btn"
+                      onClick={() => {
+                        if (alert.id === 'upcoming-tours') {
+                          setIsManifestOpen(true);
+                        } else {
+                          navigate(alert.actionLink!);
+                        }
+                      }}
+                    >
+                      <span>{alert.actionText || 'Ətraflı Bax'}</span>
+                      <ArrowUpRight size={13} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="vendor-alert-close-btn"
+                    onClick={() => setDismissedAlerts((prev) => [...prev, alert.id])}
+                    title="Bildirişi bağla"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Quick Action Shortcuts Bar */}
       <div className="vendor-quick-actions-bar">
         <button 
@@ -169,7 +259,7 @@ export const DashboardPage: React.FC = () => {
         <button 
           type="button" 
           className="vendor-quick-action-card" 
-          onClick={() => navigate('/bookings')}
+          onClick={() => setIsCheckInOpen(true)}
         >
           <div className="quick-action-icon qa-blue">
             <QrCode size={20} />
@@ -190,14 +280,14 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div className="quick-action-text">
             <strong>Balans və Çıxarış</strong>
-            <span>Mövcud: {availableBalance.toLocaleString()} ₼</span>
+            <span>{stats?.isFinancialMasked ? 'Məxfi (Rəhbərlik)' : `Mövcud: ${availableBalance.toLocaleString()} ₼`}</span>
           </div>
         </button>
 
         <button 
           type="button" 
           className="vendor-quick-action-card" 
-          onClick={() => navigate('/bookings')}
+          onClick={() => setIsManifestOpen(true)}
         >
           <div className="quick-action-icon qa-orange">
             <Users size={20} />
@@ -227,14 +317,28 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
               <div className="vendor-kpi-body">
-                <h2 className="vendor-kpi-value">
-                  {totalRevenue.toLocaleString()} <span className="vendor-currency">₼</span>
-                </h2>
+                {stats?.isFinancialMasked ? (
+                  <h2 className="vendor-kpi-value">
+                    <span className="vendor-masked-badge">
+                      <Lock size={15} /> Məxfi
+                    </span>
+                  </h2>
+                ) : (
+                  <h2 className="vendor-kpi-value">
+                    {totalRevenue.toLocaleString()} <span className="vendor-currency">₼</span>
+                  </h2>
+                )}
                 <div className={`vendor-kpi-trend ${(stats?.revenueGrowth ?? 0) >= 0 ? 'trend-up' : 'trend-down'}`}>
-                  {(stats?.revenueGrowth ?? 0) >= 0 ? <ArrowUpRight size={15} /> : <ArrowDownRight size={15} />}
-                  <span>{(stats?.revenueGrowth ?? 0) > 0 ? `+${stats?.revenueGrowth}` : `${stats?.revenueGrowth ?? 0}`}%</span>
+                  {!stats?.isFinancialMasked && (
+                    <>
+                      {(stats?.revenueGrowth ?? 0) >= 0 ? <ArrowUpRight size={15} /> : <ArrowDownRight size={15} />}
+                      <span>{(stats?.revenueGrowth ?? 0) > 0 ? `+${stats?.revenueGrowth}` : `${stats?.revenueGrowth ?? 0}`}%</span>
+                    </>
+                  )}
                   <span className="trend-text">
-                    {dateRange === 'Bu Gün'
+                    {stats?.isFinancialMasked
+                      ? 'Yalnız Rəhbərlik üçün'
+                      : dateRange === 'Bu Gün'
                       ? 'dünənə nisbətən'
                       : dateRange === 'Bu Həftə'
                       ? 'keçən həftəyə nisbətən'
@@ -243,6 +347,11 @@ export const DashboardPage: React.FC = () => {
                       : 'keçən aya nisbətən'}
                   </span>
                 </div>
+                {!stats?.isFinancialMasked && stats?.allTimeRevenue !== undefined && stats.allTimeRevenue !== null && (
+                  <div className="vendor-kpi-subpill pill-indigo">
+                    Tarixi dövriyyə: {Number(stats.allTimeRevenue).toLocaleString()} ₼
+                  </div>
+                )}
               </div>
             </div>
 
@@ -263,6 +372,11 @@ export const DashboardPage: React.FC = () => {
                     ({stats?.totalSeatsSold ?? 0} sərnişin yeri)
                   </span>
                 </div>
+                {!stats?.isFinancialMasked && stats?.avgTicketPrice !== undefined && stats.avgTicketPrice !== null && (
+                  <div className="vendor-kpi-subpill pill-emerald">
+                    Orta bilet: {stats.avgTicketPrice} ₼
+                  </div>
+                )}
               </div>
             </div>
 
@@ -282,6 +396,9 @@ export const DashboardPage: React.FC = () => {
                     {stats?.domesticToursCount ?? 0} Daxili, {stats?.foreignToursCount ?? 0} Xarici
                   </span>
                 </div>
+                <div className="vendor-kpi-subpill">
+                  Minik (Check-in): {stats?.checkInRate ?? 0}%
+                </div>
               </div>
             </div>
 
@@ -294,13 +411,21 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
               <div className="vendor-kpi-body">
-                <h2 className="vendor-kpi-value">
-                  {availableBalance.toLocaleString()} <span className="vendor-currency">₼</span>
-                </h2>
+                {stats?.isFinancialMasked ? (
+                  <h2 className="vendor-kpi-value">
+                    <span className="vendor-masked-badge">
+                      <Lock size={15} /> Məxfi
+                    </span>
+                  </h2>
+                ) : (
+                  <h2 className="vendor-kpi-value">
+                    {availableBalance.toLocaleString()} <span className="vendor-currency">₼</span>
+                  </h2>
+                )}
                 <div className="vendor-kpi-trend trend-neutral">
                   <Clock size={15} />
                   <span className="trend-text">
-                    Gözləyən: {pendingDeposits.toLocaleString()} ₼
+                    {stats?.isFinancialMasked ? 'Maliyyə şöbəsi üçün' : `Gözləyən behlər: ${pendingDeposits.toLocaleString()} ₼`}
                   </span>
                 </div>
               </div>
@@ -310,7 +435,10 @@ export const DashboardPage: React.FC = () => {
           {/* 2. RECHARTS MIDDLE SECTION */}
           <div className="vendor-middle-chart-grid">
             <div className="vendor-chart-area-left">
-              <RevenueChart data={stats?.monthlyRevenue || []} />
+              <RevenueChart 
+                data={stats?.monthlyRevenue || []} 
+                isFinancialMasked={stats?.isFinancialMasked}
+              />
             </div>
             <div className="vendor-chart-donut-right">
               <SalesDistributionChart 
@@ -426,6 +554,27 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Quick Manifest Modal */}
+      <QuickManifestModal
+        isOpen={isManifestOpen}
+        onClose={() => setIsManifestOpen(false)}
+        isFinancialMasked={stats?.isFinancialMasked}
+        onCheckInChanged={() => {
+          const period = PERIOD_MAP[dateRange] || 'month';
+          fetchStats(period, true);
+        }}
+      />
+
+      {/* Quick Check-in Modal */}
+      <QuickCheckInModal
+        isOpen={isCheckInOpen}
+        onClose={() => setIsCheckInOpen(false)}
+        onSuccess={() => {
+          const period = PERIOD_MAP[dateRange] || 'month';
+          fetchStats(period, true);
+        }}
+      />
     </div>
   );
 };

@@ -17,7 +17,9 @@ export const CommissionConfigModal: React.FC<CommissionConfigModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [rate, setRate] = useState<string>(company ? company.commissionRate.toString() : '5');
+  const [rate, setRate] = useState<string>(
+    company && company.commissionRate != null ? company.commissionRate.toString() : '5'
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

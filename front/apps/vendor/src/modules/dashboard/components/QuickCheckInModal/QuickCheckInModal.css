@@ -1,0 +1,409 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - QUICK TICKET CHECK-IN MODAL
+   ========================================================================== */
+
+.quick-checkin-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: qcFadeIn 0.25s ease-out;
+}
+
+@keyframes qcFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.quick-checkin-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+  animation: qcScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+@keyframes qcScaleIn {
+  from { transform: scale(0.96) translateY(8px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Header */
+.quick-checkin-header {
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quick-checkin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 5px 12px;
+  border-radius: 8px;
+}
+
+.quick-checkin-btn-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.quick-checkin-btn-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Search Input Form */
+.quick-checkin-search-section {
+  padding: 24px 24px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.quick-checkin-prompt {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.quick-checkin-subprompt {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.quick-checkin-form {
+  display: flex;
+  gap: 10px;
+}
+
+.quick-checkin-input-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.quick-checkin-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+}
+
+.quick-checkin-input {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.quick-checkin-input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.quick-checkin-btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: none;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-checkin-btn-submit:hover:not(:disabled) {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+
+.quick-checkin-btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Body */
+.quick-checkin-body {
+  padding: 24px;
+  min-height: 180px;
+}
+
+.quick-checkin-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.alert-error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fee2e2;
+}
+
+.quick-checkin-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  text-align: center;
+  color: #94a3b8;
+  gap: 12px;
+}
+
+.placeholder-icon {
+  color: #cbd5e1;
+}
+
+.quick-checkin-placeholder p {
+  font-size: 13px;
+  color: #64748b;
+  max-width: 380px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Result Card */
+.quick-checkin-result-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.3s;
+}
+
+.quick-checkin-result-card.pulse-success {
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+}
+
+.result-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.result-passenger-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.result-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-passenger-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+
+.result-booking-no {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.result-booking-no strong {
+  color: #0f172a;
+  font-family: monospace;
+}
+
+.result-seat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.result-seat-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.result-seat-number {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.result-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.result-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.detail-icon {
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+.detail-label {
+  font-size: 11px;
+  color: #64748b;
+  display: block;
+}
+
+.detail-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.detail-value.status-paid {
+  color: #059669;
+}
+
+.detail-value.status-partially_paid {
+  color: #d97706;
+}
+
+.detail-value.status-pending {
+  color: #dc2626;
+}
+
+/* Action Section */
+.result-action-section {
+  margin-top: 4px;
+}
+
+.btn-confirm-checkin {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.btn-confirm-checkin:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.checked-in-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.checked-in-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.checked-icon {
+  color: #059669;
+}
+
+.checked-in-left strong {
+  display: block;
+  font-size: 14px;
+  color: #065f46;
+}
+
+.checked-in-left span {
+  font-size: 12px;
+  color: #047857;
+}
+
+.btn-undo-checkin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-undo-checkin:hover:not(:disabled) {
+  background: #f8fafc;
+  color: #0f172a;
+}

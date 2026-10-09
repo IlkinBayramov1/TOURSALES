@@ -1,8 +1,10 @@
+import crypto from 'crypto';
 import prisma from '../../config/db.js';
 import { generateUniqueId } from '../../utils/id-generator.js';
 import { generateExcel } from '../../utils/excel-generator.js';
 import ApiError from '../../core/api.error.js';
 import notificationsService from '../notifications/notifications.service.js';
+import whatsappProvider from '../notifications/whatsapp.provider.js';
 import ledgerService from '../finance/ledger.service.js';
 import riskEngine from '../security/risk.engine.js';
 
@@ -43,17 +45,42 @@ class BookingsService {
     return prisma.booking.findMany({
       where,
       include: {
-        tour: true,
-        company: { select: { name: true } }
+        tour: {
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            startDate: true,
+            endDate: true,
+            meetingPointAddress: true,
+            busPlateNumber: true,
+            driverName: true,
+            driverPhone: true
+          }
+        },
+        company: {
+          select: { id: true, name: true }
+        }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { bookingDate: 'desc' }
     });
   }
 
   async getById(id, companyId = null) {
     const booking = await prisma.booking.findFirst({
       where: { id, deletedAt: null },
-      include: { tour: true, company: true }
+      include: {
+        tour: {
+          include: {
+            company: true,
+            guide: {
+              select: { id: true, name: true, email: true, phoneNumber: true }
+            }
+          }
+        },
+        company: true,
+        transactions: true
+      }
     });
 
     if (!booking) return null;
@@ -110,13 +137,32 @@ class BookingsService {
 
     const totalAmount = activePrice * requestedSeats;
     
-    const isPendingPayment = data.paymentStatus === 'PENDING';
-    const paidAmount = isPendingPayment ? 0.0 : (data.paidAmount !== undefined ? parseFloat(data.paidAmount) : totalAmount);
-    const remainingAmount = isPendingPayment ? totalAmount : Math.max(0, totalAmount - paidAmount);
-    const paymentStatus = isPendingPayment ? 'PENDING' : (paidAmount >= totalAmount ? 'PAID' : 'PARTIALLY_PAID');
+    // FinTech 30/70 Depozit Hesablanması
+    const isDeposit = data.paymentType === 'DEPOSIT';
+    const depositPercentage = Number(tour.depositPercentage || 30.0);
+    const depositAmount = isDeposit ? Math.round(((totalAmount * depositPercentage) / 100) * 100) / 100 : totalAmount;
 
-    if (!isPendingPayment && paidAmount < totalAmount) {
+    const isPendingPayment = data.paymentStatus === 'PENDING';
+    const paidAmount = isPendingPayment 
+      ? 0.0 
+      : (data.paidAmount !== undefined ? parseFloat(data.paidAmount) : (isDeposit ? depositAmount : totalAmount));
+    const remainingAmount = isPendingPayment 
+      ? totalAmount 
+      : Math.max(0, totalAmount - paidAmount);
+    const paymentStatus = isPendingPayment 
+      ? 'PENDING' 
+      : (paidAmount >= totalAmount ? 'PAID' : (paidAmount > 0 ? 'PARTIALLY_PAID' : 'PENDING'));
+
+    if (!isPendingPayment && !isDeposit && paidAmount < totalAmount) {
       throw ApiError.badRequest(`Sistemdə nisyə/borc bron rejimi mövcud deyil. Tam ödənilməli məbləğ: ${totalAmount} AZN`);
+    }
+
+    let depositDueDate = null;
+    let balanceToken = null;
+    if (isDeposit) {
+      const dueDays = tour.depositDueDaysBefore !== undefined ? parseInt(tour.depositDueDaysBefore, 10) : 5;
+      depositDueDate = new Date(startDate.getTime() - (dueDays * 24 * 60 * 60 * 1000));
+      balanceToken = crypto.randomBytes(24).toString('hex');
     }
 
     // Fraud & Risk Evaluation
@@ -187,9 +233,15 @@ class BookingsService {
           busSeatNumber,
           status: isPendingPayment ? 'PENDING' : 'CONFIRMED',
           paymentStatus,
+          paymentType: isDeposit ? 'DEPOSIT' : 'FULL',
           paidAmount,
           remainingAmount,
           totalAmount,
+          depositDueDate,
+          depositPaidAt: isDeposit && paidAmount > 0 ? new Date() : null,
+          balanceToken,
+          installmentMonths: parseInt(data.installmentMonths, 10) || 1,
+          installmentCardType: data.installmentCardType || null,
           passengersData,
           documents: JSON.stringify(documentPaths),
           bookingChannel
@@ -203,12 +255,12 @@ class BookingsService {
             id: txId,
             companyId: targetCompanyId,
             bookingId: id,
-            type: 'TICKET_SALE',
+            type: isDeposit ? 'TICKET_SALE_DEPOSIT' : 'TICKET_SALE',
             amount: paidAmount,
             commission: commissionAmount,
             netAmount: netAmount,
             status: 'Completed',
-            description: `${tour.title} turu üçün bilet satışı.`
+            description: `${tour.title} turu üçün ${isDeposit ? '30% Depozit' : 'Bilet'} satışı.`
           }
         });
 
@@ -219,7 +271,7 @@ class BookingsService {
           totalAmount: paidAmount,
           commissionAmount: commissionAmount,
           netAmount: netAmount,
-          description: `${tour.title} turu üçün Tam Ödənişli Bilet Satışı`
+          description: `${tour.title} turu üçün ${isDeposit ? '30% Depozit' : 'Tam Ödənişli'} Bilet Satışı`
         }, tx);
 
         await tx.company.update({
@@ -259,6 +311,23 @@ class BookingsService {
       message: `${tour.title} turu üçün ${requestedSeats} yerlik biletiniz uğurla bron edildi. Bilet ID: ${id}`,
       email: data.contactEmail
     });
+
+    // Avtomatik WhatsApp Bilet və ya Depozit Təsdiqi
+    if (isDeposit && paidAmount > 0) {
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const balancePaymentUrl = `${frontendUrl}/pay/balance/${result.id}?token=${balanceToken}`;
+      const dueDateStr = depositDueDate ? depositDueDate.toLocaleDateString('az-AZ') : 'Turdan 5 gün əvvəl';
+      whatsappProvider.sendWhatsAppMessage({
+        to: result.contactNumber,
+        templateName: 'deposit_confirmation',
+        bodyText: `Hörmətli ${result.passengerName}, ${tour.title} turu üçün ${paidAmount} AZN məbləğində 30% depozit ödənişiniz qəbul edildi! Yerləriniz bron olundu. Qalan ${remainingAmount} AZN məbləğin son ödəniş tarixi: ${dueDateStr}. Qalıq ödəniş linkiniz: ${balancePaymentUrl}`,
+        bookingId: result.id
+      }).catch(err => console.error('[WhatsApp Deposit Notification Error]', err.message));
+    } else {
+      whatsappProvider.sendBookingConfirmation(result, tour).catch((err) => {
+        console.error('[WhatsApp Booking Notification Error]', err.message);
+      });
+    }
 
     return result;
   }
@@ -440,16 +509,35 @@ class BookingsService {
     };
 
     if (tourId) where.tourId = tourId;
-    if (status) where.status = status;
+    if (status) {
+      if (status === 'PARTIALLY_PAID') {
+        where.OR = [
+          { status: 'PARTIALLY_PAID' },
+          { paymentStatus: 'PARTIALLY_PAID' },
+          { paymentType: 'DEPOSIT' }
+        ];
+      } else {
+        where.status = status;
+      }
+    }
 
     if (search) {
-      where.OR = [
+      const searchConditions = [
         { id: { contains: search } },
         { passengerName: { contains: search } },
         { passengerSurname: { contains: search } },
         { contactNumber: { contains: search } },
         { contactEmail: { contains: search } }
       ];
+      if (where.OR) {
+        where.AND = [
+          { OR: where.OR },
+          { OR: searchConditions }
+        ];
+        delete where.OR;
+      } else {
+        where.OR = searchConditions;
+      }
     }
 
     const bookings = await prisma.booking.findMany({
@@ -486,24 +574,46 @@ class BookingsService {
         }];
       }
 
+      const totalAmount = Number(b.totalAmount || 0);
+      const paidAmount = Number(b.paidAmount || 0);
+      const remainingAmount = Number(b.remainingAmount !== null && b.remainingAmount !== undefined ? b.remainingAmount : Math.max(0, totalAmount - paidAmount));
+
       return {
         id: b.id,
         bookingNumber: b.id,
         userId: b.contactEmail,
+        passengerName: b.passengerName,
+        passengerSurname: b.passengerSurname,
+        passengerPassport: b.passengerPassport || '',
+        contactNumber: b.contactNumber,
+        contactEmail: b.contactEmail,
         tourId: b.tourId,
         tourTitle: b.tour ? b.tour.title : 'Tur',
         tourStartDate: b.tour?.startDate,
         tourEndDate: b.tour?.endDate,
         companyId: b.companyId,
-        totalAmount: Number(b.totalAmount || 0),
-        totalPrice: Number(b.totalAmount || 0),
+        seats: b.seats || 1,
+        busSeatNumber: b.busSeatNumber,
+        totalAmount,
+        totalPrice: totalAmount,
+        paidAmount,
+        remainingAmount,
+        paymentType: b.paymentType || 'FULL',
+        depositDueDate: b.depositDueDate ? b.depositDueDate.toISOString() : null,
+        depositPaidAt: b.depositPaidAt ? b.depositPaidAt.toISOString() : null,
+        balancePaidAt: b.balancePaidAt ? b.balancePaidAt.toISOString() : null,
+        balanceToken: b.balanceToken,
+        installmentMonths: b.installmentMonths || 1,
+        installmentCardType: b.installmentCardType,
         currency: 'AZN',
         status: b.status,
-        paymentMethod: 'BIRBANK',
+        paymentMethod: b.installmentCardType || 'BIRBANK',
         paymentStatus: b.paymentStatus,
+        bookingChannel: b.bookingChannel || 'PLATFORM',
+        documents: b.documents,
         passengers: passList,
         isCheckedIn: b.isCheckedIn,
-        checkedInAt: b.checkedInAt,
+        checkedInAt: b.checkedInAt ? b.checkedInAt.toISOString() : null,
         checkedInBy: b.checkedInBy,
         qrToken: b.qrToken || b.id,
         createdAt: b.createdAt.toISOString(),
@@ -589,25 +699,53 @@ class BookingsService {
       }];
     }
 
+    const totalAmount = Number(b.totalAmount || 0);
+    const paidAmount = Number(b.paidAmount || 0);
+    const remainingAmount = Number(b.remainingAmount !== null && b.remainingAmount !== undefined ? b.remainingAmount : Math.max(0, totalAmount - paidAmount));
+
     return {
       id: b.id,
       bookingNumber: b.id,
       userId: b.contactEmail,
+      passengerName: b.passengerName,
+      passengerSurname: b.passengerSurname,
+      passengerPassport: b.passengerPassport || '',
+      contactNumber: b.contactNumber,
+      contactEmail: b.contactEmail,
       tourId: b.tourId,
       tourTitle: b.tour ? b.tour.title : 'Tur',
       tourStartDate: b.tour?.startDate,
       tourEndDate: b.tour?.endDate,
+      meetingPointAddress: b.tour?.meetingPointAddress || '',
+      busPlateNumber: b.tour?.busPlateNumber || '',
+      driverName: b.tour?.driverName || '',
+      driverPhone: b.tour?.driverPhone || '',
+      departureNotes: b.tour?.departureNotes || '',
       companyId: b.companyId,
       companyName: b.company?.name,
-      totalAmount: Number(b.totalAmount || 0),
-      totalPrice: Number(b.totalAmount || 0),
+      companyPhone: b.company?.phoneNumber || '',
+      seats: b.seats || 1,
+      busSeatNumber: b.busSeatNumber,
+      totalAmount,
+      totalPrice: totalAmount,
+      paidAmount,
+      remainingAmount,
+      paymentType: b.paymentType || 'FULL',
+      depositDueDate: b.depositDueDate ? b.depositDueDate.toISOString() : null,
+      depositPaidAt: b.depositPaidAt ? b.depositPaidAt.toISOString() : null,
+      balancePaidAt: b.balancePaidAt ? b.balancePaidAt.toISOString() : null,
+      balanceToken: b.balanceToken,
+      installmentMonths: b.installmentMonths || 1,
+      installmentCardType: b.installmentCardType,
       currency: 'AZN',
       status: b.status,
-      paymentMethod: 'BIRBANK',
+      paymentMethod: b.installmentCardType || 'BIRBANK',
       paymentStatus: b.paymentStatus,
+      bookingChannel: b.bookingChannel || 'PLATFORM',
+      documents: b.documents,
       passengers: passList,
       isCheckedIn: b.isCheckedIn,
-      checkedInAt: b.checkedInAt,
+      checkedInAt: b.checkedInAt ? b.checkedInAt.toISOString() : null,
       checkedInBy: b.checkedInBy,
       qrToken: b.qrToken || b.id,
       createdAt: b.createdAt.toISOString(),
@@ -640,6 +778,11 @@ class BookingsService {
         try { passList = JSON.parse(b.passengersData); } catch (e) {}
       }
 
+      const totalAmount = Number(b.totalAmount || 0);
+      const paidAmount = Number(b.paidAmount || 0);
+      const remainingAmount = Number(b.remainingAmount !== null && b.remainingAmount !== undefined ? b.remainingAmount : Math.max(0, totalAmount - paidAmount));
+      const isFullyPaid = b.paymentStatus === 'PAID' || remainingAmount === 0;
+
       if (passList.length > 0) {
         passList.forEach((p, idx) => {
           roster.push({
@@ -651,6 +794,13 @@ class BookingsService {
             phone: p.phone || b.contactNumber,
             finCode: p.finCode || b.passengerPassport || '',
             status: b.status,
+            paymentStatus: b.paymentStatus,
+            paymentType: b.paymentType || 'FULL',
+            totalAmount,
+            paidAmount,
+            remainingAmount,
+            isFullyPaid,
+            hasRemainingDebt: remainingAmount > 0,
             isCheckedIn: p.isCheckedIn !== undefined ? p.isCheckedIn : b.isCheckedIn,
             checkedInAt: b.checkedInAt
           });
@@ -668,6 +818,13 @@ class BookingsService {
             phone: b.contactNumber,
             finCode: b.passengerPassport || '',
             status: b.status,
+            paymentStatus: b.paymentStatus,
+            paymentType: b.paymentType || 'FULL',
+            totalAmount,
+            paidAmount,
+            remainingAmount,
+            isFullyPaid,
+            hasRemainingDebt: remainingAmount > 0,
             isCheckedIn: b.isCheckedIn,
             checkedInAt: b.checkedInAt
           });
@@ -905,7 +1062,7 @@ class BookingsService {
         data: {
           status: 'CANCELLED',
           deleteReason: reason || 'Müştəri tərəfindən ləğv edildi',
-          deletedAt: new Date()
+          deletedAt: null
         },
         include: { tour: true, company: true }
       });
@@ -927,7 +1084,7 @@ class BookingsService {
         });
       }
 
-      return {
+        return {
         bookingId: updated.id,
         status: updated.status,
         tourTitle: booking.tour.title,
@@ -937,6 +1094,654 @@ class BookingsService {
         penaltyAmount
       };
     });
+  }
+
+  // =========================================================================
+  // FAZA 1: BƏLƏDÇİ MOBİL QR MANİFEST & CHECK-IN SİSTEMİ
+  // =========================================================================
+
+  async getGuideTours(userId, companyId, agencyRole) {
+    const where = {
+      deletedAt: null
+    };
+
+    if (companyId) {
+      where.companyId = companyId;
+    }
+
+    if (agencyRole === 'GUIDE') {
+      where.OR = [
+        { guideId: userId },
+        { guideId: null }
+      ];
+    }
+
+    const tours = await prisma.tour.findMany({
+      where,
+      include: {
+        bookings: {
+          where: { status: 'CONFIRMED', deletedAt: null }
+        },
+        guide: {
+          select: { id: true, name: true, phoneNumber: true, email: true }
+        }
+      },
+      orderBy: { startDate: 'asc' }
+    });
+
+    return tours.map((t) => {
+      let totalBookedSeats = 0;
+      let checkedInCount = 0;
+
+      t.bookings.forEach((b) => {
+        let passList = [];
+        if (b.passengersData) {
+          try { passList = JSON.parse(b.passengersData); } catch (e) {}
+        }
+        if (passList.length > 0) {
+          totalBookedSeats += passList.length;
+          checkedInCount += passList.filter((p) => p.isCheckedIn).length;
+        } else {
+          totalBookedSeats += (b.seats || 1);
+          if (b.isCheckedIn) checkedInCount += (b.seats || 1);
+        }
+      });
+
+      const capacity = t.busCapacity || t.maxParticipants || 48;
+      const progressPercent = totalBookedSeats > 0 ? Math.round((checkedInCount / totalBookedSeats) * 100) : 0;
+
+      return {
+        id: t.id,
+        title: t.title,
+        type: t.type,
+        startDate: t.startDate,
+        endDate: t.endDate,
+        meetingPointAddress: t.meetingPointAddress || 'Gənclik m/s',
+        busCapacity: capacity,
+        busPlateNumber: t.busPlateNumber || '99-XX-000',
+        driverName: t.driverName || 'Təyin olunub',
+        driverPhone: t.driverPhone || '',
+        departureNotes: t.departureNotes || '',
+        guideId: t.guideId,
+        guide: t.guide,
+        totalBookedSeats,
+        checkedInCount,
+        pendingCount: Math.max(0, totalBookedSeats - checkedInCount),
+        progressPercent
+      };
+    });
+  }
+
+  async getGuideManifest(tourId, companyId) {
+    const tour = await prisma.tour.findFirst({
+      where: { id: tourId, deletedAt: null },
+      include: {
+        guide: {
+          select: { id: true, name: true, phoneNumber: true, email: true }
+        }
+      }
+    });
+
+    if (!tour) {
+      throw ApiError.notFound('Tur tapılmadı.');
+    }
+
+    if (companyId && tour.companyId !== companyId) {
+      throw ApiError.forbidden('Bu turun manifestinə baxmaq hüququnuz yoxdur.');
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        tourId,
+        status: 'CONFIRMED',
+        deletedAt: null
+      },
+      orderBy: [{ busSeatNumber: 'asc' }, { createdAt: 'asc' }]
+    });
+
+    const capacity = tour.busCapacity || tour.maxParticipants || 48;
+    const seatMap = [];
+    const passengers = [];
+    const seatAllocation = new Map();
+
+    let totalRevenue = 0;
+    let totalDebtAmount = 0;
+    let debtorCount = 0;
+
+    bookings.forEach((b) => {
+      let passList = [];
+      if (b.passengersData) {
+        try { passList = JSON.parse(b.passengersData); } catch (e) {}
+      }
+
+      const totalAmount = Number(b.totalAmount || 0);
+      const paidAmount = Number(b.paidAmount || 0);
+      const remainingBalance = Math.max(0, Math.round((totalAmount - paidAmount) * 100) / 100);
+      const isFullyPaid = b.paymentStatus === 'PAID' || remainingBalance === 0;
+      const paymentStatus = b.paymentStatus || (remainingBalance === 0 ? 'PAID' : 'PENDING');
+      const specialNotes = b.specialRequests || b.notes || null;
+
+      totalRevenue += totalAmount;
+      if (remainingBalance > 0) {
+        totalDebtAmount += remainingBalance;
+        debtorCount++;
+      }
+
+      if (passList.length > 0) {
+        passList.forEach((p) => {
+          const seatNum = parseInt(p.seatNumber, 10) || 1;
+          const passObj = {
+            seatNumber: seatNum,
+            fullName: p.fullName || `${b.passengerName} ${b.passengerSurname}`,
+            phone: p.phone || b.contactNumber,
+            finCode: p.finCode || '',
+            isCheckedIn: !!p.isCheckedIn,
+            bookingId: b.id,
+            qrToken: b.qrToken,
+            paymentStatus,
+            totalAmount,
+            paidAmount,
+            remainingBalance,
+            isFullyPaid,
+            hasRemainingDebt: remainingBalance > 0,
+            specialNotes,
+            checkedInAt: b.checkedInAt,
+            checkedInBy: b.checkedInBy
+          };
+          passengers.push(passObj);
+          seatAllocation.set(seatNum, passObj);
+        });
+      } else {
+        const seatNum = parseInt(b.busSeatNumber, 10) || 1;
+        const passObj = {
+          seatNumber: seatNum,
+          fullName: `${b.passengerName} ${b.passengerSurname}`,
+          phone: b.contactNumber,
+          finCode: b.passengerPassport || '',
+          isCheckedIn: !!b.isCheckedIn,
+          bookingId: b.id,
+          qrToken: b.qrToken,
+          paymentStatus,
+          totalAmount,
+          paidAmount,
+          remainingBalance,
+          isFullyPaid,
+          hasRemainingDebt: remainingBalance > 0,
+          specialNotes,
+          checkedInAt: b.checkedInAt,
+          checkedInBy: b.checkedInBy
+        };
+        passengers.push(passObj);
+        seatAllocation.set(seatNum, passObj);
+      }
+    });
+
+    for (let s = 1; s <= capacity; s++) {
+      if (seatAllocation.has(s)) {
+        const p = seatAllocation.get(s);
+        seatMap.push({
+          seatNumber: s,
+          status: p.isCheckedIn ? 'CHECKED_IN' : 'RESERVED',
+          passenger: p
+        });
+      } else {
+        seatMap.push({
+          seatNumber: s,
+          status: 'EMPTY',
+          passenger: null
+        });
+      }
+    }
+
+    const totalBookedSeats = passengers.length;
+    const checkedInCount = passengers.filter((p) => p.isCheckedIn).length;
+    const pendingCount = Math.max(0, totalBookedSeats - checkedInCount);
+    const progressPercentage = totalBookedSeats > 0 ? Math.round((checkedInCount / totalBookedSeats) * 100) : 0;
+
+    return {
+      tour: {
+        id: tour.id,
+        title: tour.title,
+        type: tour.type,
+        startDate: tour.startDate,
+        endDate: tour.endDate,
+        meetingPointAddress: tour.meetingPointAddress || 'Gənclik m/s',
+        meetingPointLat: tour.meetingPointLat,
+        meetingPointLng: tour.meetingPointLng,
+        busCapacity: capacity,
+        busPlateNumber: tour.busPlateNumber || '99-XX-000',
+        driverName: tour.driverName || 'Təyin olunub',
+        driverPhone: tour.driverPhone || '',
+        departureNotes: tour.departureNotes || '',
+        guide: tour.guide
+      },
+      stats: {
+        totalCapacity: capacity,
+        totalBookedSeats,
+        checkedInCount,
+        pendingCount,
+        progressPercentage,
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        totalDebtAmount: Math.round(totalDebtAmount * 100) / 100,
+        debtorCount
+      },
+      seatMap,
+      passengers: passengers.sort((a, b) => a.seatNumber - b.seatNumber)
+    };
+  }
+
+  async scanQrCheckIn({ qrToken, bookingId, tourId }, guideId, guideName, companyId) {
+    const token = (qrToken || bookingId || '').trim();
+    if (!token) {
+      throw ApiError.badRequest('QR token və ya bilet ID təqdim edilməlidir.');
+    }
+
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [
+          { qrToken: token },
+          { id: token }
+        ],
+        deletedAt: null
+      },
+      include: { tour: true }
+    });
+
+    if (!booking) {
+      throw ApiError.notFound('Bilet tapılmadı və ya etibarsızdır.');
+    }
+
+    if (companyId && booking.companyId !== companyId) {
+      throw ApiError.forbidden('Bu bilet sizin şirkətinizə aid deyil.');
+    }
+
+    if (tourId && booking.tourId !== tourId) {
+      throw ApiError.badRequest(`Bu bilet cari tura aid deyil! (Gözlənilən: "${booking.tour?.title || booking.tourId}")`);
+    }
+
+    if (booking.status === 'CANCELLED') {
+      throw ApiError.badRequest('Bu bilet ləğv edilib! Minik icazəsi verilmir.');
+    }
+
+    let passList = [];
+    if (booking.passengersData) {
+      try { passList = JSON.parse(booking.passengersData); } catch (e) {}
+    }
+
+    const alreadyCheckedIn = booking.isCheckedIn || (passList.length > 0 && passList.every((p) => p.isCheckedIn));
+
+    let seatNumbers = [];
+    let passengerNames = [];
+
+    if (passList.length > 0) {
+      seatNumbers = passList.map((p) => p.seatNumber);
+      passengerNames = passList.map((p) => p.fullName);
+      passList = passList.map((p) => ({ ...p, isCheckedIn: true }));
+    } else {
+      seatNumbers = [parseInt(booking.busSeatNumber, 10) || 1];
+      passengerNames = [`${booking.passengerName} ${booking.passengerSurname}`];
+    }
+
+    if (alreadyCheckedIn) {
+      return {
+        success: false,
+        isDuplicate: true,
+        message: 'Diqqət: Bu bilet artıq minik qeydiyyatından keçib!',
+        checkedInAt: booking.checkedInAt,
+        checkedInBy: booking.checkedInBy,
+        bookingNumber: booking.id,
+        passengerNames,
+        seatNumbers,
+        tourTitle: booking.tour?.title
+      };
+    }
+
+    const now = new Date();
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: {
+        isCheckedIn: true,
+        checkedInAt: now,
+        checkedInBy: guideName || guideId || 'Bələdçi',
+        passengersData: passList.length > 0 ? JSON.stringify(passList) : booking.passengersData
+      }
+    });
+
+    // Real-vaxt rejimində ofisə və abunəçilərə yayım
+    notificationsService.broadcastPassengerCheckIn({
+      tourId: booking.tourId,
+      bookingId: booking.id,
+      seatNumbers,
+      passengerNames,
+      checkedInAt: now.toISOString(),
+      checkedInBy: guideName || 'Bələdçi'
+    });
+
+    return {
+      success: true,
+      verified: true,
+      isDuplicate: false,
+      bookingNumber: booking.id,
+      passengerNames,
+      seatNumbers,
+      checkedInAt: now.toISOString(),
+      checkedInBy: guideName || 'Bələdçi',
+      tourTitle: booking.tour?.title
+    };
+  }
+
+  async toggleGuideCheckIn(bookingId, passengerSeat, guideId, guideName, companyId) {
+    const booking = await prisma.booking.findFirst({
+      where: { id: bookingId, deletedAt: null },
+      include: { tour: true }
+    });
+
+    if (!booking) {
+      throw ApiError.notFound('Bilet tapılmadı.');
+    }
+
+    if (companyId && booking.companyId !== companyId) {
+      throw ApiError.forbidden('Bu bilet sizin şirkətinizə aid deyil.');
+    }
+
+    let passList = [];
+    if (booking.passengersData) {
+      try { passList = JSON.parse(booking.passengersData); } catch (e) {}
+    }
+
+    let isNowChecked = !booking.isCheckedIn;
+    const seatNum = passengerSeat !== undefined ? parseInt(passengerSeat, 10) : null;
+
+    if (passList.length > 0 && seatNum !== null) {
+      const target = passList.find((p) => p.seatNumber === seatNum);
+      if (target) {
+        target.isCheckedIn = !target.isCheckedIn;
+        isNowChecked = target.isCheckedIn;
+      }
+      const allChecked = passList.every((p) => p.isCheckedIn);
+      const anyChecked = passList.some((p) => p.isCheckedIn);
+
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          isCheckedIn: allChecked || anyChecked,
+          checkedInAt: isNowChecked ? new Date() : (anyChecked ? booking.checkedInAt : null),
+          checkedInBy: isNowChecked ? (guideName || guideId) : (anyChecked ? booking.checkedInBy : null),
+          passengersData: JSON.stringify(passList)
+        }
+      });
+    } else {
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          isCheckedIn: isNowChecked,
+          checkedInAt: isNowChecked ? new Date() : null,
+          checkedInBy: isNowChecked ? (guideName || guideId) : null
+        }
+      });
+    }
+
+    const now = new Date();
+    notificationsService.broadcastPassengerCheckIn({
+      tourId: booking.tourId,
+      bookingId: booking.id,
+      seatNumbers: seatNum ? [seatNum] : [parseInt(booking.busSeatNumber, 10) || 1],
+      isCheckedIn: isNowChecked,
+      checkedInAt: isNowChecked ? now.toISOString() : null,
+      checkedInBy: guideName || 'Bələdçi'
+    });
+
+    return {
+      success: true,
+      bookingId: booking.id,
+      seatNumber: seatNum,
+      isCheckedIn: isNowChecked
+    };
+  }
+
+  async syncOfflineCheckIns(tourId, checkInItems = [], guideId, guideName, companyId) {
+    let syncedCount = 0;
+    let failedCount = 0;
+    const errors = [];
+
+    for (const item of checkInItems) {
+      try {
+        await this.scanQrCheckIn(
+          { qrToken: item.qrToken || item.bookingId, tourId },
+          guideId,
+          guideName,
+          companyId
+        );
+        syncedCount++;
+      } catch (err) {
+        failedCount++;
+        errors.push({ token: item.qrToken || item.bookingId, error: err.message });
+      }
+    }
+
+    return {
+      success: true,
+      syncedCount,
+      failedCount,
+      errors
+    };
+  }
+
+  async sendBookingWhatsApp(bookingId) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { tour: { include: { guide: true } } }
+    });
+    if (!booking) throw ApiError.notFound('Bilet tapılmadı.');
+
+    return whatsappProvider.sendBookingConfirmation(booking, booking.tour);
+  }
+
+  async sendBalanceReminderWhatsApp(bookingId) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { tour: true }
+    });
+    if (!booking) throw ApiError.notFound('Rezervasiya tapılmadı.');
+    if (booking.paymentStatus === 'PAID') {
+      throw ApiError.badRequest('Bu rezervasiya artıq tam ödənilmişdir.');
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const balancePaymentUrl = `${frontendUrl}/pay/balance/${booking.id}?token=${booking.balanceToken}`;
+    const dueDateStr = booking.depositDueDate ? new Date(booking.depositDueDate).toLocaleDateString('az-AZ') : 'Turdan 5 gün əvvəl';
+
+    return whatsappProvider.sendWhatsAppMessage({
+      to: booking.contactNumber,
+      templateName: 'deposit_reminder_manual',
+      bodyText: `Hörmətli ${booking.passengerName}, ${booking.tour.title} turu üçün qalan ${Number(booking.remainingAmount)} AZN qalıq məbləğin son ödəniş tarixi: ${dueDateStr}. Təhlükəsiz qalıq ödəniş linkiniz: ${balancePaymentUrl}`,
+      bookingId: booking.id
+    });
+  }
+
+  /**
+   * Get staff members that can be assigned as guides
+   */
+  async getCompanyGuides(companyId) {
+    if (!companyId) return [];
+
+    return prisma.user.findMany({
+      where: {
+        companyId,
+        deletedAt: null
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        role: true,
+        agencyRole: true
+      },
+      orderBy: { name: 'asc' }
+    });
+  }
+
+  /**
+   * Assign guide and operational details to a tour
+   */
+  async assignGuideToTour(tourId, {
+    guideId = null,
+    driverName,
+    driverPhone,
+    busPlateNumber,
+    meetingPointAddress,
+    departureNotes
+  }, companyId) {
+    const tour = await prisma.tour.findFirst({
+      where: { id: tourId, deletedAt: null }
+    });
+
+    if (!tour) {
+      throw ApiError.notFound('Tur tapılmadı.');
+    }
+
+    if (companyId && tour.companyId !== companyId) {
+      throw ApiError.forbidden('Bu tura bələdçi təyin etmək hüququnuz yoxdur.');
+    }
+
+    if (guideId) {
+      const guideUser = await prisma.user.findUnique({
+        where: { id: guideId }
+      });
+      if (!guideUser) {
+        throw ApiError.badRequest('Təyin edilən bələdçi tapılmadı.');
+      }
+    }
+
+    const data = {};
+    if (guideId !== undefined) data.guideId = guideId || null;
+    if (driverName !== undefined) data.driverName = driverName;
+    if (driverPhone !== undefined) data.driverPhone = driverPhone;
+    if (busPlateNumber !== undefined) data.busPlateNumber = busPlateNumber;
+    if (meetingPointAddress !== undefined) data.meetingPointAddress = meetingPointAddress;
+    if (departureNotes !== undefined) data.departureNotes = departureNotes;
+
+    const updatedTour = await prisma.tour.update({
+      where: { id: tourId },
+      data,
+      include: {
+        guide: {
+          select: { id: true, name: true, phoneNumber: true, email: true }
+        }
+      }
+    });
+
+    return updatedTour;
+  }
+
+  /**
+   * Bulk check-in passengers for a tour
+   */
+  async bulkCheckIn(tourId, bookingIds = null, guideId, guideName, companyId) {
+    const tour = await prisma.tour.findFirst({
+      where: { id: tourId, deletedAt: null }
+    });
+
+    if (!tour) {
+      throw ApiError.notFound('Tur tapılmadı.');
+    }
+
+    if (companyId && tour.companyId !== companyId) {
+      throw ApiError.forbidden('Bu turun sərnişinlərini təsdiqləmək hüququnuz yoxdur.');
+    }
+
+    const where = {
+      tourId,
+      status: 'CONFIRMED',
+      deletedAt: null
+    };
+
+    if (Array.isArray(bookingIds) && bookingIds.length > 0) {
+      where.id = { in: bookingIds };
+    }
+
+    const bookings = await prisma.booking.findMany({ where });
+    let totalCheckedIn = 0;
+    const now = new Date();
+
+    for (const b of bookings) {
+      let passList = [];
+      if (b.passengersData) {
+        try { passList = JSON.parse(b.passengersData); } catch (e) {}
+      }
+
+      if (passList.length > 0) {
+        passList = passList.map(p => ({ ...p, isCheckedIn: true }));
+        totalCheckedIn += passList.length;
+      } else {
+        totalCheckedIn += (b.seats || 1);
+      }
+
+      await prisma.booking.update({
+        where: { id: b.id },
+        data: {
+          isCheckedIn: true,
+          checkedInAt: now,
+          checkedInBy: guideName || guideId || 'Bələdçi',
+          passengersData: passList.length > 0 ? JSON.stringify(passList) : b.passengersData
+        }
+      });
+    }
+
+    notificationsService.broadcastPassengerCheckIn({
+      tourId,
+      bookingId: 'BULK_ALL',
+      seatNumbers: [],
+      passengerNames: ['Hamısı'],
+      isCheckedIn: true,
+      checkedInAt: now.toISOString(),
+      checkedInBy: guideName || 'Bələdçi'
+    });
+
+    return {
+      success: true,
+      checkedInCount: totalCheckedIn,
+      message: `${totalCheckedIn} sərnişin uğurla mindirildi olaraq qeyd edildi.`
+    };
+  }
+
+  /**
+   * Export guide manifest to Excel
+   */
+  async exportGuideManifest(tourId, companyId) {
+    const manifest = await this.getGuideManifest(tourId, companyId);
+    const { tour, passengers } = manifest;
+
+    const columns = [
+      { header: 'Yer №', key: 'seatNumber', width: 10 },
+      { header: 'Sərnişin Ad Soyad', key: 'fullName', width: 28 },
+      { header: 'Telefon Nömrəsi', key: 'phone', width: 18 },
+      { header: 'FİN Kod', key: 'finCode', width: 14 },
+      { header: 'Bilet №', key: 'bookingNumber', width: 16 },
+      { header: 'Minik Qeydiyyatı', key: 'checkInStatus', width: 18 },
+      { header: 'Minik Vaxtı', key: 'checkedInAt', width: 20 },
+      { header: 'Ödəniş Statusu', key: 'paymentStatus', width: 16 },
+      { header: 'Ümumi Məbləğ (AZN)', key: 'totalAmount', width: 18 },
+      { header: 'Ödənilmiş (AZN)', key: 'paidAmount', width: 16 },
+      { header: 'Qalıq Borc (AZN)', key: 'remainingBalance', width: 16 },
+    ];
+
+    const formattedData = passengers.map(p => ({
+      seatNumber: p.seatNumber,
+      fullName: p.fullName,
+      phone: p.phone,
+      finCode: p.finCode || '—',
+      bookingNumber: p.bookingId,
+      checkInStatus: p.isCheckedIn ? '✓ Mindirildi' : 'Gözləyir',
+      checkedInAt: p.checkedInAt ? new Date(p.checkedInAt).toLocaleString('az-AZ') : '—',
+      paymentStatus: p.paymentStatus === 'PAID' ? 'Tam Ödənilib' : (p.remainingBalance > 0 ? 'Qalıq Borc Var' : p.paymentStatus),
+      totalAmount: p.totalAmount,
+      paidAmount: p.paidAmount,
+      remainingBalance: p.remainingBalance > 0 ? `${p.remainingBalance} AZN` : '0 AZN'
+    }));
+
+    return generateExcel(formattedData, columns, `Manifest`);
   }
 }
 

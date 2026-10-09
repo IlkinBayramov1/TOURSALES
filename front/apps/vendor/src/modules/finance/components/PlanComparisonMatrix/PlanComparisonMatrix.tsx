@@ -1,18 +1,34 @@
 import React from 'react';
-import { Check, Minus } from 'lucide-react';
+import { Check, Minus, ArrowRight, ShieldCheck } from 'lucide-react';
 import './PlanComparisonMatrix.css';
 
 interface PlanComparisonMatrixProps {
   currentPlanId?: string | null;
+  onSelectPlan?: (planId: string) => void;
 }
 
-export const PlanComparisonMatrix: React.FC<PlanComparisonMatrixProps> = ({ currentPlanId }) => {
+export const PlanComparisonMatrix: React.FC<PlanComparisonMatrixProps> = ({
+  currentPlanId,
+  onSelectPlan,
+}) => {
   const featuresList = [
     {
       name: 'Maksimum Aktiv Tur Sayı',
       starter: '5 Tur',
       pro: '50 Tur',
       enterprise: 'Limitsiz',
+    },
+    {
+      name: 'Komanda Əməkdaş Hesabları',
+      starter: '1 Əməkdaş',
+      pro: '5 Əməkdaş',
+      enterprise: 'Limitsiz Əməkdaş',
+    },
+    {
+      name: 'Kənar Sayt və Tərəfdaş API İnteqrasiyası',
+      starter: false,
+      pro: '2 API Açar',
+      enterprise: 'Limitsiz Açar',
     },
     {
       name: 'Platforma Komissiyası (Daxili / Xarici)',
@@ -39,28 +55,22 @@ export const PlanComparisonMatrix: React.FC<PlanComparisonMatrixProps> = ({ curr
       enterprise: true,
     },
     {
-      name: 'Kənar Sayt və Tərəfdaş API İnteqrasiyası',
-      starter: false,
-      pro: '2 API Açar',
-      enterprise: 'Limitsiz Açar',
-    },
-    {
       name: 'Platforma Reklam Kampaniyalarında Endirim',
       starter: '0%',
       pro: '10% Endirim',
       enterprise: '25% Endirim',
     },
     {
-      name: 'Müştəri və Partnyor Dəstəyi',
-      starter: 'E-poçt (24 saat)',
-      pro: '24/7 Prioritetli Çat',
-      enterprise: 'Fərdi Hesab Meneceri',
-    },
-    {
       name: 'Maliyyə və Vergi e-Qaimə İnteqrasiyası',
       starter: false,
       pro: false,
       enterprise: true,
+    },
+    {
+      name: 'Müştəri və Partnyor Dəstəyi',
+      starter: 'E-poçt (24 saat)',
+      pro: '24/7 Prioritetli Çat',
+      enterprise: 'Fərdi Hesab Meneceri',
     },
   ];
 
@@ -75,6 +85,10 @@ export const PlanComparisonMatrix: React.FC<PlanComparisonMatrixProps> = ({ curr
     return <span className="matrix-text-val">{val}</span>;
   };
 
+  const isStarter = currentPlanId === 'SP-STARTER';
+  const isPro = currentPlanId === 'SP-PRO';
+  const isEnterprise = currentPlanId === 'SP-ENTERPRISE';
+
   return (
     <div className="plan-matrix-card">
       <div className="plan-matrix-header">
@@ -87,15 +101,15 @@ export const PlanComparisonMatrix: React.FC<PlanComparisonMatrixProps> = ({ curr
           <thead>
             <tr>
               <th className="col-feature">Funksionallıq & İmkan</th>
-              <th className={`col-plan ${currentPlanId === 'SP-STARTER' ? 'active-col' : ''}`}>
+              <th className={`col-plan ${isStarter ? 'active-col' : ''}`}>
                 <div className="matrix-th-name">Başlanğıc (Starter)</div>
                 <div className="matrix-th-price">0 AZN / ay</div>
               </th>
-              <th className={`col-plan ${currentPlanId === 'SP-PRO' ? 'active-col' : ''}`}>
+              <th className={`col-plan ${isPro ? 'active-col' : ''}`}>
                 <div className="matrix-th-name">Peşəkar (Pro)</div>
                 <div className="matrix-th-price">49 AZN / ay</div>
               </th>
-              <th className={`col-plan ${currentPlanId === 'SP-ENTERPRISE' ? 'active-col' : ''}`}>
+              <th className={`col-plan ${isEnterprise ? 'active-col' : ''}`}>
                 <div className="matrix-th-name">Korporativ (Enterprise)</div>
                 <div className="matrix-th-price">149 AZN / ay</div>
               </th>
@@ -105,18 +119,55 @@ export const PlanComparisonMatrix: React.FC<PlanComparisonMatrixProps> = ({ curr
             {featuresList.map((row, idx) => (
               <tr key={idx}>
                 <td className="col-feature font-medium">{row.name}</td>
-                <td className={`col-plan ${currentPlanId === 'SP-STARTER' ? 'active-col' : ''}`}>
+                <td className={`col-plan ${isStarter ? 'active-col' : ''}`}>
                   {renderVal(row.starter)}
                 </td>
-                <td className={`col-plan ${currentPlanId === 'SP-PRO' ? 'active-col' : ''}`}>
+                <td className={`col-plan ${isPro ? 'active-col' : ''}`}>
                   {renderVal(row.pro)}
                 </td>
-                <td className={`col-plan ${currentPlanId === 'SP-ENTERPRISE' ? 'active-col' : ''}`}>
+                <td className={`col-plan ${isEnterprise ? 'active-col' : ''}`}>
                   {renderVal(row.enterprise)}
                 </td>
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="matrix-actions-row">
+              <td className="col-feature">
+                <span className="matrix-tfoot-label">Paketi Dəyişdir:</span>
+              </td>
+              <td className={`col-plan ${isStarter ? 'active-col' : ''}`}>
+                <button
+                  type="button"
+                  className={`matrix-select-btn ${isStarter ? 'current' : 'outline'}`}
+                  disabled={isStarter}
+                  onClick={() => onSelectPlan?.('SP-STARTER')}
+                >
+                  {isStarter ? 'Hazırkı Plan' : 'Başlanğıca Keç'}
+                </button>
+              </td>
+              <td className={`col-plan ${isPro ? 'active-col' : ''}`}>
+                <button
+                  type="button"
+                  className={`matrix-select-btn ${isPro ? 'current' : 'primary'}`}
+                  disabled={isPro}
+                  onClick={() => onSelectPlan?.('SP-PRO')}
+                >
+                  {isPro ? 'Hazırkı Plan' : 'Pro-ya Yüksəlt'}
+                </button>
+              </td>
+              <td className={`col-plan ${isEnterprise ? 'active-col' : ''}`}>
+                <button
+                  type="button"
+                  className={`matrix-select-btn ${isEnterprise ? 'current' : 'enterprise'}`}
+                  disabled={isEnterprise}
+                  onClick={() => onSelectPlan?.('SP-ENTERPRISE')}
+                >
+                  {isEnterprise ? 'Hazırkı Plan' : 'Korporativə Keç'}
+                </button>
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>

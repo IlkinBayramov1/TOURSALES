@@ -37,8 +37,8 @@ class AdsService {
   }
 
   // Reklam almaq (Vendor)
-  async purchaseAd(companyId, data) {
-    const { tourId, packageId, position, title, imageUrl, linkUrl } = data;
+  async purchaseAd(companyId, data, user = null) {
+    const { tourId, packageId, position, title, imageUrl, linkUrl, paymentMethod = 'BALANCE' } = data;
 
     const adPackage = await prisma.adPackage.findUnique({ where: { id: packageId } });
     if (!adPackage) throw ApiError.notFound('Reklam paketi tapılmadı.');
@@ -49,8 +49,12 @@ class AdsService {
     const price = Number(adPackage.price);
     const availableBalance = Number(company.availableBalance);
 
-    if (availableBalance < price) {
-      throw ApiError.badRequest(`Balansda kifayət qədər vəsait yoxdur. Tələb olunan: ${price} AZN, Mövcud balans: ${availableBalance} AZN.`);
+    if (paymentMethod === 'BALANCE') {
+      if (availableBalance < price) {
+        throw ApiError.badRequest(
+          `Platforma balansınızda kifayət qədər vəsait yoxdur. Tələb olunan: ${price} AZN, Mövcud balans: ${availableBalance} AZN. Zəhmət olmasa, Bank Kartı və ya B2B Faktura ilə ödəniş edin.`
+        );
+      }
     }
 
     let tour = null;
@@ -78,31 +82,41 @@ class AdsService {
     endDate.setDate(startDate.getDate() + adPackage.durationDays);
 
     // Atomik tranzaksiya
-    return prisma.$transaction(async (tx) => {
-      // 1. Balansdan pulu tuturuq
-      await tx.company.update({
-        where: { id: companyId },
-        data: {
-          availableBalance: { decrement: price }
-        }
-      });
+    const ad = await prisma.$transaction(async (tx) => {
+      // 1. Əgər Platforma Balansı seçilibsə, balansdan çıxırıq
+      if (paymentMethod === 'BALANCE') {
+        await tx.company.update({
+          where: { id: companyId },
+          data: {
+            availableBalance: { decrement: price }
+          }
+        });
+      }
 
       // 2. Tranzaksiya loqu yaradırıq
       const txId = await generateUniqueId('TX', 'transaction');
+      const invoiceRef = `INV-AD-${Date.now().toString().slice(-6)}`;
+      let paymentDesc = `"${finalTitle}" üçün VIP reklam paketi (${adPackage.name || adPackage.durationDays + ' Gün'}) alışı.`;
+      if (paymentMethod === 'CARD') {
+        paymentDesc += ' (Ödəniş Metodu: Bank Kartı ilə dərhal ödəniş)';
+      } else if (paymentMethod === 'INVOICE') {
+        paymentDesc += ` (Ödəniş Metodu: B2B Faktura #${invoiceRef})`;
+      }
+
       await tx.transaction.create({
         data: {
           id: txId,
           companyId,
-          type: 'SUBSCRIPTION',
+          type: 'MARKETING_AD',
           amount: price,
-          netAmount: -price,
-          status: 'Completed',
-          description: `"${finalTitle}" üçün VIP reklam paketi (${adPackage.name || adPackage.durationDays + ' Gün'}) alışı.`
+          netAmount: paymentMethod === 'BALANCE' ? -price : 0,
+          status: paymentMethod === 'INVOICE' ? 'Pending_Verification' : 'Completed',
+          description: paymentDesc
         }
       });
 
       // 3. Reklamı yaradırıq
-      const ad = await tx.ad.create({
+      const createdAd = await tx.ad.create({
         data: {
           id: adId,
           companyId,
@@ -126,8 +140,29 @@ class AdsService {
         }
       });
 
-      return ad;
+      return createdAd;
     });
+
+    // 4. Audit Log qeydiyyatı
+    await prisma.auditLog.create({
+      data: {
+        id: await generateUniqueId('AUD', 'auditLog'),
+        tenantId: companyId,
+        entityName: 'Ad',
+        entityId: ad.id,
+        action: 'PURCHASE_AD',
+        performedBy: `${user?.name || 'Rəhbər'} (${(user?.agencyRole || 'OWNER').toUpperCase()})`,
+        newValues: JSON.stringify({
+          title: finalTitle,
+          package: adPackage.name,
+          price,
+          paymentMethod,
+          position: position || 'HERO'
+        })
+      }
+    }).catch((err) => console.error('[AuditLog] PURCHASE_AD xətası:', err));
+
+    return ad;
   }
 
   // Reklamların siyahısı
@@ -180,7 +215,7 @@ class AdsService {
   }
 
   // Status dəyişmə (Active <-> Paused)
-  async toggleAdStatus(companyId, adId) {
+  async toggleAdStatus(companyId, adId, user = null) {
     const ad = await prisma.ad.findUnique({ where: { id: adId } });
     if (!ad) throw ApiError.notFound('Reklam tapılmadı.');
     if (ad.companyId !== companyId) throw ApiError.forbidden('Bu reklamı dəyişməyə icazəniz yoxdur.');
@@ -190,7 +225,7 @@ class AdsService {
     }
 
     const newStatus = ad.status === 'Active' ? 'Paused' : 'Active';
-    return prisma.ad.update({
+    const updated = await prisma.ad.update({
       where: { id: adId },
       data: { status: newStatus },
       include: {
@@ -198,15 +233,43 @@ class AdsService {
         package: true
       }
     });
+
+    await prisma.auditLog.create({
+      data: {
+        id: await generateUniqueId('AUD', 'auditLog'),
+        tenantId: companyId,
+        entityName: 'Ad',
+        entityId: adId,
+        action: 'TOGGLE_AD_STATUS',
+        performedBy: `${user?.name || 'Rəhbər'} (${(user?.agencyRole || 'OWNER').toUpperCase()})`,
+        oldValues: JSON.stringify({ status: ad.status }),
+        newValues: JSON.stringify({ status: newStatus })
+      }
+    }).catch((err) => console.error('[AuditLog] TOGGLE_AD_STATUS xətası:', err));
+
+    return updated;
   }
 
   // Reklamı silmək
-  async deleteAd(companyId, adId) {
+  async deleteAd(companyId, adId, user = null) {
     const ad = await prisma.ad.findUnique({ where: { id: adId } });
     if (!ad) throw ApiError.notFound('Reklam tapılmadı.');
     if (ad.companyId !== companyId) throw ApiError.forbidden('Bu reklamı silməyə icazəniz yoxdur.');
 
     await prisma.ad.delete({ where: { id: adId } });
+
+    await prisma.auditLog.create({
+      data: {
+        id: await generateUniqueId('AUD', 'auditLog'),
+        tenantId: companyId,
+        entityName: 'Ad',
+        entityId: adId,
+        action: 'DELETE_AD',
+        performedBy: `${user?.name || 'Rəhbər'} (${(user?.agencyRole || 'OWNER').toUpperCase()})`,
+        oldValues: JSON.stringify({ title: ad.title, amountPaid: ad.amountPaid })
+      }
+    }).catch((err) => console.error('[AuditLog] DELETE_AD xətası:', err));
+
     return { success: true, message: 'Reklam uğurla silindi.' };
   }
 

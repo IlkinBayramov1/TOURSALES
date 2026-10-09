@@ -16,13 +16,26 @@ class CompaniesController {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu istifadəçiyə bağlı bir şirkət profili yoxdur.');
     }
-    const result = await companiesService.updateCompanyProfile(req.user.companyId, req.body);
+    const result = await companiesService.updateCompanyProfile(req.user.companyId, req.body, req.user);
     return res.json({ status: 'success', msg: 'Şirkət profili yeniləndi', data: result });
   });
 
   changePassword = asyncHandler(async (req, res) => {
-    const result = await companiesService.changePassword(req.user.id, req.body);
+    const result = await companiesService.changePassword(req.user.id, req.body, req.user);
     return res.json({ status: 'success', msg: result.message, data: null });
+  });
+
+  getActiveSessions = asyncHandler(async (req, res) => {
+    const currentIp = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
+    const currentUserAgent = req.headers['user-agent'] || '';
+    const result = await companiesService.getActiveSessions(req.user.id, currentIp, currentUserAgent);
+    return res.json({ status: 'success', msg: 'Aktiv sessiyalar gətirildi', data: result });
+  });
+
+  revokeOtherSessions = asyncHandler(async (req, res) => {
+    const currentSessionId = req.body?.currentSessionId || null;
+    const result = await companiesService.revokeOtherSessions(req.user.id, currentSessionId, req.user);
+    return res.json({ status: 'success', msg: result.message, data: result });
   });
 
   getCompanyStats = asyncHandler(async (req, res) => {

@@ -168,6 +168,12 @@
   border-color: var(--color-primary, #2563eb);
 }
 
+.ad-action-btn.view-details:hover {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #93c5fd;
+}
+
 .ad-action-btn.delete:hover {
   background: #fef2f2;
   color: #dc2626;

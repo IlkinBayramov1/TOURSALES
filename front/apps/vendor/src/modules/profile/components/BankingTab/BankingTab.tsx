@@ -9,6 +9,70 @@ interface BankingTabProps {
   saving: boolean;
 }
 
+interface BankMetadata {
+  name: string;
+  code: string;
+  swift: string;
+  voen: string;
+}
+
+const AZERBAIJAN_BANKS: Record<string, BankMetadata> = {
+  NABZ: {
+    name: 'Azərbaycan Beynəlxalq Bankı (ABB ASC)',
+    code: '805655',
+    swift: 'IBAZAZ2X',
+    voen: '9900001881'
+  },
+  KAPZ: {
+    name: 'Kapital Bank ASC',
+    code: '200155',
+    swift: 'AIIBAZ2X',
+    voen: '9900003611'
+  },
+  PASZ: {
+    name: 'PAŞA Bank ASC',
+    code: '505199',
+    swift: 'PASHAZ22',
+    voen: '1401551061'
+  },
+  YKBZ: {
+    name: 'Yapı Kredi Bank Azərbaycan QSC',
+    code: '400122',
+    swift: 'YAPIAZ22',
+    voen: '9900019271'
+  },
+  UNBZ: {
+    name: 'Unibank Kommersiya Bankı ASC',
+    code: '505677',
+    swift: 'UBNKAZ22',
+    voen: '1300067601'
+  },
+  ASBZ: {
+    name: 'AccessBank QSC',
+    code: '300188',
+    swift: 'ACNRAZ22',
+    voen: '1400262101'
+  },
+  RABZ: {
+    name: 'Rabitəbank ASC',
+    code: '505888',
+    swift: 'RABTAZ22',
+    voen: '9900005791'
+  },
+  XALZ: {
+    name: 'Xalq Bank ASC',
+    code: '505999',
+    swift: 'HAQZAZ22',
+    voen: '1500332801'
+  },
+  RESZ: {
+    name: 'Bank Respublika ASC',
+    code: '505444',
+    swift: 'BRESAZ22',
+    voen: '9900000991'
+  }
+};
+
 const COMMON_BANKS = [
   'Azərbaycan Beynəlxalq Bankı (ABB ASC)',
   'Kapital Bank ASC',
@@ -26,52 +90,184 @@ export const BankingTab: React.FC<BankingTabProps> = ({
   onSave,
   saving
 }) => {
+  // IBAN-ı 4 simvoldan bir boşluqla formatlayan köməkçi funksiya
+  const formatIbanWithSpaces = (raw: string) => {
+    const cleaned = raw.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 28);
+    const parts = cleaned.match(/.{1,4}/g);
+    return parts ? parts.join(' ') : cleaned;
+  };
+
+  const initialIban = company.iban || company.bankIban || '';
+  const initialPayout = company.payoutAccount || company.iban || company.bankIban || '';
+
   const [formData, setFormData] = useState({
     bankName: company.bankName || 'Azərbaycan Beynəlxalq Bankı (ABB ASC)',
-    iban: company.iban || company.bankIban || '',
+    iban: formatIbanWithSpaces(initialIban),
     bankVoen: company.bankVoen || '',
     bankCode: company.bankCode || '',
     swiftBic: company.swiftBic || '',
-    payoutAccount: company.payoutAccount || company.iban || company.bankIban || '',
+    payoutAccount: formatIbanWithSpaces(initialPayout),
     accountantName: company.accountantName || '',
     accountantPhone: company.accountantPhone || ''
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
+    const rawIban = company.iban || company.bankIban || '';
+    const rawPayout = company.payoutAccount || company.iban || company.bankIban || '';
+
     setFormData({
       bankName: company.bankName || 'Azərbaycan Beynəlxalq Bankı (ABB ASC)',
-      iban: company.iban || company.bankIban || '',
+      iban: formatIbanWithSpaces(rawIban),
       bankVoen: company.bankVoen || '',
       bankCode: company.bankCode || '',
       swiftBic: company.swiftBic || '',
-      payoutAccount: company.payoutAccount || company.iban || company.bankIban || '',
+      payoutAccount: formatIbanWithSpaces(rawPayout),
       accountantName: company.accountantName || '',
       accountantPhone: company.accountantPhone || ''
     });
+    setErrors({});
   }, [company]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // IBAN-dan aşkar olunan bank
+  const cleanIban = formData.iban.replace(/\s+/g, '');
+  const detectedBankCode = cleanIban.length >= 8 ? cleanIban.slice(4, 8) : null;
+  const detectedBank = detectedBankCode ? AZERBAIJAN_BANKS[detectedBankCode] : null;
+
+  // Aşkarlanan bankın rekvizitlərini avtomatik doldurmaq
+  const applyDetectedBank = () => {
+    if (!detectedBank) return;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      bankName: detectedBank.name,
+      bankCode: detectedBank.code,
+      swiftBic: detectedBank.swift,
+      bankVoen: detectedBank.voen
     }));
+  };
+
+  // Pul çıxarış hesabını əsas IBAN ilə sinxronlaşdır
+  const syncPayoutAccount = () => {
+    setFormData((prev) => ({
+      ...prev,
+      payoutAccount: prev.iban
+    }));
+  };
+
+  const handleIbanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 28);
+    const formatted = formatIbanWithSpaces(rawValue);
+    setFormData((prev) => ({
+      ...prev,
+      iban: formatted
+    }));
+
+    if (errors.iban) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.iban;
+        return next;
+      });
+    }
+
+    // Əgər tanınan bankdırsa və bank sahəsi boşdursa, avtomatik təklif
+    if (rawValue.length >= 8) {
+      const code = rawValue.slice(4, 8);
+      const bank = AZERBAIJAN_BANKS[code];
+      if (bank && (!formData.swiftBic || !formData.bankCode)) {
+        setFormData((prev) => ({
+          ...prev,
+          bankName: prev.bankName && prev.bankName !== 'Azərbaycan Beynəlxalq Bankı (ABB ASC)' ? prev.bankName : bank.name,
+          bankCode: prev.bankCode || bank.code,
+          swiftBic: prev.swiftBic || bank.swift,
+          bankVoen: prev.bankVoen || bank.voen
+        }));
+      }
+    }
+  };
+
+  const handlePayoutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 28);
+    const formatted = formatIbanWithSpaces(rawValue);
+    setFormData((prev) => ({
+      ...prev,
+      payoutAccount: formatted
+    }));
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
+  };
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    const rawIban = formData.iban.replace(/\s+/g, '');
+
+    if (!rawIban) {
+      newErrors.iban = 'IBAN hesabı mütləq daxil edilməlidir';
+    } else if (!rawIban.startsWith('AZ')) {
+      newErrors.iban = "Azərbaycan IBAN-ı mütləq 'AZ' prefiksi ilə başlamalıdır";
+    } else if (rawIban.length !== 28) {
+      newErrors.iban = `IBAN 28 simvol olmalıdır (hazırda: ${rawIban.length} simvol)`;
+    }
+
+    if (!formData.bankName.trim()) {
+      newErrors.bankName = 'Bank adı mütləq daxil edilməlidir';
+    }
+
+    if (formData.swiftBic.trim()) {
+      const cleanSwift = formData.swiftBic.trim().toUpperCase();
+      if (cleanSwift.length !== 8 && cleanSwift.length !== 11) {
+        newErrors.swiftBic = 'SWIFT / BIC kodu 8 və ya 11 simvol olmalıdır';
+      }
+    }
+
+    if (formData.bankVoen.trim() && !/^\d{10}$/.test(formData.bankVoen.trim())) {
+      newErrors.bankVoen = 'Bank VÖEN-i 10 rəqəmli olmalıdır';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setNotification(null);
 
+    if (!validate()) {
+      setNotification({
+        type: 'error',
+        text: 'Zəhmət olmasa bank rekvizitlərindəki format xətalarını aradan qaldırın.'
+      });
+      return;
+    }
+
+    const unspacedIban = formData.iban.replace(/\s+/g, '').toUpperCase();
+    const unspacedPayout = formData.payoutAccount.replace(/\s+/g, '').toUpperCase();
+
     try {
       await onSave({
         bankName: formData.bankName.trim(),
-        iban: formData.iban.trim().toUpperCase(),
-        bankIban: formData.iban.trim().toUpperCase(),
+        iban: unspacedIban,
+        bankIban: unspacedIban,
         bankVoen: formData.bankVoen.trim(),
         bankCode: formData.bankCode.trim(),
         swiftBic: formData.swiftBic.trim().toUpperCase(),
-        payoutAccount: formData.payoutAccount.trim().toUpperCase(),
+        payoutAccount: unspacedPayout || unspacedIban,
         accountantName: formData.accountantName.trim(),
         accountantPhone: formData.accountantPhone.trim()
       });
@@ -100,14 +296,17 @@ export const BankingTab: React.FC<BankingTabProps> = ({
         </div>
       )}
 
-      {/* Info Callout */}
+      {/* Info Callout with Audit Notification */}
       <div className="banking-security-callout">
         <div className="callout-icon">🛡️</div>
         <div className="callout-body">
-          <h4>Rəsmi Hesablaşma və Çıxarış Təhlükəsizliyi</h4>
+          <div className="callout-header-row">
+            <h4>Rəsmi Hesablaşma və Çıxarış Təhlükəsizliyi</h4>
+            <span className="audit-secure-badge">AuditLog Mühafizəsi</span>
+          </div>
           <p>
             Maliyyə balansı üzrə bilet satış gəlirlərinin nağdsız köçürülməsi yalnız burada qeyd olunan rəsmi hüquqi IBAN hesabına həyata keçirilir.
-            Rekvizitlərin doğruluğunu təmin etməyiniz xahiş olunur.
+            Rekvizitlərdə edilən hər bir dəyişiklik təhlükəsizlik jurnalında arxivlənir.
           </p>
         </div>
       </div>
@@ -121,7 +320,54 @@ export const BankingTab: React.FC<BankingTabProps> = ({
           </div>
 
           <div className="form-row-2">
-            <div className="form-field-group">
+            <div className={`form-field-group ${errors.iban ? 'has-error' : ''}`}>
+              <div className="label-with-tool">
+                <label htmlFor="iban">
+                  Bank Hesablaşma Hesabı (IBAN) <span className="req-star">*</span>
+                </label>
+                <span className={`iban-char-counter ${cleanIban.length === 28 ? 'valid' : ''}`}>
+                  {cleanIban.length}/28 simvol
+                </span>
+              </div>
+              <input
+                id="iban"
+                name="iban"
+                type="text"
+                value={formData.iban}
+                onChange={handleIbanChange}
+                placeholder="AZ21 NABZ 0135 0100 0000 0012 3456"
+                maxLength={34}
+                className="smart-iban-input"
+              />
+              {errors.iban ? (
+                <span className="field-error-text">{errors.iban}</span>
+              ) : (
+                <span className="field-hint">Azərbaycan standartı üzrə 28 simvollu IBAN (4 simvoldan bir boşluqla)</span>
+              )}
+
+              {/* Detected Bank Card */}
+              {detectedBank && (
+                <div className="detected-bank-card">
+                  <div className="detected-bank-info">
+                    <span className="detected-bank-icon">🏦</span>
+                    <div>
+                      <strong className="detected-bank-title">{detectedBank.name}</strong>
+                      <span className="detected-bank-meta">SWIFT: {detectedBank.swift} • Kod: {detectedBank.code}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="detected-bank-autofill-btn"
+                    onClick={applyDetectedBank}
+                    title="Bu bankın bütün rekvizitlərini avtomatik doldur"
+                  >
+                    Rekvizitləri Doldur
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className={`form-field-group ${errors.bankName ? 'has-error' : ''}`}>
               <label htmlFor="bankName">
                 Xidmət Göstərən Bank <span className="req-star">*</span>
               </label>
@@ -132,7 +378,6 @@ export const BankingTab: React.FC<BankingTabProps> = ({
                 type="text"
                 value={formData.bankName}
                 onChange={handleChange}
-                required
                 placeholder="Bank adını seçin və ya daxil edin"
               />
               <datalist id="bank-suggestions">
@@ -140,29 +385,12 @@ export const BankingTab: React.FC<BankingTabProps> = ({
                   <option key={b} value={b} />
                 ))}
               </datalist>
-            </div>
-
-            <div className="form-field-group">
-              <label htmlFor="iban">
-                Bank Hesablaşma Hesabı (IBAN) <span className="req-star">*</span>
-              </label>
-              <input
-                id="iban"
-                name="iban"
-                type="text"
-                value={formData.iban}
-                onChange={handleChange}
-                required
-                placeholder="AZ12ABB0000000012345678901"
-                maxLength={28}
-                style={{ fontFamily: 'monospace', letterSpacing: '0.05em' }}
-              />
-              <span className="field-hint">Azərbaycan standartı üzrə 28 simvollu IBAN (Məs: AZ...ABB...)</span>
+              {errors.bankName && <span className="field-error-text">{errors.bankName}</span>}
             </div>
           </div>
 
           <div className="form-row-3">
-            <div className="form-field-group">
+            <div className={`form-field-group ${errors.bankVoen ? 'has-error' : ''}`}>
               <label htmlFor="bankVoen">Bankın VÖEN-i</label>
               <input
                 id="bankVoen"
@@ -171,7 +399,9 @@ export const BankingTab: React.FC<BankingTabProps> = ({
                 value={formData.bankVoen}
                 onChange={handleChange}
                 placeholder="9900001881"
+                maxLength={10}
               />
+              {errors.bankVoen && <span className="field-error-text">{errors.bankVoen}</span>}
             </div>
 
             <div className="form-field-group">
@@ -182,11 +412,11 @@ export const BankingTab: React.FC<BankingTabProps> = ({
                 type="text"
                 value={formData.bankCode}
                 onChange={handleChange}
-                placeholder="805624"
+                placeholder="805655"
               />
             </div>
 
-            <div className="form-field-group">
+            <div className={`form-field-group ${errors.swiftBic ? 'has-error' : ''}`}>
               <label htmlFor="swiftBic">SWIFT / BIC Kodu</label>
               <input
                 id="swiftBic"
@@ -195,21 +425,33 @@ export const BankingTab: React.FC<BankingTabProps> = ({
                 value={formData.swiftBic}
                 onChange={handleChange}
                 placeholder="IBAZAZ2X"
-                style={{ fontFamily: 'monospace' }}
+                style={{ fontFamily: 'monospace', textTransform: 'uppercase' }}
+                maxLength={11}
               />
+              {errors.swiftBic && <span className="field-error-text">{errors.swiftBic}</span>}
             </div>
           </div>
 
           <div className="form-field-group full-width">
-            <label htmlFor="payoutAccount">Pul Çıxarışı (Payout) Təyin Edilmiş Hesab</label>
+            <div className="label-with-tool">
+              <label htmlFor="payoutAccount">Pul Çıxarışı (Payout) Təyin Edilmiş Hesab</label>
+              <button
+                type="button"
+                className="sync-payout-btn"
+                onClick={syncPayoutAccount}
+                title="Yuxarıdakı əsas IBAN ilə eyniləşdir"
+              >
+                🔄 Əsas IBAN-ı Tətbiq Et
+              </button>
+            </div>
             <input
               id="payoutAccount"
               name="payoutAccount"
               type="text"
               value={formData.payoutAccount}
-              onChange={handleChange}
-              placeholder="AZ12ABB0000000012345678901"
-              style={{ fontFamily: 'monospace' }}
+              onChange={handlePayoutChange}
+              placeholder="AZ21 NABZ 0135 0100 0000 0012 3456"
+              className="smart-iban-input"
             />
             <span className="field-hint">Maliyyə & Balans bölməsindən çıxarış tələb etdikdə vəsait birbaşa bu hesaba köçürülür</span>
           </div>

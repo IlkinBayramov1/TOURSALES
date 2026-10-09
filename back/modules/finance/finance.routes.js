@@ -4,6 +4,8 @@ import { authMiddleware } from '../auth/auth.middleware.js';
 import { roleMiddleware } from '../../middlewares/role.middleware.js';
 import { ROLES } from '../../config/constants.js';
 
+import { requireAgencyRole } from '../../middlewares/agency-role.middleware.js';
+
 const router = express.Router();
 
 // Bütün maliyyə marşrutları üçün auth vacibdir
@@ -11,13 +13,16 @@ router.use(authMiddleware());
 
 // Balans məlumatları və çıxarış tələbləri (Vendor üçün)
 router.get('/balance', roleMiddleware(ROLES.VENDOR), financeController.getBalances);
-router.post('/payout', roleMiddleware(ROLES.VENDOR), financeController.requestPayout);
+router.post('/payout', roleMiddleware(ROLES.VENDOR), requireAgencyRole('OWNER', 'ACCOUNTANT'), financeController.requestPayout);
 
 // Vendor Paneli üçün spesifik marşrutlar
 router.get('/vendor/overview', financeController.getVendorOverview);
 router.get('/vendor/transactions', financeController.getVendorTransactions);
 router.get('/vendor/payouts', financeController.getVendorPayouts);
-router.post('/vendor/payout-request', financeController.requestPayout);
+router.post('/vendor/payout-request', requireAgencyRole('OWNER', 'ACCOUNTANT'), financeController.requestPayout);
+router.post('/vendor/payouts/:payoutId/cancel', requireAgencyRole('OWNER', 'ACCOUNTANT'), financeController.cancelPayout);
+router.get('/vendor/escrow-details', financeController.getVendorEscrowDetails);
+router.put('/vendor/bank-details', requireAgencyRole('OWNER', 'ACCOUNTANT'), financeController.updateBankDetails);
 router.get('/vendor/export', financeController.exportTransactions);
 
 // Tranzaksiyalar və Excel ixracı (Vendor və Admin)

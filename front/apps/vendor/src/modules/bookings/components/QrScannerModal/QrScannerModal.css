@@ -1,7 +1,38 @@
 .vendor-scanner-container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
+}
+
+.vendor-scanner-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.vendor-scanner-session-counter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.vendor-scanner-sound-toggle {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.vendor-scanner-sound-toggle:hover {
+  background: #f1f5f9;
 }
 
 .vendor-scanner-camera-frame {

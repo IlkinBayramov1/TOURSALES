@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Button, Badge } from '@toursales/ui';
 import { DataTable } from '@/shared/components';
 import { AgencyMember, TeamKpis, teamApi } from '../../teamApi';
+import { vendorFinanceApi, CurrentSubscriptionInfo } from '../../../finance/vendorFinanceApi';
 import { TeamKpiCards } from '../../components/TeamKpiCards/TeamKpiCards';
 import { RolePermissionsMatrix } from '../../components/RolePermissionsMatrix/RolePermissionsMatrix';
 import { TeamActivityLogTable } from '../../components/TeamActivityLogTable/TeamActivityLogTable';
 import { InviteMemberModal } from '../../components/InviteMemberModal/InviteMemberModal';
 import { EditMemberModal } from '../../components/EditMemberModal/EditMemberModal';
+import { ResetPasswordModal } from '../../components/ResetPasswordModal/ResetPasswordModal';
 import { 
   Users, 
   ShieldCheck, 
@@ -18,13 +20,18 @@ import {
   Sparkles,
   Phone,
   Mail,
-  CheckCircle2
+  CheckCircle2,
+  KeyRound,
+  AlertCircle
 } from 'lucide-react';
+import { useVendorAuth, AgencyRole } from '@/shared/context/VendorAuthContext';
 import './TeamPage.css';
 
 export const TeamPage: React.FC = () => {
+  const { simulationRole, setSimulationRole } = useVendorAuth();
   const [members, setMembers] = useState<AgencyMember[]>([]);
   const [kpis, setKpis] = useState<TeamKpis>({ total: 0, managers: 0, accountants: 0, guides: 0 });
+  const [subInfo, setSubInfo] = useState<CurrentSubscriptionInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'MEMBERS' | 'MATRIX' | 'AUDIT'>('MEMBERS');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
@@ -32,14 +39,24 @@ export const TeamPage: React.FC = () => {
   // Modals state
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<AgencyMember | null>(null);
-  const [simulationRole, setSimulationRole] = useState<string>('OWNER');
+  const [resettingMember, setResettingMember] = useState<AgencyMember | null>(null);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const res = await teamApi.getMembers();
-      setMembers(res.members || []);
-      setKpis(res.kpis || { total: 0, managers: 0, accountants: 0, guides: 0 });
+      const [teamRes, subRes] = await Promise.allSettled([
+        teamApi.getMembers(),
+        vendorFinanceApi.getCurrentSubscription(),
+      ]);
+
+      if (teamRes.status === 'fulfilled') {
+        setMembers(teamRes.value.members || []);
+        setKpis(teamRes.value.kpis || { total: 0, managers: 0, accountants: 0, guides: 0 });
+      }
+
+      if (subRes.status === 'fulfilled') {
+        setSubInfo(subRes.value);
+      }
     } catch (err) {
       console.error('Komanda məlumatları yüklənmədi:', err);
     } finally {
@@ -58,6 +75,19 @@ export const TeamPage: React.FC = () => {
       loadData();
     } catch (err: any) {
       alert(err?.response?.data?.msg || 'Əməkdaş silinərkən xəta baş verdi.');
+    }
+  };
+
+  const handleToggleStatus = async (member: AgencyMember) => {
+    if (member.role === 'OWNER') return;
+    const actionText = member.status === 'Active' ? 'dondurmaq' : 'aktivləşdirmək';
+    if (!window.confirm(`"${member.name}" adlı əməkdaşın giriş hüququnu ${actionText} istədiyinizə əminsiniz?`)) return;
+
+    try {
+      await teamApi.toggleStatus(member.id);
+      loadData();
+    } catch (err: any) {
+      alert(err?.response?.data?.msg || err?.message || 'Status dəyişdirilərkən xəta baş verdi.');
     }
   };
 
@@ -107,8 +137,8 @@ export const TeamPage: React.FC = () => {
             <Eye size={15} />
             <span>Görünüş:</span>
             <select
-              value={simulationRole}
-              onChange={(e) => setSimulationRole(e.target.value)}
+              value={simulationRole || 'OWNER'}
+              onChange={(e) => setSimulationRole(e.target.value === 'OWNER' ? null : (e.target.value as AgencyRole))}
               className="team-simulation-select"
             >
               <option value="OWNER">👑 Rəhbər (Tam Menyu)</option>
@@ -225,6 +255,11 @@ export const TeamPage: React.FC = () => {
                             <Mail size={12} />
                             <span>{m.email}</span>
                           </div>
+                          {m.role === 'GUIDE' && (
+                            <div className="guide-tour-badge">
+                              <span>🧭 {m.assignedToursCount ?? 0} aktiv tura təhkimdir</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -250,9 +285,16 @@ export const TeamPage: React.FC = () => {
                 {
                   header: 'Status',
                   render: (m: AgencyMember) => (
-                    <Badge variant={m.status === 'Active' ? 'success' : 'error'} pill>
-                      {m.status === 'Active' ? 'Aktiv' : 'Dondurulub'}
-                    </Badge>
+                    <button
+                      type="button"
+                      className={`status-pill-toggle ${m.status === 'Active' ? 'active' : 'suspended'}`}
+                      disabled={m.role === 'OWNER'}
+                      onClick={() => handleToggleStatus(m)}
+                      title={m.role === 'OWNER' ? 'Şirkət rəhbərinin statusu dondurula bilməz' : 'Statusu dəyişmək üçün klikləyin'}
+                    >
+                      <span className="status-dot" />
+                      <span>{m.status === 'Active' ? 'Aktiv' : 'Dondurulub'}</span>
+                    </button>
                   ),
                 },
                 {
@@ -278,9 +320,20 @@ export const TeamPage: React.FC = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setEditingMember(m)}
+                        title="Redaktə et"
                       >
                         <Edit2 size={13} />
                         <span>Dəyiş</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setResettingMember(m)}
+                        title="Giriş şifrəsini sıfırla"
+                        className="btn-pass-action"
+                      >
+                        <KeyRound size={13} />
+                        <span>Şifrə</span>
                       </Button>
                       {m.role !== 'OWNER' && (
                         <Button
@@ -288,6 +341,7 @@ export const TeamPage: React.FC = () => {
                           size="sm"
                           style={{ color: '#ef4444' }}
                           onClick={() => handleRemove(m.id, m.name)}
+                          title="Əməkdaşı sil"
                         >
                           <Trash2 size={13} />
                         </Button>
@@ -321,6 +375,8 @@ export const TeamPage: React.FC = () => {
         isOpen={isInviteOpen}
         onClose={() => setIsInviteOpen(false)}
         onSuccess={loadData}
+        currentMembersCount={kpis.total}
+        maxMembers={subInfo?.maxMembers ?? -1}
       />
 
       <EditMemberModal
@@ -328,7 +384,16 @@ export const TeamPage: React.FC = () => {
         member={editingMember}
         onClose={() => setEditingMember(null)}
         onSuccess={loadData}
+        onOpenResetPassword={(mem) => setResettingMember(mem)}
+      />
+
+      <ResetPasswordModal
+        isOpen={!!resettingMember}
+        member={resettingMember}
+        onClose={() => setResettingMember(null)}
+        onSuccess={loadData}
       />
     </div>
   );
 };
+

@@ -12,7 +12,7 @@
     "dev:vendor": "npm run dev --workspace=apps/vendor",
     "dev:admin": "npm run dev --workspace=apps/admin",
     "build": "npm run build --workspaces --if-present",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

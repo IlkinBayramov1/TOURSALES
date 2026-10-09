@@ -3,12 +3,18 @@ import { User, Company, LoginPayload, RegisterPayload } from '@toursales/types';
 import { vendorAxiosClient, vendorStorage } from '../api/vendorAxiosClient';
 import { VENDOR_ENDPOINTS } from '../api/vendorEndpoints';
 
+export type AgencyRole = 'OWNER' | 'MANAGER' | 'ACCOUNTANT' | 'GUIDE';
+
 interface VendorAuthContextType {
   user: User | null;
   company: Company | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  simulationRole: AgencyRole | null;
+  setSimulationRole: (role: AgencyRole | null) => void;
+  activeAgencyRole: AgencyRole;
+  isRoleAllowed: (allowedRoles: AgencyRole[]) => boolean;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
@@ -22,6 +28,30 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [company, setCompany] = useState<Company | null>(null);
   const [token, setToken] = useState<string | null>(() => vendorStorage.getToken());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [simulationRole, setSimulationRoleState] = useState<AgencyRole | null>(() => {
+    const saved = localStorage.getItem('vendor_simulation_agency_role');
+    if (saved && ['OWNER', 'MANAGER', 'ACCOUNTANT', 'GUIDE'].includes(saved)) {
+      return saved as AgencyRole;
+    }
+    return null;
+  });
+
+  const setSimulationRole = (role: AgencyRole | null) => {
+    if (role && role !== 'OWNER') {
+      localStorage.setItem('vendor_simulation_agency_role', role);
+      setSimulationRoleState(role);
+    } else {
+      localStorage.removeItem('vendor_simulation_agency_role');
+      setSimulationRoleState(null);
+    }
+  };
+
+  const realAgencyRole = (((user as any)?.agencyRole || 'OWNER').toUpperCase()) as AgencyRole;
+  const activeAgencyRole: AgencyRole = simulationRole || realAgencyRole;
+
+  const isRoleAllowed = (allowedRoles: AgencyRole[]) => {
+    return allowedRoles.includes(activeAgencyRole);
+  };
 
   const refreshProfile = async () => {
     if (!token || token.startsWith('mock_')) {
@@ -158,6 +188,10 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         token,
         isAuthenticated: !!user && !!token,
         isLoading,
+        simulationRole,
+        setSimulationRole,
+        activeAgencyRole,
+        isRoleAllowed,
         login,
         register,
         logout,

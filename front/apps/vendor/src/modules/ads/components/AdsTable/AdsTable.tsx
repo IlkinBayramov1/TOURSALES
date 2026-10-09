@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, Trash2, Megaphone, ExternalLink, Image as ImageIcon } from 'lucide-react';
+import { Play, Pause, Trash2, Megaphone, ExternalLink, Image as ImageIcon, BarChart2 } from 'lucide-react';
 import { Ad } from '@toursales/types';
 import './AdsTable.css';
 
@@ -8,13 +8,15 @@ interface AdsTableProps {
   loading?: boolean;
   onToggleStatus: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onViewDetails?: (ad: Ad) => void;
 }
 
 export const AdsTable: React.FC<AdsTableProps> = ({
   ads,
   loading,
   onToggleStatus,
-  onDelete
+  onDelete,
+  onViewDetails
 }) => {
   if (loading) {
     return (
@@ -98,11 +100,15 @@ export const AdsTable: React.FC<AdsTableProps> = ({
             // Extract image
             let img = ad.imageUrl;
             if (!img && ad.tour?.images) {
-              try {
-                const parsed = JSON.parse(ad.tour.images);
-                img = parsed[0];
-              } catch {
-                img = undefined;
+              if (Array.isArray(ad.tour.images)) {
+                img = ad.tour.images[0];
+              } else if (typeof ad.tour.images === 'string') {
+                try {
+                  const parsed = JSON.parse(ad.tour.images);
+                  img = Array.isArray(parsed) ? parsed[0] : parsed;
+                } catch {
+                  img = ad.tour.images;
+                }
               }
             }
 
@@ -187,6 +193,16 @@ export const AdsTable: React.FC<AdsTableProps> = ({
                 {/* Actions */}
                 <td>
                   <div className="ad-actions-cell" style={{ justifyContent: 'flex-end' }}>
+                    {onViewDetails && (
+                      <button
+                        type="button"
+                        className="ad-action-btn view-details"
+                        title="Statistika və Ətraflı Detallar"
+                        onClick={() => onViewDetails(ad)}
+                      >
+                        <BarChart2 size={14} />
+                      </button>
+                    )}
                     {ad.status !== 'Expired' && (
                       <button
                         type="button"

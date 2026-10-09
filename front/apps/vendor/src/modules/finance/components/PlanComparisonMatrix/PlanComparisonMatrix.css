@@ -93,3 +93,75 @@
   font-weight: 600;
   color: #0f172a;
 }
+
+/* Table Footer Actions */
+.matrix-actions-row td {
+  padding: 20px 16px;
+  background: #fcfdfe;
+  border-top: 2px solid #e2e8f0;
+  border-bottom: none;
+}
+
+.matrix-tfoot-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: #475569;
+}
+
+.matrix-select-btn {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border: none;
+}
+
+.matrix-select-btn.current {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: default;
+  border: 1px solid #cbd5e1;
+}
+
+.matrix-select-btn.outline {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1.5px solid #cbd5e1;
+}
+
+.matrix-select-btn.outline:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0284c7;
+}
+
+.matrix-select-btn.primary {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+.matrix-select-btn.primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.matrix-select-btn.enterprise {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+}
+
+.matrix-select-btn.enterprise:hover:not(:disabled) {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+}

@@ -25,6 +25,9 @@ import { AuditLogsPage } from '../modules/audit-logs/pages/AuditLogsPage/AuditLo
 // CMS
 import { CmsManagePage } from '../modules/cms-manage/pages/CmsManagePage/CmsManagePage';
 
+// Arbitration & Disputes (Faza 4)
+import { DisputesArbitrationPage } from '../modules/disputes/pages/DisputesArbitrationPage/DisputesArbitrationPage';
+
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -63,6 +66,10 @@ export const router = createBrowserRouter([
           {
             path: '/cms',
             element: <CmsManagePage />,
+          },
+          {
+            path: '/disputes',
+            element: <DisputesArbitrationPage />,
           },
         ],
       },

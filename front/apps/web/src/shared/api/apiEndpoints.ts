@@ -88,4 +88,56 @@ export const API_ENDPOINTS = {
     BLOGS: '/api/v1/cms/blogs',
     FAQS: '/api/v1/cms/faqs',
   },
+
+  // Hotels & Accommodation
+  HOTELS: {
+    SEARCH: '/api/v1/hotels',
+    DETAIL: (id: string) => `/api/v1/hotels/${id}`,
+    ROOM_CALENDAR: (id: string, roomId: string) => `/api/v1/hotels/${id}/rooms/${roomId}/calendar`,
+    RECOMMENDED: (tourId: string) => `/api/v1/hotels/recommendations/tour/${tourId}`,
+    BOOK: '/api/v1/hotels/bookings',
+    MY_BOOKINGS: '/api/v1/hotels/bookings/my',
+    BOOKING_DETAIL: (id: string) => `/api/v1/hotels/bookings/${id}`,
+    PAY_BALANCE: (id: string) => `/api/v1/hotels/bookings/${id}/pay-balance`,
+    CANCEL: (id: string) => `/api/v1/hotels/bookings/${id}/cancel`,
+  },
+
+  // Chat & Real-Time Messaging (Faza 4)
+  CHAT: {
+    CONVERSATIONS: '/api/v1/chat/conversations',
+    MY_CONVERSATIONS: '/api/v1/chat/conversations/my',
+    MESSAGES: (conversationId: string) => `/api/v1/chat/conversations/${conversationId}/messages`,
+    MARK_READ: (conversationId: string) => `/api/v1/chat/conversations/${conversationId}/read`,
+  },
+
+  // Support Tickets (Faza 4)
+  TICKETS: {
+    CREATE: '/api/v1/tickets',
+    MY_TICKETS: '/api/v1/tickets/my',
+    DETAIL: (id: string) => `/api/v1/tickets/${id}`,
+    REPLY: (id: string) => `/api/v1/tickets/${id}/reply`,
+    STATUS: (id: string) => `/api/v1/tickets/${id}/status`,
+    ESCALATE: (id: string) => `/api/v1/tickets/${id}/escalate`,
+  },
+
+  // Custom Private Tours & B2B Tender (Faza 5)
+  CUSTOM_TOURS: {
+    ESTIMATE: '/api/v1/custom-tours/estimate',
+    REQUESTS: '/api/v1/custom-tours/requests',
+    MY_REQUESTS: '/api/v1/custom-tours/my-requests',
+    DETAIL: (id: string) => `/api/v1/custom-tours/requests/${id}`,
+    CANCEL: (id: string) => `/api/v1/custom-tours/requests/${id}/cancel`,
+    ACCEPT_BID: (bidId: string) => `/api/v1/custom-tours/bids/${bidId}/accept`,
+    CHECKOUT: (bidId: string) => `/api/v1/custom-tours/bids/${bidId}/checkout`,
+  },
+
+  // AI Concierge & Smart Yield Pricing (Faza 6)
+  AI_CONCIERGE: {
+    RECOMMEND: '/api/v1/ai-concierge/recommend',
+    PARSE: '/api/v1/ai-concierge/parse',
+  },
+  YIELD_PRICING: {
+    TOUR: (tourId: string) => `/api/v1/yield-pricing/tours/${tourId}`,
+  },
 };
+

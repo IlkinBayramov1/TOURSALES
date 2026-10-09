@@ -37,8 +37,9 @@ export const CompaniesListPage: React.FC = () => {
     ? companies
     : companies.filter((c) => c.status === filterStatus);
 
-  const getStatusBadgeVariant = (status: CompanyStatus) => {
-    switch (status) {
+  const getStatusBadgeVariant = (status: CompanyStatus | string) => {
+    const s = String(status || '').toUpperCase();
+    switch (s) {
       case 'ACTIVE': return 'success';
       case 'PENDING': return 'warning';
       case 'SUSPENDED': return 'error';
@@ -47,13 +48,14 @@ export const CompaniesListPage: React.FC = () => {
     }
   };
 
-  const getStatusLabel = (status: CompanyStatus) => {
-    switch (status) {
+  const getStatusLabel = (status: CompanyStatus | string) => {
+    const s = String(status || '').toUpperCase();
+    switch (s) {
       case 'ACTIVE': return 'Aktiv (Təsdiqlənmiş)';
       case 'PENDING': return 'Gözləmədə (Yeni)';
       case 'SUSPENDED': return 'Dayandırılmış';
       case 'REJECTED': return 'İmtina Edilmiş';
-      default: return status;
+      default: return String(status || '');
     }
   };
 

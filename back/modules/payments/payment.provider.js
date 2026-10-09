@@ -61,13 +61,15 @@ export class BirBankAdapter extends PaymentProvider {
     super('BIRBANK');
   }
 
-  async createPayment({ bookingId, amount, currency = 'AZN', returnUrl }) {
+  async createPayment({ bookingId, amount, currency = 'AZN', returnUrl, installmentMonths = 1 }) {
     const providerTransactionId = `BIRBANK_${bookingId}_${Date.now()}`;
+    const installmentQuery = installmentMonths > 1 ? `&installments=${installmentMonths}` : '';
     return {
       provider: this.name,
       providerTransactionId,
-      paymentUrl: `https://checkout.birbank.az/pay?token=${providerTransactionId}&amount=${amount}`,
-      status: 'PENDING'
+      paymentUrl: `https://checkout.birbank.az/pay?token=${providerTransactionId}&amount=${amount}${installmentQuery}`,
+      status: 'PENDING',
+      installmentMonths
     };
   }
 
@@ -93,13 +95,15 @@ export class KapitalAdapter extends PaymentProvider {
     super('KAPITAL');
   }
 
-  async createPayment({ bookingId, amount }) {
+  async createPayment({ bookingId, amount, installmentMonths = 1 }) {
     const providerTransactionId = `KAPITAL_${bookingId}_${Date.now()}`;
+    const installmentQuery = installmentMonths > 1 ? `?installments=${installmentMonths}` : '';
     return {
       provider: this.name,
       providerTransactionId,
-      paymentUrl: `https://e-commerce.kapitalbank.az/pay/${providerTransactionId}`,
-      status: 'PENDING'
+      paymentUrl: `https://e-commerce.kapitalbank.az/pay/${providerTransactionId}${installmentQuery}`,
+      status: 'PENDING',
+      installmentMonths
     };
   }
 
@@ -169,6 +173,100 @@ export class MilliONAdapter extends PaymentProvider {
 
   async refund(providerTransactionId, amount) {
     return { success: true, refundId: `ml_ref_${Date.now()}` };
+  }
+
+  verifyWebhook(headers, payload) {
+    return true;
+  }
+}
+
+export class TamKartAdapter extends PaymentProvider {
+  constructor() {
+    super('TAMKART');
+  }
+
+  async createPayment({ bookingId, amount, currency = 'AZN', returnUrl, installmentMonths = 1 }) {
+    const providerTransactionId = `TAMKART_${bookingId}_${Date.now()}`;
+    const installmentQuery = installmentMonths > 1 ? `&installments=${installmentMonths}` : '';
+    return {
+      provider: this.name,
+      providerTransactionId,
+      paymentUrl: `https://e-commerce.ibar.az/pay?token=${providerTransactionId}&amount=${amount}${installmentQuery}`,
+      status: 'PENDING',
+      installmentMonths
+    };
+  }
+
+  async getPaymentStatus(providerTransactionId) {
+    return { status: 'PAID', providerTransactionId };
+  }
+
+  async refund(providerTransactionId, amount) {
+    return { success: true, refundId: `tk_ref_${Date.now()}` };
+  }
+
+  verifyWebhook(headers, payload) {
+    const signature = headers['x-tamkart-signature'];
+    if (!signature && process.env.NODE_ENV === 'production') {
+      throw ApiError.unauthorized('Tamkart imza başlığı əskikdir.');
+    }
+    return true;
+  }
+}
+
+export class BolkartAdapter extends PaymentProvider {
+  constructor() {
+    super('BOLKART');
+  }
+
+  async createPayment({ bookingId, amount, currency = 'AZN', returnUrl, installmentMonths = 1 }) {
+    const providerTransactionId = `BOLKART_${bookingId}_${Date.now()}`;
+    const installmentQuery = installmentMonths > 1 ? `&installments=${installmentMonths}` : '';
+    return {
+      provider: this.name,
+      providerTransactionId,
+      paymentUrl: `https://bolkart.az/gateway/pay?token=${providerTransactionId}&amount=${amount}${installmentQuery}`,
+      status: 'PENDING',
+      installmentMonths
+    };
+  }
+
+  async getPaymentStatus(providerTransactionId) {
+    return { status: 'PAID', providerTransactionId };
+  }
+
+  async refund(providerTransactionId, amount) {
+    return { success: true, refundId: `bk_ref_${Date.now()}` };
+  }
+
+  verifyWebhook(headers, payload) {
+    return true;
+  }
+}
+
+export class AlbaliAdapter extends PaymentProvider {
+  constructor() {
+    super('ALBALI');
+  }
+
+  async createPayment({ bookingId, amount, currency = 'AZN', returnUrl, installmentMonths = 1 }) {
+    const providerTransactionId = `ALBALI_${bookingId}_${Date.now()}`;
+    const installmentQuery = installmentMonths > 1 ? `&installments=${installmentMonths}` : '';
+    return {
+      provider: this.name,
+      providerTransactionId,
+      paymentUrl: `https://unibank.az/cards/gateway/pay?token=${providerTransactionId}&amount=${amount}${installmentQuery}`,
+      status: 'PENDING',
+      installmentMonths
+    };
+  }
+
+  async getPaymentStatus(providerTransactionId) {
+    return { status: 'PAID', providerTransactionId };
+  }
+
+  async refund(providerTransactionId, amount) {
+    return { success: true, refundId: `ab_ref_${Date.now()}` };
   }
 
   verifyWebhook(headers, payload) {

@@ -27,6 +27,11 @@ export interface CreateTourPayload {
   isKarabakh?: boolean;
   hasVisaSupport?: boolean;
   hasFlight?: boolean;
+  allowInstallments?: boolean;
+  maxInstallmentMonths?: number;
+  allowDeposit?: boolean;
+  depositPercentage?: number;
+  depositDueDaysBefore?: number;
 }
 
 export const tourManageApi = {
@@ -117,5 +122,40 @@ export const tourManageApi = {
       { busType }
     );
     return res.data;
+  },
+
+  cloneTour: async (
+    id: string,
+    payload: { startDate: string; endDate?: string; title?: string }
+  ): Promise<ApiResponse<Tour>> => {
+    const res = await vendorAxiosClient.post<{ status: string; data: Tour } | ApiResponse<Tour>>(
+      VENDOR_ENDPOINTS.TOURS.CLONE(id),
+      payload
+    );
+    const tour = (res.data as any)?.data || res.data;
+    return { success: true, data: tour };
+  },
+
+  bulkToggleStatus: async (
+    tourIds: string[],
+    status: 'Active' | 'Deactive' | 'Archived'
+  ): Promise<ApiResponse<{ count: number; status: string }>> => {
+    const res = await vendorAxiosClient.post<{ status: string; data: { count: number; status: string } }>(
+      VENDOR_ENDPOINTS.TOURS.BULK_STATUS,
+      { tourIds, status }
+    );
+    return { success: true, data: res.data.data };
+  },
+
+  toggleSeatLock: async (
+    tourId: string,
+    seatNumber: number,
+    reason?: string
+  ): Promise<ApiResponse<{ tourId: string; seatNumber: number; status: string; isVendorHold: boolean; message: string }>> => {
+    const res = await vendorAxiosClient.post<{ status: string; data: { tourId: string; seatNumber: number; status: string; isVendorHold: boolean; message: string } }>(
+      VENDOR_ENDPOINTS.TOURS.TOGGLE_SEAT_LOCK(tourId),
+      { seatNumber, reason }
+    );
+    return { success: true, data: res.data.data };
   },
 };

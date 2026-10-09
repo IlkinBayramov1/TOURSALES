@@ -28,6 +28,13 @@ export interface RosterPassenger {
   idNumber?: string;
   bookingNumber: string;
   status: string;
+  paymentStatus?: string;
+  paymentType?: string;
+  totalAmount?: number;
+  paidAmount?: number;
+  remainingAmount?: number;
+  isFullyPaid?: boolean;
+  hasRemainingDebt?: boolean;
   isCheckedIn: boolean;
   checkedInAt?: string | null;
 }
@@ -72,6 +79,14 @@ export const vendorBookingApi = {
     return res.data;
   },
 
+  bulkCheckIn: async (tourId: string, bookingIds?: string[]): Promise<ApiResponse<{ success: boolean; checkedInCount: number; message: string }>> => {
+    const res = await vendorAxiosClient.post<ApiResponse<{ success: boolean; checkedInCount: number; message: string }>>(
+      VENDOR_ENDPOINTS.BOOKINGS.BULK_CHECK_IN,
+      { tourId, bookingIds }
+    );
+    return res.data;
+  },
+
   getRoster: async (tourId: string): Promise<ApiResponse<RosterPassenger[]>> => {
     const res = await vendorAxiosClient.get<ApiResponse<RosterPassenger[]>>(
       VENDOR_ENDPOINTS.BOOKINGS.ROSTER(tourId)
@@ -109,5 +124,12 @@ export const vendorBookingApi = {
     document.body.appendChild(link);
     link.click();
     link.remove();
+  },
+
+  sendBalanceReminderWhatsApp: async (bookingId: string): Promise<ApiResponse<{ success: boolean; message: string; remainingAmount: number }>> => {
+    const res = await vendorAxiosClient.post<ApiResponse<{ success: boolean; message: string; remainingAmount: number }>>(
+      VENDOR_ENDPOINTS.BOOKINGS.BALANCE_REMINDER(bookingId)
+    );
+    return res.data;
   },
 };

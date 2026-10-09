@@ -35,13 +35,57 @@ export interface MonthlyRevenueItem {
   bookings: number;
 }
 
+export interface OperationalAlert {
+  id: string;
+  type: 'warning' | 'danger' | 'primary' | 'success';
+  title: string;
+  desc?: string;
+  message?: string;
+  actionLink?: string;
+  actionText?: string;
+  count?: number;
+  amount?: number;
+}
+
+export interface ManifestPassenger {
+  bookingId: string;
+  passengerName: string;
+  phone?: string;
+  email?: string;
+  seatNumber: string;
+  seatsCount: number;
+  amount: number;
+  paymentStatus: string;
+  bookingStatus: string;
+  isCheckedIn: boolean;
+  checkedInAt?: string | null;
+}
+
+export interface ManifestSummary {
+  tour: {
+    id: string;
+    title: string;
+    type?: string;
+    startDate: string;
+    price?: number;
+    currency?: string;
+    maxParticipants?: number;
+    destinationCountry?: string;
+  } | null;
+  totalSeats: number;
+  checkedInCount: number;
+  passengers: ManifestPassenger[];
+}
+
 export interface VendorStats {
   companyName: string;
-  availableBalance: number;
-  pendingBalance: number;
-  pendingDeposits: number;
-  totalRevenue: number;
-  revenueGrowth: number;
+  isFinancialMasked?: boolean;
+  availableBalance: number | null;
+  pendingBalance: number | null;
+  pendingDeposits: number | null;
+  totalRevenue: number | null;
+  revenueGrowth: number | null;
+  avgTicketPrice?: number | null;
   totalBookingsCount: number;
   bookingsGrowth: number;
   totalSeatsSold: number;
@@ -50,6 +94,7 @@ export interface VendorStats {
   domesticToursCount: number;
   foreignToursCount: number;
   occupancyRate: number;
+  checkInRate?: number;
   activeAds?: number;
   activeCampaigns?: number;
   salesDistribution: SalesDistributionItem[];
@@ -57,6 +102,9 @@ export interface VendorStats {
   popularDestinations: DestinationStat[];
   activities: DashboardActivity[];
   recentBookings: Booking[];
+  operationalAlerts?: OperationalAlert[];
+  allTimeRevenue?: number | null;
+  allTimeBookingsCount?: number;
 }
 
 export const vendorDashboardApi = {
@@ -64,6 +112,13 @@ export const vendorDashboardApi = {
     const res = await vendorAxiosClient.get<ApiResponse<VendorStats>>(
       VENDOR_ENDPOINTS.DASHBOARD.STATS,
       { params: { period } }
+    );
+    return res.data;
+  },
+
+  getManifestSummary: async (tourId?: string): Promise<ApiResponse<ManifestSummary>> => {
+    const res = await vendorAxiosClient.get<ApiResponse<ManifestSummary>>(
+      VENDOR_ENDPOINTS.DASHBOARD.MANIFEST(tourId)
     );
     return res.data;
   },

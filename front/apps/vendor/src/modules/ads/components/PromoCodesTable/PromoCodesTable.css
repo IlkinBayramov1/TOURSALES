@@ -11,10 +11,10 @@
   align-items: center;
   gap: 0.5rem;
   background: #f8fafc;
-  border: 1px dashed #cbd5e1;
+  border: 1.5px dashed #cbd5e1;
   padding: 0.35rem 0.75rem;
   border-radius: 8px;
-  font-family: monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--color-text-primary, #0f172a);
@@ -70,4 +70,22 @@
   background: var(--color-primary, #2563eb);
   border-radius: 9999px;
   transition: width 0.3s ease;
+}
+
+.ad-action-btn.share-btn {
+  color: #059669;
+  border-color: #a7f3d0;
+  background: #f0fdf4;
+}
+
+.ad-action-btn.share-btn:hover {
+  background: #dcfce7;
+  border-color: #34d399;
+  color: #047857;
+}
+
+.ad-action-btn.share-btn.shared {
+  background: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
 }

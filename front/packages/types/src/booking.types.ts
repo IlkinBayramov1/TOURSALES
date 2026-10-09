@@ -1,6 +1,7 @@
 export type BookingStatus =
   | 'PENDING'
   | 'CONFIRMED'
+  | 'PARTIALLY_PAID'
   | 'CANCELLED'
   | 'REFUNDED'
   | 'CHECKED_IN'
@@ -8,13 +9,56 @@ export type BookingStatus =
 
 export type PaymentMethod =
   | 'BIRBANK'
+  | 'TAMKART'
+  | 'BOLKART'
+  | 'ALBALI'
   | 'KAPITAL_BANK'
   | 'STRIPE'
   | 'EMANAT'
   | 'MILLION'
   | 'CASH_DESK';
 
-export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+export type PaymentStatus = 
+  | 'PENDING' 
+  | 'PAID' 
+  | 'PARTIALLY_PAID' 
+  | 'OVERDUE' 
+  | 'FAILED' 
+  | 'REFUNDED';
+
+export type PaymentType = 'FULL' | 'DEPOSIT' | 'INSTALLMENT' | 'BALANCE';
+
+export type InstallmentCardType = 
+  | 'BIRKART' 
+  | 'TAMKART' 
+  | 'BOLKART' 
+  | 'ALBALI' 
+  | 'STANDARD';
+
+export interface InstallmentOptionItem {
+  months: number;
+  label: string;
+  monthlyPayment: number;
+  totalPayment: number;
+  formattedMonthly: string;
+  isZeroInterest: boolean;
+}
+
+export interface BinDetectionResult {
+  bin: string;
+  bankCode: 'KAPITAL' | 'ABB' | 'BANK_OF_BAKU' | 'UNIBANK' | 'RABITABANK' | 'PASHA_BANK' | 'OTHER';
+  bankName: string;
+  cardName: string;
+  cardBrand: 'VISA' | 'MASTERCARD' | 'AMEX' | 'MIR';
+  cardType: 'INSTALLMENT' | 'DEBIT';
+  isInstallment: boolean;
+  supportedMonths: number[];
+  themeColor: string;
+  badgeText: string;
+  logo: string;
+  isLocalCard: boolean;
+  installments?: InstallmentOptionItem[];
+}
 
 export interface PassengerInfo {
   seatNumber: number;
@@ -46,6 +90,14 @@ export interface Booking {
   totalAmount: number;
   totalPrice?: number;
   paidAmount?: number;
+  remainingAmount?: number;
+  paymentType?: PaymentType;
+  depositDueDate?: string | null;
+  depositPaidAt?: string | null;
+  balancePaidAt?: string | null;
+  balanceToken?: string | null;
+  installmentMonths?: number;
+  installmentCardType?: string | null;
   seats?: number;
   currency: string;
   status: BookingStatus;
@@ -96,4 +148,13 @@ export interface CreateBookingPayload {
   passengers: PassengerInfo[];
   promoCode?: string;
   paymentMethod: PaymentMethod;
+  paymentType?: PaymentType;
+  installmentMonths?: number;
+  installmentCardType?: string;
+  passengerName?: string;
+  passengerSurname?: string;
+  contactNumber?: string;
+  contactEmail?: string;
+  paidAmount?: number;
+  paymentStatus?: string;
 }

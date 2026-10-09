@@ -20,6 +20,10 @@ class TeamsService {
         status: true,
         lastLoginAt: true,
         createdAt: true,
+        guidedTours: {
+          where: { deletedAt: null, status: 'Active' },
+          select: { id: true },
+        },
       },
       orderBy: { createdAt: 'asc' },
     });
@@ -36,6 +40,7 @@ class TeamsService {
       status: u.status || 'Active',
       lastLoginAt: u.lastLoginAt,
       createdAt: u.createdAt,
+      assignedToursCount: u.guidedTours ? u.guidedTours.length : 0,
     }));
 
     const kpis = {
@@ -49,6 +54,40 @@ class TeamsService {
   }
 
   async inviteMember(companyId, inviterUser, { name, email, phone, role, password }) {
+    const inviterRole = (inviterUser?.agencyRole || 'OWNER').toUpperCase();
+    if (inviterRole !== 'OWNER' && inviterRole !== 'MANAGER') {
+      throw ApiError.forbidden('Yalnız şirkət rəhbəri və ya meneceri yeni əməkdaş əlavə edə bilər.');
+    }
+
+    const assignedRole = (role || 'GUIDE').toUpperCase();
+    if (inviterRole === 'MANAGER' && (assignedRole === 'OWNER' || assignedRole === 'MANAGER')) {
+      throw ApiError.forbidden('Menecer yalnız Bələdçi və ya Mühasib dəvət edə bilər.');
+    }
+
+    // 1. Abunəlik planı üzrə komanda üzvü kvotasının yoxlanılması (SaaS Quota Guard)
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      include: { plan: true },
+    });
+
+    if (company) {
+      const planName = company.plan?.name || 'Başlanğıc (Starter)';
+      let maxMembers = 1;
+      if (planName.includes('Pro')) maxMembers = 5;
+      else if (planName.includes('Enterprise')) maxMembers = -1;
+
+      if (maxMembers !== -1) {
+        const activeMembersCount = await prisma.user.count({
+          where: { companyId, deletedAt: null },
+        });
+        if (activeMembersCount >= maxMembers) {
+          throw ApiError.badRequest(
+            `Abunəlik planınızın komanda üzvü limiti (${maxMembers} nəfər) dolmuşdur. Daha çox əməkdaş əlavə etmək üçün planınızı yüksəldin.`
+          );
+        }
+      }
+    }
+
     const existing = await prisma.user.findUnique({
       where: { email: email.toLowerCase().trim() },
     });
@@ -58,7 +97,7 @@ class TeamsService {
     }
 
     const validRoles = ['MANAGER', 'ACCOUNTANT', 'GUIDE', 'OWNER'];
-    const assignedRole = validRoles.includes(role?.toUpperCase()) ? role.toUpperCase() : 'GUIDE';
+    const safeRole = validRoles.includes(assignedRole) ? assignedRole : 'GUIDE';
 
     const plainPassword = password?.trim() || 'password123';
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
@@ -72,7 +111,7 @@ class TeamsService {
         password: hashedPassword,
         hashAlgorithm: 'BCRYPT',
         role: 'Vendor',
-        agencyRole: assignedRole,
+        agencyRole: safeRole,
         companyId,
         phoneNumber: phone?.trim() || null,
         status: 'Active',
@@ -99,8 +138,8 @@ class TeamsService {
           entityName: 'TeamMember',
           entityId: newUser.id,
           action: 'INVITE',
-          performedBy: `${inviterUser?.name || 'Rəhbər'} (${inviterUser?.agencyRole || 'OWNER'})`,
-          newValues: JSON.stringify({ name: newUser.name, email: newUser.email, role: assignedRole }),
+          performedBy: `${inviterUser?.name || 'Rəhbər'} (${inviterRole})`,
+          newValues: JSON.stringify({ name: newUser.name, email: newUser.email, role: safeRole }),
           createdAt: new Date(),
         },
       });
@@ -119,16 +158,26 @@ class TeamsService {
       phoneNumber: newUser.phoneNumber || '—',
       status: newUser.status,
       createdAt: newUser.createdAt,
+      assignedToursCount: 0,
     };
   }
 
   async updateMember(companyId, inviterUser, memberId, { name, phone, role, status }) {
+    const inviterRole = (inviterUser?.agencyRole || 'OWNER').toUpperCase();
     const user = await prisma.user.findFirst({
       where: { id: memberId, companyId, deletedAt: null },
     });
 
     if (!user) {
       throw ApiError.notFound('Əməkdaş tapılmadı.');
+    }
+
+    if (user.agencyRole === 'OWNER' && inviterRole !== 'OWNER') {
+      throw ApiError.forbidden('Şirkət rəhbərinin məlumatlarını yalnız rəhbər özü redaktə edə bilər.');
+    }
+
+    if (role && role.toUpperCase() === 'OWNER' && inviterRole !== 'OWNER') {
+      throw ApiError.forbidden('Yalnız şirkət rəhbəri rəhbər təyin edə bilər.');
     }
 
     const updateData = {};
@@ -143,6 +192,9 @@ class TeamsService {
     if (status) {
       const validStatuses = ['Active', 'Suspended'];
       if (validStatuses.includes(status)) {
+        if (user.agencyRole === 'OWNER' && status === 'Suspended') {
+          throw ApiError.badRequest('Şirkət rəhbərinin statusu dondurula bilməz.');
+        }
         updateData.status = status;
       }
     }
@@ -171,7 +223,7 @@ class TeamsService {
           entityName: 'TeamMember',
           entityId: memberId,
           action: 'UPDATE',
-          performedBy: `${inviterUser?.name || 'Rəhbər'} (${inviterUser?.agencyRole || 'OWNER'})`,
+          performedBy: `${inviterUser?.name || 'Rəhbər'} (${inviterRole})`,
           oldValues: JSON.stringify({ role: user.agencyRole, status: user.status }),
           newValues: JSON.stringify(updateData),
           createdAt: new Date(),
@@ -185,6 +237,11 @@ class TeamsService {
   }
 
   async removeMember(companyId, inviterUser, memberId) {
+    const inviterRole = (inviterUser?.agencyRole || 'OWNER').toUpperCase();
+    if (inviterRole !== 'OWNER' && inviterRole !== 'MANAGER') {
+      throw ApiError.forbidden('Əməkdaşı silmək üçün səlahiyyətiniz çatmır.');
+    }
+
     const user = await prisma.user.findFirst({
       where: { id: memberId, companyId, deletedAt: null },
     });
@@ -195,6 +252,10 @@ class TeamsService {
 
     if (user.agencyRole === 'OWNER') {
       throw ApiError.badRequest('Şirkət sahibini komandadan silmək mümkün deyil.');
+    }
+
+    if (user.agencyRole === 'MANAGER' && inviterRole !== 'OWNER') {
+      throw ApiError.forbidden('Meneceri yalnız şirkət rəhbəri silə bilər.');
     }
 
     await prisma.user.update({
@@ -216,7 +277,7 @@ class TeamsService {
           entityName: 'TeamMember',
           entityId: memberId,
           action: 'REMOVE',
-          performedBy: `${inviterUser?.name || 'Rəhbər'} (${inviterUser?.agencyRole || 'OWNER'})`,
+          performedBy: `${inviterUser?.name || 'Rəhbər'} (${inviterRole})`,
           oldValues: JSON.stringify({ name: user.name, email: user.email, role: user.agencyRole }),
           createdAt: new Date(),
         },
@@ -226,6 +287,130 @@ class TeamsService {
     }
 
     return { success: true, message: 'Əməkdaş komandadan uğurla silindi.' };
+  }
+
+  async resetMemberPassword(companyId, inviterUser, memberId, newPassword) {
+    const inviterRole = (inviterUser?.agencyRole || 'OWNER').toUpperCase();
+    if (inviterRole !== 'OWNER' && inviterRole !== 'MANAGER') {
+      throw ApiError.forbidden('Şifrəni sıfırlamaq üçün səlahiyyətiniz çatmır.');
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { id: memberId, companyId, deletedAt: null },
+    });
+
+    if (!user) {
+      throw ApiError.notFound('Əməkdaş tapılmadı.');
+    }
+
+    if (user.agencyRole === 'OWNER' && inviterUser?.id !== user.id && inviterRole !== 'OWNER') {
+      throw ApiError.forbidden('Şirkət rəhbərinin şifrəsini yalnız rəhbər özü dəyişə bilər.');
+    }
+
+    // Əgər yeni şifrə verilməyibsə, təhlükəsiz müvəqqəti şifrə generasiya et
+    const plainPassword = newPassword?.trim() || `Pass#${Math.floor(100000 + Math.random() * 900000)}`;
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+    await prisma.user.update({
+      where: { id: memberId },
+      data: { password: hashedPassword, hashAlgorithm: 'BCRYPT' },
+    });
+
+    // Audit log
+    try {
+      const audId = await generateUniqueId('AUD', 'auditLog');
+      await prisma.auditLog.create({
+        data: {
+          id: audId,
+          tenantId: companyId,
+          entityName: 'TeamMember',
+          entityId: memberId,
+          action: 'RESET_PASSWORD',
+          performedBy: `${inviterUser?.name || 'Rəhbər'} (${inviterRole})`,
+          newValues: JSON.stringify({ email: user.email, note: 'Şifrə rəhbərlik tərəfindən sıfırlandı' }),
+          createdAt: new Date(),
+        },
+      });
+    } catch (e) {
+      console.error('Audit log error:', e);
+    }
+
+    return {
+      success: true,
+      message: `'${user.name}' adlı əməkdaşın şifrəsi uğurla yeniləndi.`,
+      tempPassword: plainPassword,
+      email: user.email,
+      name: user.name,
+    };
+  }
+
+  async toggleMemberStatus(companyId, inviterUser, memberId) {
+    const inviterRole = (inviterUser?.agencyRole || 'OWNER').toUpperCase();
+    if (inviterRole !== 'OWNER' && inviterRole !== 'MANAGER') {
+      throw ApiError.forbidden('Statusu dəyişmək üçün səlahiyyətiniz çatmır.');
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { id: memberId, companyId, deletedAt: null },
+    });
+
+    if (!user) {
+      throw ApiError.notFound('Əməkdaş tapılmadı.');
+    }
+
+    if (user.agencyRole === 'OWNER') {
+      if (inviterRole !== 'OWNER') {
+        throw ApiError.forbidden('Şirkət rəhbərinin statusunu dəyişmək səlahiyyətiniz yoxdur.');
+      }
+      throw ApiError.badRequest('Şirkət rəhbərinin statusu dondurula bilməz.');
+    }
+
+    if (user.agencyRole === 'MANAGER' && inviterRole !== 'OWNER') {
+      throw ApiError.forbidden('Menecerin statusunu yalnız şirkət rəhbəri dəyişə bilər.');
+    }
+
+    const nextStatus = user.status === 'Active' ? 'Suspended' : 'Active';
+
+    const updated = await prisma.user.update({
+      where: { id: memberId },
+      data: { status: nextStatus },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        status: true,
+        agencyRole: true,
+      },
+    });
+
+    // Audit log
+    try {
+      const audId = await generateUniqueId('AUD', 'auditLog');
+      await prisma.auditLog.create({
+        data: {
+          id: audId,
+          tenantId: companyId,
+          entityName: 'TeamMember',
+          entityId: memberId,
+          action: nextStatus === 'Suspended' ? 'SUSPEND' : 'ACTIVATE',
+          performedBy: `${inviterUser?.name || 'Rəhbər'} (${inviterRole})`,
+          oldValues: JSON.stringify({ status: user.status }),
+          newValues: JSON.stringify({ status: nextStatus }),
+          createdAt: new Date(),
+        },
+      });
+    } catch (e) {
+      console.error('Audit log error:', e);
+    }
+
+    return {
+      success: true,
+      status: updated.status,
+      message: nextStatus === 'Suspended' 
+        ? `'${user.name}' adlı əməkdaşın girişi donduruldu.`
+        : `'${user.name}' adlı əməkdaşın girişi yenidən aktivləşdirildi.`,
+      user: updated,
+    };
   }
 
   getPermissionsMatrix() {
@@ -289,11 +474,27 @@ class TeamsService {
     ];
   }
 
-  async getActivityLogs(companyId) {
+  async getActivityLogs(companyId, query = {}) {
+    const { action, search, limit = 50 } = query;
+    const where = { tenantId: companyId };
+
+    if (action && action !== 'ALL') {
+      where.action = action;
+    }
+
+    if (search) {
+      where.OR = [
+        { performedBy: { contains: search } },
+        { entityName: { contains: search } },
+        { newValues: { contains: search } },
+        { oldValues: { contains: search } },
+      ];
+    }
+
     const logs = await prisma.auditLog.findMany({
-      where: { tenantId: companyId },
+      where,
       orderBy: { createdAt: 'desc' },
-      take: 25,
+      take: Math.min(100, Math.max(1, Number(limit))),
     });
 
     return logs.map((l) => ({
@@ -302,6 +503,8 @@ class TeamsService {
       entityId: l.entityId,
       action: l.action,
       performedBy: l.performedBy || 'Sistem',
+      oldValues: l.oldValues,
+      newValues: l.newValues,
       details: l.newValues || l.oldValues || '—',
       createdAt: l.createdAt,
     }));
@@ -310,3 +513,4 @@ class TeamsService {
 
 export const teamsService = new TeamsService();
 export default teamsService;
+

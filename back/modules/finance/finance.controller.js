@@ -115,6 +115,33 @@ class FinanceController {
     const result = await financeService.getVendorPayouts(companyId);
     return res.json({ status: 'success', msg: 'Çıxarış sorğuları gətirildi', data: result });
   });
+
+  cancelPayout = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId;
+    if (!companyId) throw ApiError.badRequest('Yalnız şirkət istifadəçiləri çıxarışı ləğv edə bilər.');
+
+    const { payoutId } = req.params;
+    if (!payoutId) throw ApiError.badRequest('Payout ID daxil edilməlidir.');
+
+    const result = await financeService.cancelPayout(companyId, payoutId);
+    return res.json({ status: 'success', msg: result.message, data: result });
+  });
+
+  getVendorEscrowDetails = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId || req.query.companyId;
+    if (!companyId) throw ApiError.badRequest('Şirkət ID təyin edilməyib.');
+
+    const result = await financeService.getVendorEscrowDetails(companyId);
+    return res.json({ status: 'success', msg: 'Gözləmədəki balans tərkibi gətirildi', data: result });
+  });
+
+  updateBankDetails = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId;
+    if (!companyId) throw ApiError.badRequest('Şirkət ID təyin edilməyib.');
+
+    const result = await financeService.updateBankDetails(companyId, req.body);
+    return res.json({ status: 'success', msg: 'Bank rekvizitləri uğurla yeniləndi', data: result });
+  });
 }
 
 export const financeController = new FinanceController();

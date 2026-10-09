@@ -11,6 +11,9 @@ interface OrderSummaryPanelProps {
   priceBreakdown: PriceCalculationResult | null;
   onPay: () => void;
   isLoading: boolean;
+  paymentScheme?: 'FULL' | 'DEPOSIT';
+  depositAmount?: number;
+  remainingAmount?: number;
 }
 
 export const OrderSummaryPanel: React.FC<OrderSummaryPanelProps> = ({
@@ -19,7 +22,12 @@ export const OrderSummaryPanel: React.FC<OrderSummaryPanelProps> = ({
   priceBreakdown,
   onPay,
   isLoading,
+  paymentScheme = 'FULL',
+  depositAmount,
+  remainingAmount,
 }) => {
+  const isDeposit = paymentScheme === 'DEPOSIT' && depositAmount !== undefined;
+
   return (
     <Card variant="glass" className="web-order-summary-panel">
       <h3 className="web-order-summary-title">Sifariş Xülasəsi</h3>
@@ -55,6 +63,19 @@ export const OrderSummaryPanel: React.FC<OrderSummaryPanelProps> = ({
         seatsCount={passengers.length}
       />
 
+      {isDeposit && (
+        <div className="web-order-deposit-breakdown-box">
+          <div className="deposit-row now">
+            <span>İndi Ödəniləcək (30%):</span>
+            <strong>{depositAmount.toFixed(2)} {tour.currency || 'AZN'}</strong>
+          </div>
+          <div className="deposit-row later">
+            <span>Qalan Qalıq Borc (70%):</span>
+            <span>{remainingAmount?.toFixed(2)} {tour.currency || 'AZN'}</span>
+          </div>
+        </div>
+      )}
+
       <div className="web-order-security">
         <ShieldCheck size={18} className="security-icon" />
         <span>3D Secure ilə 100% güvənli ödəniş</span>
@@ -68,7 +89,7 @@ export const OrderSummaryPanel: React.FC<OrderSummaryPanelProps> = ({
         rightIcon={<ArrowRight size={18} />}
         style={{ width: '100%' }}
       >
-        Ödənişi Tamamla
+        {isDeposit ? `30% Depoziti Ödə (${depositAmount.toFixed(2)} ${tour.currency || 'AZN'})` : 'Ödənişi Tamamla'}
       </Button>
     </Card>
   );

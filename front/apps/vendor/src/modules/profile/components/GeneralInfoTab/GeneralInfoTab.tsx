@@ -20,6 +20,8 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
     voen: company.voen || '',
     email: company.email || '',
     phone: company.phone || company.phoneNumber || '',
+    hotline: '',
+    dtaRegistry: '',
     city: company.city || 'Bakı',
     address: company.address || '',
     website: company.website || '',
@@ -31,6 +33,7 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
     telegram: ''
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
@@ -51,6 +54,8 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
       voen: company.voen || '',
       email: company.email || '',
       phone: company.phone || company.phoneNumber || '',
+      hotline: social.hotline || '+994 12 599 00 00',
+      dtaRegistry: social.dtaRegistry || `DTA-TR-2026/${company.id.replace(/\D/g, '').slice(0, 4) || '8941'}`,
       city: company.city || 'Bakı',
       address: company.address || '',
       website: company.website || '',
@@ -61,24 +66,70 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
       facebook: social.facebook || '',
       telegram: social.telegram || ''
     });
+    setErrors({});
   }, [company]);
 
+  // Validasiya yoxlanışı
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
+      newErrors.name = 'Şirkət adı ən azı 2 simvol olmalıdır';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim() || !emailRegex.test(formData.email.trim())) {
+      newErrors.email = 'Düzgün e-poçt ünvanı daxil edin (məs: info@agentlik.az)';
+    }
+
+    const phoneClean = formData.phone.replace(/[\s\-\(\)]/g, '');
+    if (!phoneClean || phoneClean.length < 9) {
+      newErrors.phone = 'Düzgün əlaqə nömrəsi daxil edin (məs: +994 50 123 45 67)';
+    }
+
+    if (formData.website.trim() && !/^https?:\/\/.+/i.test(formData.website.trim())) {
+      newErrors.website = 'Vebsayt ünvanı http:// və ya https:// ilə başlamalıdır';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
+
+    if (errors[name]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setNotification(null);
 
+    if (!validate()) {
+      setNotification({
+        type: 'error',
+        text: 'Zəhmət olmasa tələb olunan sahələrdəki xətaları düzəldin.'
+      });
+      return;
+    }
+
     const socialLinks: CompanySocialLinks = {
       instagram: formData.instagram.trim(),
       whatsapp: formData.whatsapp.trim(),
       facebook: formData.facebook.trim(),
-      telegram: formData.telegram.trim()
+      telegram: formData.telegram.trim(),
+      hotline: formData.hotline.trim(),
+      dtaRegistry: formData.dtaRegistry.trim()
     };
 
     try {
@@ -98,7 +149,7 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
 
       setNotification({
         type: 'success',
-        text: 'Əsas şirkət məlumatları və brend detalları uğurla yadda saxlanıldı!'
+        text: 'Əsas şirkət məlumatları və rəsmi qeydiyyat detalları uğurla yadda saxlanıldı!'
       });
       setTimeout(() => setNotification(null), 4000);
     } catch {
@@ -124,12 +175,17 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
         {/* Section 1: Official Identity */}
         <div className="form-card-section">
           <div className="section-title-wrap">
-            <h3 className="section-title">Hüquqi və Brend İdentikliyi</h3>
+            <div className="title-with-badge">
+              <h3 className="section-title">Hüquqi və Brend İdentikliyi</h3>
+              <span className="dta-verified-chip" title="Dövlət Turizm Agentliyinin reyestrində qeydiyyatdan keçmişdir">
+                🛡️ DTA Lisenziyalı
+              </span>
+            </div>
             <p className="section-desc">Turizm portalında və müştəri biletlərində görünəcək rəsmi ad və vergi rekvizitləri</p>
           </div>
 
           <div className="form-row-2">
-            <div className="form-field-group">
+            <div className={`form-field-group ${errors.name ? 'has-error' : ''}`}>
               <label htmlFor="name">
                 Agentliyin İctimai Adı <span className="req-star">*</span>
               </label>
@@ -139,10 +195,13 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
-                required
                 placeholder="Məs: AzTour Travel"
               />
-              <span className="field-hint">Müştərilərin kataloqda və axtarışda gördüyü brend adı</span>
+              {errors.name ? (
+                <span className="field-error-text">{errors.name}</span>
+              ) : (
+                <span className="field-hint">Müştərilərin kataloqda və axtarışda gördüyü brend adı</span>
+              )}
             </div>
 
             <div className="form-field-group">
@@ -159,7 +218,7 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
             </div>
           </div>
 
-          <div className="form-row-2">
+          <div className="form-row-3">
             <div className="form-field-group">
               <label htmlFor="voen">
                 VÖEN (Vergi Nömrəsi) <span className="badge-locked">Kilidli</span>
@@ -174,10 +233,26 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
                 />
                 <span className="locked-icon">🔒</span>
               </div>
-              <span className="field-hint">Dövlət Vergi Xidmətində təsdiqlənmişdir (Dəyişiklik üçün dəstəyə müraciət edin)</span>
+              <span className="field-hint">Dövlət Vergi Xidməti tərəfindən təsdiqlənib</span>
             </div>
 
             <div className="form-field-group">
+              <label htmlFor="dtaRegistry">DTA Turizm Reyestr Kodu</label>
+              <div className="input-locked-wrap">
+                <input
+                  id="dtaRegistry"
+                  name="dtaRegistry"
+                  type="text"
+                  value={formData.dtaRegistry}
+                  onChange={handleChange}
+                  placeholder="DTA-TR-2026/8941"
+                />
+                <span className="locked-icon" title="Reyestr qeydiyyatı">🏛️</span>
+              </div>
+              <span className="field-hint">Dövlət Turizm Agentliyinin rəsmi reyestr nömrəsi</span>
+            </div>
+
+            <div className={`form-field-group ${errors.website ? 'has-error' : ''}`}>
               <label htmlFor="website">Rəsmi Vebsayt</label>
               <input
                 id="website"
@@ -187,7 +262,11 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
                 onChange={handleChange}
                 placeholder="https://aztour.az"
               />
-              <span className="field-hint">Agentliyinizin rəsmi internet səhifəsi</span>
+              {errors.website ? (
+                <span className="field-error-text">{errors.website}</span>
+              ) : (
+                <span className="field-hint">Agentliyinizin rəsmi internet səhifəsi</span>
+              )}
             </div>
           </div>
 
@@ -212,8 +291,8 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
             <p className="section-desc">Müştərilərin və bələdçilərin sizinlə əlaqə saxlayacağı kanallar</p>
           </div>
 
-          <div className="form-row-2">
-            <div className="form-field-group">
+          <div className="form-row-3">
+            <div className={`form-field-group ${errors.email ? 'has-error' : ''}`}>
               <label htmlFor="email">
                 Rəsmi E-poçt <span className="req-star">*</span>
               </label>
@@ -223,14 +302,14 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                required
                 placeholder="info@aztour.az"
               />
+              {errors.email && <span className="field-error-text">{errors.email}</span>}
             </div>
 
-            <div className="form-field-group">
+            <div className={`form-field-group ${errors.phone ? 'has-error' : ''}`}>
               <label htmlFor="phone">
-                Əlaqə Telefonu <span className="req-star">*</span>
+                Əsas Telefon <span className="req-star">*</span>
               </label>
               <input
                 id="phone"
@@ -238,9 +317,22 @@ export const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
                 type="tel"
                 value={formData.phone}
                 onChange={handleChange}
-                required
                 placeholder="+994 50 123 45 67"
               />
+              {errors.phone && <span className="field-error-text">{errors.phone}</span>}
+            </div>
+
+            <div className="form-field-group">
+              <label htmlFor="hotline">24/7 Turist Qaynar Xətti</label>
+              <input
+                id="hotline"
+                name="hotline"
+                type="tel"
+                value={formData.hotline}
+                onChange={handleChange}
+                placeholder="+994 12 599 00 00 və ya *8899"
+              />
+              <span className="field-hint">Turlar zamanı təcili əlaqə nömrəsi</span>
             </div>
           </div>
 

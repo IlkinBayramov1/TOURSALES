@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { RolePermissionRow, teamApi } from '../../teamApi';
+import { useVendorAuth } from '@/shared/context/VendorAuthContext';
 import { ShieldCheck, Check, Minus } from 'lucide-react';
 import './RolePermissionsMatrix.css';
 
 export const RolePermissionsMatrix: React.FC = () => {
+  const { activeAgencyRole } = useVendorAuth();
   const [matrix, setMatrix] = useState<RolePermissionRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,10 +43,22 @@ export const RolePermissionsMatrix: React.FC = () => {
           <thead>
             <tr>
               <th className="col-mod">Sistem Modulu</th>
-              <th className="col-role owner">Rəhbər (OWNER)</th>
-              <th className="col-role manager">Menecer (MANAGER)</th>
-              <th className="col-role accountant">Mühasib (ACCOUNTANT)</th>
-              <th className="col-role guide">Bələdçi (GUIDE)</th>
+              <th className={`col-role owner ${activeAgencyRole === 'OWNER' ? 'active-col' : ''}`}>
+                👑 Rəhbər (OWNER)
+                {activeAgencyRole === 'OWNER' && <span className="active-dot"> ● Hazırda Aktiv</span>}
+              </th>
+              <th className={`col-role manager ${activeAgencyRole === 'MANAGER' ? 'active-col' : ''}`}>
+                🛡️ Menecer (MANAGER)
+                {activeAgencyRole === 'MANAGER' && <span className="active-dot"> ● Hazırda Aktiv</span>}
+              </th>
+              <th className={`col-role accountant ${activeAgencyRole === 'ACCOUNTANT' ? 'active-col' : ''}`}>
+                📊 Mühasib (ACCOUNTANT)
+                {activeAgencyRole === 'ACCOUNTANT' && <span className="active-dot"> ● Hazırda Aktiv</span>}
+              </th>
+              <th className={`col-role guide ${activeAgencyRole === 'GUIDE' ? 'active-col' : ''}`}>
+                📱 Bələdçi (GUIDE)
+                {activeAgencyRole === 'GUIDE' && <span className="active-dot"> ● Hazırda Aktiv</span>}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -54,20 +68,20 @@ export const RolePermissionsMatrix: React.FC = () => {
                   <div className="matrix-module-name">{row.module}</div>
                   <div className="matrix-module-desc">{row.description}</div>
                 </td>
-                <td className="col-role owner">
+                <td className={`col-role owner ${activeAgencyRole === 'OWNER' ? 'active-col' : ''}`}>
                   <span className="matrix-perm-tag full">{row.owner}</span>
                 </td>
-                <td className="col-role manager">
+                <td className={`col-role manager ${activeAgencyRole === 'MANAGER' ? 'active-col' : ''}`}>
                   <span className={`matrix-perm-tag ${row.manager.includes('Tam') || row.manager.includes('Bəli') ? 'high' : row.manager.includes('Yoxdur') ? 'none' : 'mid'}`}>
                     {row.manager}
                   </span>
                 </td>
-                <td className="col-role accountant">
+                <td className={`col-role accountant ${activeAgencyRole === 'ACCOUNTANT' ? 'active-col' : ''}`}>
                   <span className={`matrix-perm-tag ${row.accountant.includes('Tam') ? 'high' : row.accountant.includes('Yoxdur') ? 'none' : 'mid'}`}>
                     {row.accountant}
                   </span>
                 </td>
-                <td className="col-role guide">
+                <td className={`col-role guide ${activeAgencyRole === 'GUIDE' ? 'active-col' : ''}`}>
                   <span className={`matrix-perm-tag ${row.guide.includes('Əsas') || row.guide.includes('Bəli') ? 'high' : row.guide.includes('Yoxdur') ? 'none' : 'mid'}`}>
                     {row.guide}
                   </span>

@@ -4,119 +4,245 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
-  padding: 1rem;
+  z-index: 1000;
+  padding: 1.25rem;
 }
 
 .payout-modal-card {
-  background-color: var(--color-bg-elevated);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-xl);
-  max-width: 480px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+  max-width: 500px;
   width: 100%;
-  padding: 2rem;
-  animation: modalPopIn 0.2s ease-out;
+  padding: 28px;
+  animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes modalPopIn {
-  from { opacity: 0; transform: scale(0.95); }
+@keyframes modalScaleIn {
+  from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
 
 .payout-modal-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  margin-bottom: 20px;
 }
 
-.payout-modal-header h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
+.payout-header-title h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.payout-header-title p {
+  font-size: 13px;
+  color: #64748b;
   margin: 0;
 }
 
 .payout-close-btn {
-  background: none;
+  background: transparent;
   border: none;
-  font-size: 1.25rem;
+  font-size: 24px;
+  color: #94a3b8;
   cursor: pointer;
-  color: var(--color-text-muted);
+  line-height: 1;
+  padding: 4px;
+  transition: color 0.15s ease;
+}
+
+.payout-close-btn:hover {
+  color: #0f172a;
 }
 
 .payout-info-box {
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid var(--color-border);
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #bbf7d0;
+}
+
+.payout-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
 }
 
 .payout-info-label {
-  font-size: 0.8125rem;
-  color: var(--color-text-secondary);
-  margin-bottom: 0.25rem;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #166534;
+}
+
+.payout-info-pill {
+  background-color: #dcfce7;
+  color: #15803d;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #86efac;
 }
 
 .payout-info-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-success);
+  font-size: 26px;
+  font-weight: 800;
+  color: #15803d;
+  font-variant-numeric: tabular-nums;
 }
 
 .payout-form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 18px;
 }
 
 .payout-form-group label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-primary);
-  margin-bottom: 0.375rem;
+  color: #334155;
+  margin-bottom: 6px;
 }
 
-.payout-form-group input,
-.payout-form-group select {
+.payout-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.payout-input-wrap input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-size: 0.9375rem;
-  box-sizing: border-box;
+  padding: 11px 48px 11px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 700;
 }
 
-.payout-form-group input:focus,
-.payout-form-group select:focus {
+.payout-currency-suffix {
+  position: absolute;
+  right: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.payout-iban-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.payout-iban-input-wrap input {
+  width: 100%;
+  padding: 11px 42px 11px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+}
+
+.payout-iban-input-wrap input.valid {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+}
+
+.payout-iban-status-icon {
+  position: absolute;
+  right: 12px;
+  color: #10b981;
+}
+
+.payout-iban-length-tag {
+  position: absolute;
+  right: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  font-family: ui-monospace, monospace;
+}
+
+.payout-input-wrap input:focus,
+.payout-iban-input-wrap input:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.payout-bank-detected-pill {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #1d4ed8;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.payout-meta-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.payout-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.payout-meta-item strong {
+  color: #1e293b;
+}
+
+.payout-meta-item svg {
+  color: #2563eb;
 }
 
 .payout-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background-color: #fef2f2;
   border: 1px solid #fecaca;
   color: #b91c1c;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  margin-bottom: 1.25rem;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 16px;
   font-weight: 500;
 }
 
 .payout-quick-pills {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  gap: 8px;
+  margin-top: 8px;
   flex-wrap: wrap;
 }
 
@@ -124,8 +250,8 @@
   background-color: #f1f5f9;
   border: 1px solid #e2e8f0;
   border-radius: 9999px;
-  padding: 0.35rem 0.85rem;
-  font-size: 0.8125rem;
+  padding: 5px 12px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #475569;
   cursor: pointer;
@@ -144,7 +270,7 @@
 
 .payout-quick-pill.full {
   background-color: rgba(37, 99, 235, 0.1);
-  border-color: rgba(37, 99, 235, 0.3);
+  border-color: rgba(37, 99, 235, 0.25);
   color: #2563eb;
 }
 
@@ -152,16 +278,9 @@
   background-color: rgba(37, 99, 235, 0.2);
 }
 
-.payout-hint {
-  display: block;
-  font-size: 0.75rem;
-  color: #64748b;
-  margin-top: 0.375rem;
-}
-
 .payout-actions {
   display: flex;
-  gap: 1rem;
+  gap: 12px;
   justify-content: flex-end;
-  margin-top: 2rem;
+  margin-top: 24px;
 }

@@ -29,6 +29,7 @@ export const vendorAdsApi = {
     title?: string;
     imageUrl?: string;
     linkUrl?: string;
+    paymentMethod?: 'BALANCE' | 'CARD' | 'INVOICE';
   }): Promise<Ad> => {
     const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.ADS.PURCHASE, data);
     return res.data?.data || res.data;
@@ -51,6 +52,12 @@ export const vendorAdsApi = {
     const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.CAMPAIGNS.LIST, {
       params: { companyOnly: true }
     });
+    return res.data?.data || res.data;
+  },
+
+  // Promokod statusunu dəyişmək (Active <-> Paused)
+  togglePromoStatus: async (id: string): Promise<CampaignPromo> => {
+    const res = await vendorAxiosClient.patch(VENDOR_ENDPOINTS.CAMPAIGNS.STATUS(id));
     return res.data?.data || res.data;
   },
 

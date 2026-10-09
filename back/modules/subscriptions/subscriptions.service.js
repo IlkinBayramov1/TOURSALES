@@ -105,6 +105,14 @@ class SubscriptionsService {
       where: { companyId, deletedAt: null }
     });
 
+    const activeMembersCount = await prisma.user.count({
+      where: { companyId, deletedAt: null }
+    });
+
+    const activeApiKeysCount = await prisma.apiKey.count({
+      where: { companyId, status: 'Active' }
+    });
+
     let plan = company.plan;
     if (!plan) {
       plan = await prisma.subscriptionPlan.findFirst({
@@ -121,18 +129,35 @@ class SubscriptionsService {
       }
     }
 
+    const planName = plan ? plan.name : 'Peşəkar (Pro)';
+    const maxTours = planName.includes('Starter') ? 5 : planName.includes('Pro') ? 50 : -1;
+    const maxMembers = planName.includes('Starter') ? 1 : planName.includes('Pro') ? 5 : -1;
+    const maxApiKeys = planName.includes('Starter') ? 0 : planName.includes('Pro') ? 2 : -1;
+
+    const now = new Date();
+    let daysLeft = 0;
+    if (company.nextBillingDate) {
+      const diffTime = new Date(company.nextBillingDate).getTime() - now.getTime();
+      daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    }
+
     return {
       companyId: company.id,
       companyName: company.name,
       planId: plan ? plan.id : null,
-      planName: plan ? plan.name : 'Peşəkar (Pro)',
+      planName,
       monthlyPrice: plan ? Number(plan.monthlyPrice) : 49,
       domesticCommission: plan ? Number(plan.domesticCommission) : 5.0,
       foreignCommission: plan ? Number(plan.foreignCommission) : 7.0,
       commissionRate: plan ? Number(plan.domesticCommission) : 5.0,
       features: parsedFeatures,
-      maxTours: plan?.name?.includes('Starter') ? 5 : plan?.name?.includes('Pro') ? 50 : -1,
+      maxTours,
       activeToursCount,
+      maxMembers,
+      activeMembersCount,
+      maxApiKeys,
+      activeApiKeysCount,
+      daysLeft,
       autoRenewSubscription: company.autoRenewSubscription ?? true,
       nextBillingDate: company.nextBillingDate || null,
       availableBalance: Number(company.availableBalance || 0)
@@ -229,22 +254,35 @@ class SubscriptionsService {
   async changePlan(companyId, payload) {
     const planId = typeof payload === 'string' ? payload : payload.planId;
     const billingCycle = payload?.billingCycle || 'MONTHLY'; // 'MONTHLY' | 'YEARLY'
-    const payFromBalance = payload?.payFromBalance !== false;
+    const paymentMethod = (payload?.paymentMethod || (payload?.payFromBalance === false ? 'CARD' : 'BALANCE')).toUpperCase(); // 'BALANCE' | 'CARD' | 'BANK_TRANSFER'
 
     const [company, plan] = await Promise.all([
-      prisma.company.findUnique({ where: { id: companyId } }),
+      prisma.company.findUnique({ where: { id: companyId }, include: { plan: true } }),
       prisma.subscriptionPlan.findUnique({ where: { id: planId } })
     ]);
 
     if (!company) throw ApiError.notFound('Şirkət tapılmadı.');
     if (!plan) throw ApiError.notFound('Abunəlik planı tapılmadı.');
 
+    // 1. Ağıllı Downgrade Guard (Aktiv turlar limiti yoxlanışı)
+    const targetMaxTours = plan.name?.includes('Starter') ? 5 : plan.name?.includes('Pro') ? 50 : -1;
+    if (targetMaxTours !== -1) {
+      const activeToursCount = await prisma.tour.count({
+        where: { companyId, status: 'Active', deletedAt: null }
+      });
+      if (activeToursCount > targetMaxTours) {
+        throw ApiError.badRequest(
+          `Planı '${plan.name}' səviyyəsinə endirə bilməzsiniz. Sizin hazırda ${activeToursCount} aktiv turunuz var, lakin bu plan yalnız maksimum ${targetMaxTours} aktiv tura icazə verir. Zəhmət olmasa, əvvəlcə ən azı ${activeToursCount - targetMaxTours} turu arxivləşdirin və ya deaktiv edin.`
+        );
+      }
+    }
+
+    // 2. Qiymət hesablanması
     const monthlyPrice = Number(plan.monthlyPrice || 0);
     let chargeAmount = 0;
-
     if (monthlyPrice > 0) {
       if (billingCycle === 'YEARLY') {
-        chargeAmount = Math.round(monthlyPrice * 12 * 0.8); // 20% discount
+        chargeAmount = Math.round(monthlyPrice * 12 * 0.8); // 20% endirim
       } else {
         chargeAmount = monthlyPrice;
       }
@@ -252,10 +290,11 @@ class SubscriptionsService {
 
     const currentBalance = Number(company.availableBalance || 0);
 
-    if (chargeAmount > 0 && payFromBalance) {
+    // 3. Balans yoxlanışı (Əgər paymentMethod === 'BALANCE' və qiymət > 0)
+    if (chargeAmount > 0 && paymentMethod === 'BALANCE') {
       if (currentBalance < chargeAmount) {
         throw ApiError.badRequest(
-          `Balansınızda kifayət qədər vəsait yoxdur. Tələb olunan: ${chargeAmount} AZN, Mövcud balans: ${currentBalance.toFixed(2)} AZN.`
+          `Platforma balansınızda kifayət qədər vəsait yoxdur. Tələb olunan: ${chargeAmount} AZN, Mövcud balans: ${currentBalance.toFixed(2)} AZN. Zəhmət olmasa, Bank Kartı və ya B2B Faktura ilə ödəniş edin.`
         );
       }
     }
@@ -267,10 +306,12 @@ class SubscriptionsService {
       nextBillingDate.setDate(nextBillingDate.getDate() + 30);
     }
 
-    // Execute in transaction
+    // 4. İcra (Transaction)
     const result = await prisma.$transaction(async (tx) => {
       let updatedCompany = company;
-      if (chargeAmount > 0 && payFromBalance) {
+      const isBankTransfer = chargeAmount > 0 && paymentMethod === 'BANK_TRANSFER';
+
+      if (chargeAmount > 0 && paymentMethod === 'BALANCE') {
         const newBal = currentBalance - chargeAmount;
         updatedCompany = await tx.company.update({
           where: { id: companyId },
@@ -282,7 +323,7 @@ class SubscriptionsService {
           include: { plan: true }
         });
 
-        // Ledger Transaction
+        // Ledger Tranzaksiyası (Debet / Outflow)
         const txId = await generateUniqueId('TX', 'transaction');
         await tx.transaction.create({
           data: {
@@ -291,12 +332,47 @@ class SubscriptionsService {
             type: 'SUBSCRIPTION',
             amount: chargeAmount,
             commission: 0,
-            netAmount: chargeAmount,
+            netAmount: -chargeAmount,
             status: 'Completed',
-            description: `${plan.name} abunəlik haqqı (${billingCycle === 'YEARLY' ? 'İllik -20%' : 'Aylıq'})`
+            description: `${plan.name} abunəlik haqqı (Balansdan ödəniş, ${billingCycle === 'YEARLY' ? 'İllik -20%' : 'Aylıq'})`
           }
         });
+      } else if (chargeAmount > 0 && paymentMethod === 'CARD') {
+        // Onlayn kart ödənişi (Kapital/Pasha simulyasiyası - dərhal aktivləşir)
+        updatedCompany = await tx.company.update({
+          where: { id: companyId },
+          data: {
+            planId,
+            nextBillingDate
+          },
+          include: { plan: true }
+        });
+
+        const txId = await generateUniqueId('TX', 'transaction');
+        await tx.transaction.create({
+          data: {
+            id: txId,
+            companyId,
+            type: 'SUBSCRIPTION',
+            amount: chargeAmount,
+            commission: 0,
+            netAmount: 0,
+            status: 'Completed',
+            description: `${plan.name} abunəlik haqqı (Onlayn Bank Kartı, ${billingCycle === 'YEARLY' ? 'İllik -20%' : 'Aylıq'})`
+          }
+        });
+      } else if (isBankTransfer) {
+        // B2B Bank Köçürməsi: Faktura yaradılır
+        updatedCompany = await tx.company.update({
+          where: { id: companyId },
+          data: {
+            planId,
+            nextBillingDate
+          },
+          include: { plan: true }
+        });
       } else {
+        // Pulsuz plan (Starter)
         updatedCompany = await tx.company.update({
           where: { id: companyId },
           data: {
@@ -309,26 +385,154 @@ class SubscriptionsService {
 
       // Create SubscriptionPayment invoice
       const paymentId = await generateUniqueId('SPY', 'subscriptionPayment');
+      const paymentStatus = isBankTransfer ? 'Pending' : 'Paid';
+
       await tx.subscriptionPayment.create({
         data: {
           id: paymentId,
           companyId,
           planId,
           amount: chargeAmount,
-          status: 'Paid',
+          status: paymentStatus,
           paymentDate: new Date(),
           dueDate: nextBillingDate
         }
       });
 
-      return updatedCompany;
+      return {
+        updatedCompany,
+        paymentId,
+        paymentStatus,
+        chargeAmount
+      };
     });
+
+    let successMsg = `Abunəlik planınız uğurla '${plan.name}' (${billingCycle === 'YEARLY' ? 'İllik' : 'Aylıq'}) olaraq aktivləşdirildi.`;
+    if (paymentMethod === 'BANK_TRANSFER' && chargeAmount > 0) {
+      successMsg = `'${plan.name}' planı üçün #${result.paymentId} nömrəli rəsmi hesablaşma fakturası tərtib edildi. Bank köçürməsi təsdiq edildikdən sonra status yenilənəcəkdir.`;
+    }
 
     return {
       success: true,
-      message: `Abunəlik planınız uğurla '${plan.name}' (${billingCycle === 'YEARLY' ? 'İllik' : 'Aylıq'}) olaraq yeniləndi.`,
-      company: result
+      message: successMsg,
+      paymentId: result.paymentId,
+      status: result.paymentStatus,
+      paymentMethod,
+      company: result.updatedCompany
     };
+  }
+
+  // --- AUTOMATED CRON RENEWALS ---
+  async processSubscriptionAutoRenewals() {
+    const now = new Date();
+    // 1. Vaxtı çatmış və avtomatik yenilənməsi aktiv olan şirkətləri tap
+    const dueCompanies = await prisma.company.findMany({
+      where: {
+        planId: { not: null },
+        autoRenewSubscription: true,
+        nextBillingDate: { lte: now },
+        deletedAt: null
+      },
+      include: {
+        plan: true
+      }
+    });
+
+    const results = {
+      totalDue: dueCompanies.length,
+      renewed: 0,
+      failedDueToBalance: 0,
+      freeExtended: 0,
+      errors: 0
+    };
+
+    for (const company of dueCompanies) {
+      try {
+        const plan = company.plan;
+        if (!plan) continue;
+
+        const monthlyPrice = Number(plan.monthlyPrice || 0);
+        const currentBalance = Number(company.availableBalance || 0);
+
+        // Növbəti hesablaşma tarixi (30 gün sonra)
+        const nextDate = new Date(company.nextBillingDate || now);
+        nextDate.setDate(nextDate.getDate() + 30);
+
+        if (monthlyPrice === 0) {
+          // Pulsuz plan (Starter) - birbaşa 30 gün uzadılır
+          await prisma.company.update({
+            where: { id: company.id },
+            data: { nextBillingDate: nextDate }
+          });
+          results.freeExtended++;
+          continue;
+        }
+
+        // Ödənişli plan (Pro / Enterprise)
+        if (currentBalance >= monthlyPrice) {
+          // Balans kifayətdir: Balansdan çıxılır və uzadılır
+          await prisma.$transaction(async (tx) => {
+            const newBal = currentBalance - monthlyPrice;
+            await tx.company.update({
+              where: { id: company.id },
+              data: {
+                availableBalance: newBal,
+                nextBillingDate: nextDate
+              }
+            });
+
+            const txId = await generateUniqueId('TX', 'transaction');
+            await tx.transaction.create({
+              data: {
+                id: txId,
+                companyId: company.id,
+                type: 'SUBSCRIPTION',
+                amount: monthlyPrice,
+                commission: 0,
+                netAmount: -monthlyPrice,
+                status: 'Completed',
+                description: `${plan.name} abunəlik haqqı (Avtomatik aylıq yenilənmə)`
+              }
+            });
+
+            const paymentId = await generateUniqueId('SPY', 'subscriptionPayment');
+            await tx.subscriptionPayment.create({
+              data: {
+                id: paymentId,
+                companyId: company.id,
+                planId: plan.id,
+                amount: monthlyPrice,
+                status: 'Paid',
+                paymentDate: new Date(),
+                dueDate: nextDate
+              }
+            });
+          });
+          results.renewed++;
+        } else {
+          // Balans kifayət deyil: Overdue qeydi yaradılır
+          const paymentId = await generateUniqueId('SPY', 'subscriptionPayment');
+          await prisma.subscriptionPayment.create({
+            data: {
+              id: paymentId,
+              companyId: company.id,
+              planId: plan.id,
+              amount: monthlyPrice,
+              status: 'Overdue',
+              paymentDate: new Date(),
+              dueDate: company.nextBillingDate || now
+            }
+          });
+          results.failedDueToBalance++;
+          console.warn(`[Auto-Renew] Şirkət ${company.id} üçün balans çatışmadı (${currentBalance} < ${monthlyPrice}). 'Overdue' qeydi yaradıldı.`);
+        }
+      } catch (err) {
+        results.errors++;
+        console.error(`[Auto-Renew Error] Şirkət ${company.id}:`, err);
+      }
+    }
+
+    return results;
   }
 }
 

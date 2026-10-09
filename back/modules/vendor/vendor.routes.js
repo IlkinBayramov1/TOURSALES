@@ -11,6 +11,8 @@ router.use(authMiddleware());
 router.use(roleMiddleware(ROLES.VENDOR));
 
 router.get('/dashboard', vendorController.getDashboardStats);
+router.get('/dashboard/manifest/:tourId', vendorController.getManifestSummary);
+router.get('/dashboard/manifest', vendorController.getManifestSummary);
 router.get('/dashboard/export', vendorController.exportDashboard);
 
 export default router;

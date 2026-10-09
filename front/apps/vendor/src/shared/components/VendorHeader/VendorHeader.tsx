@@ -10,8 +10,20 @@ interface VendorHeaderProps {
 }
 
 export const VendorHeader: React.FC<VendorHeaderProps> = ({ onOpenScanner }) => {
-  const { user, company } = useVendorAuth();
+  const { user, company, activeAgencyRole, simulationRole } = useVendorAuth();
   const navigate = useNavigate();
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'OWNER': return '👑 Şirkət Rəhbəri';
+      case 'MANAGER': return '🛡️ Menecer';
+      case 'ACCOUNTANT': return '📊 Mühasib';
+      case 'GUIDE': return '📱 Bələdçi';
+      default: return role;
+    }
+  };
+
+  const canCreateTour = activeAgencyRole === 'OWNER' || activeAgencyRole === 'MANAGER';
 
   return (
     <header className="vendor-header">
@@ -26,16 +38,18 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({ onOpenScanner }) => 
       </div>
 
       <div className="vendor-header-right">
-        {/* Quick Tour Create CTA */}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => navigate('/tours/create')}
-          className="vendor-quick-create-btn"
-        >
-          <Plus size={16} />
-          <span>Yeni Tur</span>
-        </Button>
+        {/* Quick Tour Create CTA - only for OWNER and MANAGER */}
+        {canCreateTour && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate('/tours/create')}
+            className="vendor-quick-create-btn"
+          >
+            <Plus size={16} />
+            <span>Yeni Tur</span>
+          </Button>
+        )}
 
         {/* Quick QR Check-in scanner trigger */}
         {onOpenScanner && (
@@ -65,7 +79,9 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({ onOpenScanner }) => 
           </div>
           <div className="vendor-user-meta">
             <span className="vendor-user-name">{user?.name || company?.name || 'İlkin bayramov'}</span>
-            <span className="vendor-user-role">Tərəfdaş (Vendor)</span>
+            <span className="vendor-user-role">
+              {simulationRole ? `🎭 ${getRoleLabel(simulationRole)} (Simulyasiya)` : getRoleLabel(activeAgencyRole)}
+            </span>
           </div>
         </div>
       </div>

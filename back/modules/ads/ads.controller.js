@@ -18,7 +18,7 @@ class AdsController {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
     }
-    const result = await adsService.purchaseAd(req.user.companyId, req.body);
+    const result = await adsService.purchaseAd(req.user.companyId, req.body, req.user);
     return res.status(201).json({ status: 'success', msg: 'Reklam uğurla alındı', data: result });
   });
 
@@ -32,7 +32,7 @@ class AdsController {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
     }
-    const result = await adsService.toggleAdStatus(req.user.companyId, req.params.id);
+    const result = await adsService.toggleAdStatus(req.user.companyId, req.params.id, req.user);
     return res.json({ status: 'success', msg: 'Reklam statusu yeniləndi', data: result });
   });
 
@@ -40,7 +40,7 @@ class AdsController {
     if (!req.user.companyId) {
       throw ApiError.badRequest('Bu əməliyyat üçün istifadəçinin şirkəti olmalıdır.');
     }
-    const result = await adsService.deleteAd(req.user.companyId, req.params.id);
+    const result = await adsService.deleteAd(req.user.companyId, req.params.id, req.user);
     return res.json({ status: 'success', msg: result.message });
   });
 

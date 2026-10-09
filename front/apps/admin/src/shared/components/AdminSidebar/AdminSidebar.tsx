@@ -7,6 +7,7 @@ import {
   Scale,
   ShieldAlert,
   FileText,
+  LifeBuoy,
   LogOut,
   ShieldCheck,
   ExternalLink
@@ -23,6 +24,7 @@ export const AdminSidebar: React.FC = () => {
     { to: '/companies', label: 'Turizm Agentlikləri', icon: <Building2 size={18} /> },
     { to: '/subscriptions', label: 'Abunəlik Planları', icon: <CreditCard size={18} /> },
     { to: '/finance-audit', label: 'Maliyyə & Çıxarışlar', icon: <Scale size={18} /> },
+    { to: '/disputes', label: 'Arbitraj & Şikayətlər', icon: <LifeBuoy size={18} /> },
     { to: '/audit-logs', label: 'Təhlükəsizlik & Audit', icon: <ShieldAlert size={18} /> },
     { to: '/cms', label: 'CMS Məzmun İdarəsi', icon: <FileText size={18} /> },
   ];

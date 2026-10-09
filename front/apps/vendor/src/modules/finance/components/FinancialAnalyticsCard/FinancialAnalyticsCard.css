@@ -1,0 +1,256 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - FINANCIAL ANALYTICS & DYNAMICS CARD
+   ========================================================================== */
+
+.finance-analytics-wrapper {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.finance-analytics-wrapper:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.analytics-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 18px;
+}
+
+.analytics-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.analytics-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(14, 165, 233, 0.12));
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.analytics-title-group h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.01em;
+}
+
+.analytics-title-group p {
+  color: #64748b;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Period Selector Pills */
+.analytics-period-selector {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.period-pill {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.period-pill:hover {
+  color: #0f172a;
+  background: rgba(241, 245, 249, 0.8);
+}
+
+.period-pill.active {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* Stats Highlight Grid */
+.analytics-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.analytics-stat-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.15s ease;
+}
+
+.analytics-stat-item:hover {
+  transform: translateY(-2px);
+  background: #f1f5f9;
+}
+
+.stat-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Visual Ratio & Channels Section */
+.analytics-visual-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #fafbfc;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.visual-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.visual-bar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.visual-bar-values {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.visual-divider {
+  color: #cbd5e1;
+}
+
+.analytics-ratio-bar {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+  display: flex;
+}
+
+.ratio-bar-segment.vendor-net {
+  background: linear-gradient(90deg, #10b981, #059669);
+  transition: width 0.4s ease;
+}
+
+.ratio-bar-segment.platform-commission {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  transition: width 0.4s ease;
+}
+
+/* Channels Grid */
+.analytics-channels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.channel-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.channel-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.channel-box strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.channel-box small {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .finance-analytics-wrapper {
+    padding: 18px 16px;
+  }
+  .analytics-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .analytics-period-selector {
+    width: 100%;
+  }
+  .period-pill {
+    flex: 1;
+    text-align: center;
+  }
+}

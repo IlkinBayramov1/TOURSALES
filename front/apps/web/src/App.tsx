@@ -9,6 +9,8 @@ import { ToastProvider, ToastContainer } from './shared/context/ToastContext';
 import { Navbar } from './shared/components/Navbar/Navbar';
 import { Footer } from './shared/components/Footer/Footer';
 import { FloatingWhatsAppButton } from './shared/components/FloatingWhatsApp/FloatingWhatsAppButton';
+import { FloatingChatWidget } from './modules/chat/components/FloatingChatWidget/FloatingChatWidget';
+import { FloatingAiConciergeButton } from './modules/ai-concierge/components/FloatingAiConciergeButton/FloatingAiConciergeButton';
 import { AppRoutes } from './app/router';
 
 export const App: React.FC = () => {
@@ -27,6 +29,8 @@ export const App: React.FC = () => {
                     </main>
                     <Footer />
                     <FloatingWhatsAppButton />
+                    <FloatingChatWidget />
+                    <FloatingAiConciergeButton />
                     <ToastContainer />
                   </div>
                 </SocketProvider>

@@ -15,7 +15,8 @@ import {
   Info,
   ShieldAlert,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  CreditCard
 } from 'lucide-react';
 import { Card, Badge, Button, Spinner, Modal } from '@toursales/ui';
 import { Booking } from '@toursales/types';
@@ -30,7 +31,7 @@ import './BookingHistoryPage.css';
 export const BookingHistoryPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'ALL' | 'CONFIRMED' | 'PENDING' | 'COMPLETED' | 'CANCELLED'>('ALL');
+  const [activeTab, setActiveTab] = useState<'ALL' | 'CONFIRMED' | 'PARTIALLY_PAID' | 'PENDING' | 'COMPLETED' | 'CANCELLED'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   
   // Cancel Modal state
@@ -144,7 +145,9 @@ export const BookingHistoryPage: React.FC = () => {
 
   const filteredBookings = bookings.filter((b) => {
     // Status filter
-    if (activeTab !== 'ALL' && b.status !== activeTab) {
+    if (activeTab === 'PARTIALLY_PAID') {
+      if (b.paymentStatus !== 'PARTIALLY_PAID' && b.status !== 'PARTIALLY_PAID') return false;
+    } else if (activeTab !== 'ALL' && b.status !== activeTab) {
       return false;
     }
     // Search query filter
@@ -219,6 +222,13 @@ export const BookingHistoryPage: React.FC = () => {
               </button>
               <button
                 type="button"
+                className={`web-booking-tab-btn ${activeTab === 'PARTIALLY_PAID' ? 'active' : ''}`}
+                onClick={() => setActiveTab('PARTIALLY_PAID')}
+              >
+                30% Depozit ({bookings.filter((b) => b.paymentStatus === 'PARTIALLY_PAID' || b.status === 'PARTIALLY_PAID').length})
+              </button>
+              <button
+                type="button"
                 className={`web-booking-tab-btn ${activeTab === 'PENDING' ? 'active' : ''}`}
                 onClick={() => setActiveTab('PENDING')}
               >
@@ -264,9 +274,12 @@ export const BookingHistoryPage: React.FC = () => {
               {filteredBookings.map((booking) => {
                 const tour = booking.tour;
                 const bookingId = booking.id || booking.bookingNumber;
-                const isCancellable = (booking.status === 'CONFIRMED' || booking.status === 'PENDING');
+                const isCancellable = (booking.status === 'CONFIRMED' || booking.status === 'PENDING' || booking.status === 'PARTIALLY_PAID');
                 const isCompletedOrConfirmed = booking.status === 'COMPLETED' || booking.status === 'CONFIRMED';
                 const totalAmount = Number(booking.totalAmount ?? booking.totalPrice ?? 0);
+                const paidAmount = Number(booking.paidAmount ?? 0);
+                const isPartiallyPaid = booking.paymentStatus === 'PARTIALLY_PAID' || booking.status === 'PARTIALLY_PAID';
+                const remainingBalance = Math.max(0, totalAmount - paidAmount);
                 
                 // Parse tour images safely
                 let tourImg = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300';
@@ -298,6 +311,8 @@ export const BookingHistoryPage: React.FC = () => {
                                 ? 'success'
                                 : booking.status === 'COMPLETED'
                                 ? 'neutral'
+                                : isPartiallyPaid
+                                ? 'warning'
                                 : booking.status === 'PENDING'
                                 ? 'warning'
                                 : 'error'
@@ -308,14 +323,26 @@ export const BookingHistoryPage: React.FC = () => {
                               ? 'Aktiv / Təsdiqlənib'
                               : booking.status === 'COMPLETED'
                               ? 'Tamamlandı'
+                              : isPartiallyPaid
+                              ? '30% Depozit'
                               : booking.status === 'PENDING'
                               ? 'Ödəniş Gözlənilir'
                               : 'Ləğv Edildi'}
                           </Badge>
 
-                          {booking.paymentStatus === 'PAID' && (
+                          {isPartiallyPaid ? (
+                            <Badge variant="warning" pill>
+                              Qalıq: {formatPrice(remainingBalance)}
+                            </Badge>
+                          ) : booking.paymentStatus === 'PAID' ? (
                             <Badge variant="success" pill>
                               Ödənilib
+                            </Badge>
+                          ) : null}
+
+                          {booking.paymentType === 'INSTALLMENT' && booking.installmentMonths && (
+                            <Badge variant="neutral" pill>
+                              {booking.installmentMonths} Ay Taksit
                             </Badge>
                           )}
                         </div>
@@ -347,6 +374,20 @@ export const BookingHistoryPage: React.FC = () => {
                             {booking.busSeatNumber && ` (№${booking.busSeatNumber})`}
                           </span>
                         </div>
+
+                        {isPartiallyPaid && remainingBalance > 0 && (
+                          <div className="web-deposit-warning-box">
+                            <AlertCircle size={15} className="web-deposit-alert-icon" />
+                            <div className="web-deposit-warning-text">
+                              <span>30% depozit ödənilib. Qalıq: <strong>{formatPrice(remainingBalance)}</strong></span>
+                              {booking.depositDueDate && (
+                                <span className="web-deposit-due-date">
+                                  (Son tarix: {new Date(booking.depositDueDate).toLocaleDateString('az-AZ', { day: 'numeric', month: 'short', year: 'numeric' })})
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="web-booking-card-actions">
@@ -356,6 +397,19 @@ export const BookingHistoryPage: React.FC = () => {
                         </div>
 
                         <div className="web-action-buttons">
+                          {/* Pay Remaining Balance Button */}
+                          {isPartiallyPaid && remainingBalance > 0 && (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => navigate(`/pay/balance/${booking.id}${booking.balanceToken ? `?token=${booking.balanceToken}` : ''}`)}
+                              className="web-btn-pay-balance"
+                            >
+                              <CreditCard size={15} />
+                              <span>Qalıq Ödə</span>
+                            </Button>
+                          )}
+
                           {/* Voucher Button */}
                           <Button
                             variant="primary"

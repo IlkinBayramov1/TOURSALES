@@ -53,4 +53,5 @@ export const authMiddleware = (options = {}) => {
   };
 };
 
+export const authenticate = authMiddleware();
 export default authMiddleware;

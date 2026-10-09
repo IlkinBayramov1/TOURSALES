@@ -41,6 +41,26 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
     window.print();
   };
 
+  const formatAzeriDate = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '—';
+    const months = [
+      'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun',
+      'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'
+    ];
+    return `${d.getDate().toString().padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  };
+
+  const mapPaymentMethod = (method: string | null | undefined): string => {
+    if (!method) return '—';
+    const upper = method.toUpperCase();
+    if (upper === 'BALANCE') return 'Platforma Balansı';
+    if (upper === 'CARD') return 'Bank Kartı (Onlayn)';
+    if (upper === 'BANK_TRANSFER') return 'B2B Bank Köçürməsi';
+    return method;
+  };
+
   return (
     <div className="invoice-modal-overlay" onClick={onClose}>
       <div className="invoice-modal-card" onClick={(e) => e.stopPropagation()}>
@@ -52,7 +72,7 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
             </Button>
             <Button variant="primary" size="sm" onClick={handlePrint}>
               <Printer size={15} />
-              <span>Çap Et</span>
+              <span>Çap Et / PDF Saxla</span>
             </Button>
           </div>
         </div>
@@ -106,27 +126,15 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
             <div className="invoice-meta-banner">
               <div>
                 <span className="meta-lbl">Tərtib Tarixi:</span>
-                <strong>
-                  {new Date(invoice.issueDate).toLocaleDateString('az-AZ', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </strong>
+                <strong>{formatAzeriDate(invoice.issueDate)}</strong>
               </div>
               <div>
                 <span className="meta-lbl">Növbəti Yenilənmə:</span>
-                <strong>
-                  {new Date(invoice.dueDate).toLocaleDateString('az-AZ', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </strong>
+                <strong>{formatAzeriDate(invoice.dueDate)}</strong>
               </div>
               <div>
                 <span className="meta-lbl">Ödəniş Üsulu:</span>
-                <strong>{invoice.paymentMethod}</strong>
+                <strong>{mapPaymentMethod(invoice.paymentMethod)}</strong>
               </div>
             </div>
 

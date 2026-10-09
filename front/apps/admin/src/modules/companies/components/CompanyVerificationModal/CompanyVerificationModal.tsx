@@ -17,7 +17,7 @@ export const CompanyVerificationModal: React.FC<CompanyVerificationModalProps> =
   onClose,
   onSuccess,
 }) => {
-  const [status, setStatus] = useState<CompanyStatus>(company?.status || 'ACTIVE');
+  const [status, setStatus] = useState<CompanyStatus>((company?.status as CompanyStatus) || 'ACTIVE');
   const [reason, setReason] = useState<string>(company?.rejectionReason || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

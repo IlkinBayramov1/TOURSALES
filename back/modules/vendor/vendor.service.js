@@ -54,7 +54,7 @@ function calculateDateRanges(period = 'month') {
 }
 
 class VendorService {
-  async getDashboardStats(companyId, period = 'month') {
+  async getDashboardStats(companyId, period = 'month', user = null) {
     const { currentStart, currentEnd, prevStart, prevEnd } = calculateDateRanges(period);
     const nowYear = new Date().getFullYear();
     const yearStart = new Date(nowYear, 0, 1, 0, 0, 0, 0);
@@ -386,13 +386,128 @@ class VendorService {
       createdAt: b.createdAt
     }));
 
+    // 10. Operational Alerts, Avg Ticket Price & Check-in Rate
+    const now = new Date();
+    const next48Hours = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
+    const [upcomingTours, partiallyPaidBookings, pendingPayouts] = await Promise.all([
+      prisma.tour.findMany({
+        where: {
+          companyId,
+          status: 'Active',
+          deletedAt: null,
+          startDate: { gte: now, lte: next48Hours }
+        },
+        select: { id: true, title: true, startDate: true, maxParticipants: true }
+      }),
+      prisma.booking.findMany({
+        where: {
+          companyId,
+          deletedAt: null,
+          paymentStatus: 'PARTIALLY_PAID',
+          remainingAmount: { gt: 0 }
+        },
+        select: { id: true, remainingAmount: true }
+      }),
+      prisma.payout.findMany({
+        where: { companyId, status: 'Pending' },
+        select: { id: true, amount: true }
+      })
+    ]);
+
+    const totalPendingRemaining = partiallyPaidBookings.reduce((sum, b) => sum + Number(b.remainingAmount || 0), 0);
+    const pendingPayoutTotal = pendingPayouts.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+    const operationalAlerts = [];
+    if (upcomingTours.length > 0) {
+      operationalAlerts.push({
+        id: 'upcoming-tours',
+        type: 'warning',
+        title: 'Yaxınlaşan Tur Çıxışları',
+        desc: `Yaxın 48 saat ərzində ${upcomingTours.length} turun çıxışı planlaşdırılıb. Sərnişin manifestini təsdiqləyin.`,
+        message: `Yaxın 48 saat ərzində ${upcomingTours.length} turun çıxışı planlaşdırılıb. Sərnişin manifestini təsdiqləyin.`,
+        actionLink: '/bookings',
+        actionText: 'Manifestə Bax',
+        count: upcomingTours.length
+      });
+    }
+    if (partiallyPaidBookings.length > 0) {
+      operationalAlerts.push({
+        id: 'pending-balances',
+        type: 'danger',
+        title: 'Tamamlanmamış Qalıq Ödənişlər',
+        desc: `${partiallyPaidBookings.length} sifariş üzrə cəmi ${totalPendingRemaining.toLocaleString()} ₼ qalıq məbləğ yığılmalıdır.`,
+        message: `${partiallyPaidBookings.length} sifariş üzrə cəmi ${totalPendingRemaining.toLocaleString()} ₼ qalıq məbləğ yığılmalıdır.`,
+        actionLink: '/bookings',
+        actionText: 'Sifarişlərə Keç',
+        amount: totalPendingRemaining,
+        count: partiallyPaidBookings.length
+      });
+    }
+    if (pendingPayouts.length > 0) {
+      operationalAlerts.push({
+        id: 'pending-payouts',
+        type: 'primary',
+        title: 'Təsdiq Gözləyən Pul Çıxarışı',
+        desc: `${pendingPayoutTotal.toLocaleString()} ₼ məbləğində çıxarış tələbi maliyyə şöbəsində təsdiq gözləyir.`,
+        message: `${pendingPayoutTotal.toLocaleString()} ₼ məbləğində çıxarış tələbi maliyyə şöbəsində təsdiq gözləyir.`,
+        actionLink: '/finance',
+        actionText: 'Balansı Yoxla',
+        amount: pendingPayoutTotal,
+        count: pendingPayouts.length
+      });
+    }
+
+    const avgTicketPrice = totalSeatsSold > 0 && totalRevenue > 0 ? Number((totalRevenue / totalSeatsSold).toFixed(2)) : 0;
+    const checkedInCount = currentBookings.filter(b => b.isCheckedIn || b.status === 'COMPLETED').length;
+    const checkInRate = totalBookingsCount > 0 ? Number(((checkedInCount / totalBookingsCount) * 100).toFixed(1)) : 0;
+
+    const allTimeRevenue = allConfirmedBookingsYear.reduce((sum, b) => sum + Number(b.paidAmount || b.totalAmount || 0), 0);
+    const allTimeBookingsCount = allConfirmedBookingsYear.length;
+
+    const isGuide = user?.agencyRole === 'GUIDE';
+
+    if (isGuide) {
+      return {
+        companyName: company.name,
+        isFinancialMasked: true,
+        availableBalance: null,
+        pendingBalance: null,
+        pendingDeposits: null,
+        totalRevenue: null,
+        revenueGrowth: null,
+        avgTicketPrice: null,
+        totalBookingsCount,
+        bookingsGrowth,
+        totalSeatsSold,
+        totalTours,
+        activeToursCount,
+        domesticToursCount,
+        foreignToursCount,
+        occupancyRate,
+        checkInRate,
+        activeAds: activeAds || 0,
+        activeCampaigns: activeCampaigns || 0,
+        salesDistribution,
+        monthlyRevenue: [],
+        popularDestinations: popularDestinations.map(d => ({ ...d, revenue: '*** ₼', revenueNum: 0 })),
+        activities: finalActivities.filter(a => a.iconType !== 'dollar'),
+        recentBookings: recentBookings.map(b => ({ ...b, totalAmount: 0, paidAmount: 0, remainingAmount: 0 })),
+        operationalAlerts,
+        allTimeRevenue: null,
+        allTimeBookingsCount
+      };
+    }
+
     return {
       companyName: company.name,
+      isFinancialMasked: false,
       availableBalance: Number(company.availableBalance || 0),
       pendingBalance: Number(company.pendingBalance || 0),
       pendingDeposits,
       totalRevenue,
       revenueGrowth,
+      avgTicketPrice,
       totalBookingsCount,
       bookingsGrowth,
       totalSeatsSold,
@@ -401,18 +516,93 @@ class VendorService {
       domesticToursCount,
       foreignToursCount,
       occupancyRate,
-      activeAds,
-      activeCampaigns,
+      checkInRate,
+      activeAds: activeAds || 0,
+      activeCampaigns: activeCampaigns || 0,
       salesDistribution,
       monthlyRevenue,
       popularDestinations,
       activities: finalActivities,
-      recentBookings
+      recentBookings,
+      operationalAlerts,
+      allTimeRevenue,
+      allTimeBookingsCount
     };
   }
 
-  async exportDashboardSummary(companyId, period = 'month') {
-    const stats = await this.getDashboardStats(companyId, period);
+  // Sürətli Sərnişin Manifesti xülasəsi
+  async getManifestSummary(companyId, tourId = null, user = null) {
+    let targetTourId = tourId;
+    if (!targetTourId || targetTourId === 'latest') {
+      const nearestTour = await prisma.tour.findFirst({
+        where: { companyId, status: 'Active', deletedAt: null },
+        orderBy: { startDate: 'asc' }
+      });
+      if (!nearestTour) {
+        return {
+          tour: null,
+          totalSeats: 0,
+          checkedInCount: 0,
+          passengers: []
+        };
+      }
+      targetTourId = nearestTour.id;
+    }
+
+    const tour = await prisma.tour.findUnique({
+      where: { id: targetTourId },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        startDate: true,
+        price: true,
+        currency: true,
+        maxParticipants: true,
+        destinationCountry: true
+      }
+    });
+
+    if (!tour) {
+      throw ApiError.notFound('Tur tapılmadı.');
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where: { tourId: targetTourId, deletedAt: null },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const isGuide = user?.agencyRole === 'GUIDE';
+
+    const passengers = [];
+    bookings.forEach((b) => {
+      passengers.push({
+        bookingId: b.id,
+        passengerName: `${b.passengerName || ''} ${b.passengerSurname || ''}`.trim() || 'Müştəri',
+        phone: b.contactNumber,
+        email: b.contactEmail,
+        seatNumber: b.busSeatNumber || `№${passengers.length + 1}`,
+        seatsCount: b.seats || 1,
+        amount: isGuide ? 0 : Number(b.totalAmount || 0),
+        paymentStatus: b.paymentStatus,
+        bookingStatus: b.status,
+        isCheckedIn: !!b.isCheckedIn,
+        checkedInAt: b.checkedInAt
+      });
+    });
+
+    const checkedInCount = passengers.filter(p => p.isCheckedIn).length;
+
+    return {
+      tour,
+      totalSeats: passengers.reduce((sum, p) => sum + p.seatsCount, 0),
+      checkedInCount,
+      passengers
+    };
+  }
+
+  async exportDashboardSummary(companyId, period = 'month', user = null) {
+    const stats = await this.getDashboardStats(companyId, period, user);
 
     // Create CSV content with UTF-8 BOM for proper Azerbaijani character rendering in Excel
     let csv = '\uFEFF';
@@ -423,29 +613,32 @@ class VendorService {
 
     csv += 'ƏSAS GÖSTƏRİCİLƏR\n';
     csv += 'Göstərici;Dəyər\n';
-    csv += `Ümumi Gəlir;${stats.totalRevenue} AZN\n`;
-    csv += `Gəlir Artımı;${stats.revenueGrowth}%\n`;
+    csv += `Ümumi Gəlir;${stats.isFinancialMasked ? 'Məxfi' : (stats.totalRevenue ?? 0) + ' AZN'}\n`;
+    csv += `Gəlir Artımı;${stats.isFinancialMasked ? '-' : (stats.revenueGrowth ?? 0) + '%'}\n`;
+    csv += `Orta Bilet Qiyməti;${stats.isFinancialMasked ? 'Məxfi' : (stats.avgTicketPrice !== null ? stats.avgTicketPrice + ' AZN' : '0 AZN')}\n`;
     csv += `Satılmış Biletlər (Sifarişlər);${stats.totalBookingsCount}\n`;
     csv += `Bilet Satışı Artımı;${stats.bookingsGrowth}%\n`;
     csv += `Ümumi Satılmış Oturacaqlar;${stats.totalSeatsSold}\n`;
     csv += `Aktiv Turlar;${stats.activeToursCount} (Daxili: ${stats.domesticToursCount}, Xarici: ${stats.foreignToursCount})\n`;
     csv += `Doluluq Dərəcəsi;${stats.occupancyRate}%\n`;
-    csv += `Mövcud Balans;${stats.availableBalance} AZN\n`;
-    csv += `Gözləyən Balans / Behlər;${stats.pendingDeposits} AZN\n\n`;
+    csv += `Minik (Check-in) Dərəcəsi;${stats.checkInRate}%\n`;
+    csv += `Mövcud Balans;${stats.isFinancialMasked ? 'Məxfi' : (stats.availableBalance ?? 0) + ' AZN'}\n`;
+    csv += `Gözləyən Balans / Behlər;${stats.isFinancialMasked ? 'Məxfi' : (stats.pendingDeposits ?? 0) + ' AZN'}\n\n`;
 
     csv += 'SON SİFARİŞLƏR\n';
     csv += 'Sifariş №;Turun Adı;Sərnişin;Oturacaq;Məbləğ;Status;Ödəniş Statusu;Tarix\n';
 
     stats.recentBookings.forEach(b => {
       const d = new Date(b.createdAt).toLocaleDateString('az-AZ');
-      csv += `"${b.bookingNumber}";"${b.tourTitle}";"${b.passengerName}";"${b.seats}";"${b.totalAmount} ${b.currency}";"${b.status}";"${b.paymentStatus}";"${d}"\n`;
+      const amt = stats.isFinancialMasked ? 'Məxfi' : `${b.totalAmount} ${b.currency}`;
+      csv += `"${b.bookingNumber}";"${b.tourTitle}";"${b.passengerName}";"${b.seats}";"${amt}";"${b.status}";"${b.paymentStatus}";"${d}"\n`;
     });
 
     return csv;
   }
 
-  async exportDashboardExcel(companyId, period = 'month') {
-    const stats = await this.getDashboardStats(companyId, period);
+  async exportDashboardExcel(companyId, period = 'month', user = null) {
+    const stats = await this.getDashboardStats(companyId, period, user);
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'TOURSALES Platform';
@@ -525,13 +718,15 @@ class VendorService {
     });
 
     const kpiItems = [
-      ['Ümumi Gəlir', `${stats.totalRevenue.toLocaleString()} AZN`, `Artım: ${stats.revenueGrowth > 0 ? '+' : ''}${stats.revenueGrowth}%`],
+      ['Ümumi Gəlir', stats.isFinancialMasked ? 'Məxfi' : `${Number(stats.totalRevenue || 0).toLocaleString()} AZN`, stats.isFinancialMasked ? '-' : `Artım: ${stats.revenueGrowth > 0 ? '+' : ''}${stats.revenueGrowth}%`],
+      ['Orta Bilet Qiyməti', stats.isFinancialMasked ? 'Məxfi' : `${stats.avgTicketPrice !== null ? stats.avgTicketPrice.toLocaleString() : 0} AZN`, 'Bilet başına gəlir'],
       ['Satılmış Biletlər (Sifarişlər)', `${stats.totalBookingsCount} sifariş`, `Dinamika: ${stats.bookingsGrowth > 0 ? '+' : ''}${stats.bookingsGrowth}%`],
       ['Ümumi Satılmış Oturacaqlar', `${stats.totalSeatsSold} yer`, 'Təsdiqlənmiş biletlərdən'],
       ['Aktiv Turlar', `${stats.activeToursCount} tur`, `Daxili: ${stats.domesticToursCount}, Xarici: ${stats.foreignToursCount}`],
       ['Turların Doluluq Dərəcəsi', `${stats.occupancyRate}%`, 'Aktiv turlar üzrə tutum doluluğu'],
-      ['Mövcud Balans', `${stats.availableBalance.toLocaleString()} AZN`, 'Çıxarışa hazır vəsait'],
-      ['Gözləyən Balans / Behlər', `${stats.pendingDeposits.toLocaleString()} AZN`, 'Gözləmədə olan ödənişlər'],
+      ['Minik / Check-in Dərəcəsi', `${stats.checkInRate}%`, 'Yoxlanmış sərnişinlər'],
+      ['Mövcud Balans', stats.isFinancialMasked ? 'Məxfi' : `${Number(stats.availableBalance || 0).toLocaleString()} AZN`, 'Çıxarışa hazır vəsait'],
+      ['Gözləyən Balans / Behlər', stats.isFinancialMasked ? 'Məxfi' : `${Number(stats.pendingDeposits || 0).toLocaleString()} AZN`, 'Gözləmədə olan ödənişlər'],
       ['Aktiv Reklamlar', `${stats.activeAds || 0} ədəd`, 'Yayımda olan kampaniyalar']
     ];
 
@@ -601,7 +796,7 @@ class VendorService {
         const row = sheet.getRow(rowIdx);
         const d = new Date(b.createdAt).toLocaleDateString('az-AZ') + ' ' + new Date(b.createdAt).toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' });
         const seatInfo = b.busSeatNumber ? `Yer #${b.busSeatNumber}` : `${b.seats || 1} yer`;
-        const amountStr = `${Number(b.totalAmount || 0).toLocaleString()} ${b.currency || 'AZN'}`;
+        const amountStr = stats.isFinancialMasked ? 'Məxfi' : `${Number(b.totalAmount || 0).toLocaleString()} ${b.currency || 'AZN'}`;
 
         let statusText = b.status;
         let statusBg = 'F1F5F9';

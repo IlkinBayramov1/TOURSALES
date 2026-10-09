@@ -1,6 +1,6 @@
 import { vendorAxiosClient } from '../../shared/api/vendorAxiosClient';
 import { VENDOR_ENDPOINTS } from '../../shared/api/vendorEndpoints';
-import { Company, CompanyProfileStats, PasswordChangePayload } from '@toursales/types';
+import { Company, CompanyProfileStats, PasswordChangePayload, CompanySession } from '@toursales/types';
 
 export const vendorProfileApi = {
   // Şirkətin profil məlumatlarını gətir
@@ -25,6 +25,18 @@ export const vendorProfileApi = {
   changePassword: async (payload: PasswordChangePayload): Promise<{ message: string }> => {
     const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.PROFILE.PASSWORD, payload);
     return { message: res.data?.msg || res.data?.message || 'Şifrə uğurla dəyişdirildi' };
+  },
+
+  // Təhlükəsizlik: Aktiv Sessiyaları gətir
+  getSessions: async (): Promise<CompanySession[]> => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.PROFILE.SESSIONS);
+    return res.data?.data || [];
+  },
+
+  // Təhlükəsizlik: Digər sessiyalardan çıxış et
+  revokeOtherSessions: async (currentSessionId?: string): Promise<{ success: boolean; message: string }> => {
+    const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.PROFILE.REVOKE_SESSIONS, { currentSessionId });
+    return res.data?.data || res.data;
   },
 
   // Şəkil / Loqo / Sənəd yükləmə

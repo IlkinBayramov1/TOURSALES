@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import { Button } from '@toursales/ui';
 import { teamApi } from '../../teamApi';
-import { UserPlus, AlertCircle } from 'lucide-react';
+import { UserPlus, AlertCircle, Sparkles, RefreshCw, KeyRound, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './InviteMemberModal.css';
 
 interface InviteMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  currentMembersCount?: number;
+  maxMembers?: number;
 }
 
 export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  currentMembersCount = 0,
+  maxMembers = -1,
 }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -25,8 +30,17 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
   if (!isOpen) return null;
 
+  const isQuotaFull = maxMembers !== -1 && currentMembersCount >= maxMembers;
+
+  const handleGeneratePassword = () => {
+    const randomPass = `Pass#${Math.floor(100000 + Math.random() * 900000)}`;
+    setPassword(randomPass);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isQuotaFull) return;
+
     if (!email.trim() || !name.trim()) {
       setError('Zəhmət olmasa ad və e-poçt ünvanını doldurun.');
       return;
@@ -61,11 +75,30 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       <div className="invite-modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="invite-modal-header">
           <div>
-            <span className="invite-badge">Komanda Heyəti</span>
+            <div className="invite-header-badge-row">
+              <span className="invite-badge">Komanda Heyəti</span>
+              <span className="invite-quota-tag">
+                Kvota: <strong>{currentMembersCount}</strong> / {maxMembers === -1 ? 'Limitsiz' : maxMembers}
+              </span>
+            </div>
             <h3>Yeni Əməkdaş Əlavə Et</h3>
           </div>
           <button type="button" className="invite-close-btn" onClick={onClose}>×</button>
         </div>
+
+        {/* Quota Full Warning */}
+        {isQuotaFull && (
+          <div className="invite-quota-warning-banner">
+            <AlertCircle size={18} className="shrink-0" />
+            <div>
+              <strong>Komanda limiti dolmuşdur ({currentMembersCount}/{maxMembers} nəfər)</strong>
+              <p>Yeni əməkdaş əlavə etmək üçün abunəlik planınızı yüksəltməyiniz tələb olunur.</p>
+              <Link to="/vendor/subscription" className="invite-upgrade-link">
+                Planı Yüksəlt <ExternalLink size={12} />
+              </Link>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="invite-error-banner">
@@ -83,6 +116,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              disabled={isQuotaFull}
             />
           </div>
 
@@ -94,6 +128,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isQuotaFull}
             />
           </div>
 
@@ -104,6 +139,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               placeholder="+994 XX XXX XX XX"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              disabled={isQuotaFull}
             />
           </div>
 
@@ -112,6 +148,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as any)}
+              disabled={isQuotaFull}
             >
               <option value="MANAGER">Menecer (MANAGER) - Turlar, sifarişlər & komanda</option>
               <option value="ACCOUNTANT">Mühasib (ACCOUNTANT) - Maliyyə, çıxarış & hesabatlar</option>
@@ -120,12 +157,24 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           </div>
 
           <div className="invite-form-group">
-            <label>İlkin Giriş Şifrəsi</label>
+            <div className="invite-pass-label-row">
+              <label>İlkin Giriş Şifrəsi</label>
+              <button
+                type="button"
+                className="invite-gen-pass-btn"
+                onClick={handleGeneratePassword}
+                disabled={isQuotaFull}
+              >
+                <Sparkles size={12} />
+                <span>Avtomatik Şifrə Yarat</span>
+              </button>
+            </div>
             <input
               type="text"
               placeholder="Boş buraxsanız: password123"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isQuotaFull}
             />
             <small className="invite-hint">
               Əməkdaş ilk dəfə sistemə daxil olduqdan sonra öz şifrəsini istədiyi vaxt dəyişə bilər.
@@ -136,7 +185,12 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
             <Button variant="secondary" onClick={onClose} disabled={loading}>
               Ləğv et
             </Button>
-            <Button variant="primary" type="submit" isLoading={loading}>
+            <Button
+              variant="primary"
+              type="submit"
+              isLoading={loading}
+              disabled={isQuotaFull}
+            >
               Əməkdaşı Əlavə Et
             </Button>
           </div>

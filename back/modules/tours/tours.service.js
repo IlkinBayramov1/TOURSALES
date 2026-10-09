@@ -159,6 +159,23 @@ class ToursService {
 
     return {
       ...tourData,
+      guideId: tour.guideId || null,
+      guide: tour.guide ? {
+        id: tour.guide.id,
+        name: tour.guide.name,
+        email: tour.guide.email,
+        phoneNumber: tour.guide.phoneNumber,
+        agencyRole: tour.guide.agencyRole
+      } : null,
+      driverName: tour.driverName || null,
+      driverPhone: tour.driverPhone || null,
+      busPlateNumber: tour.busPlateNumber || null,
+      departureNotes: tour.departureNotes || null,
+      allowInstallments: tour.allowInstallments !== false,
+      maxInstallmentMonths: tour.maxInstallmentMonths || 12,
+      allowDeposit: tour.allowDeposit !== false,
+      depositPercentage: tour.depositPercentage !== undefined && tour.depositPercentage !== null ? Number(tour.depositPercentage) : 30.0,
+      depositDueDaysBefore: tour.depositDueDaysBefore || 5,
       price: numericPrice,
       basePrice: numericPrice,
       capacity,
@@ -210,7 +227,10 @@ class ToursService {
         bookings: {
           where: { status: 'CONFIRMED' }
         },
-        company: true
+        company: true,
+        guide: {
+          select: { id: true, name: true, email: true, phoneNumber: true, agencyRole: true }
+        }
       }
     });
 
@@ -220,6 +240,31 @@ class ToursService {
   }
 
   async create(data, companyId) {
+    // 1. Abunəlik planı üzrə aktiv tur limitinin yoxlanılması (SaaS Quota Guard)
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      include: { plan: true }
+    });
+
+    if (company) {
+      const planName = company.plan?.name || 'Başlanğıc (Starter)';
+      let maxTours = -1;
+      if (planName.includes('Starter')) maxTours = 5;
+      else if (planName.includes('Pro')) maxTours = 50;
+
+      if (maxTours !== -1) {
+        const activeToursCount = await prisma.tour.count({
+          where: { companyId, status: 'Active', deletedAt: null }
+        });
+
+        if (activeToursCount >= maxTours) {
+          throw ApiError.badRequest(
+            `Abunəlik planınızın tur limiti (${maxTours} aktiv tur) dolmuşdur. Yeni tur əlavə etmək üçün planınızı Peşəkar (Pro) və ya Korporativ səviyyəsinə yüksəldin.`
+          );
+        }
+      }
+    }
+
     const id = await generateUniqueId('T', 'tour');
 
     const tourData = {
@@ -243,7 +288,17 @@ class ToursService {
       currency: data.currency || 'AZN',
       destinationCountry: data.destinationCountry || (data.type === 'FOREIGN' ? (data.hotelName || null) : null),
       hotelName: data.hotelName || data.destinationCountry || null,
-      hotelCategory: data.hotelCategory || null
+      hotelCategory: data.hotelCategory || null,
+      guideId: data.guideId || null,
+      driverName: data.driverName || null,
+      driverPhone: data.driverPhone || null,
+      busPlateNumber: data.busPlateNumber || null,
+      departureNotes: data.departureNotes || null,
+      allowInstallments: data.allowInstallments !== undefined ? !!data.allowInstallments : true,
+      maxInstallmentMonths: data.maxInstallmentMonths ? parseInt(data.maxInstallmentMonths, 10) : 12,
+      allowDeposit: data.allowDeposit !== undefined ? !!data.allowDeposit : true,
+      depositPercentage: data.depositPercentage !== undefined ? parseFloat(data.depositPercentage) : 30.0,
+      depositDueDaysBefore: data.depositDueDaysBefore ? parseInt(data.depositDueDaysBefore, 10) : 5
     };
 
     if (data.type === 'DOMESTIC') {
@@ -307,7 +362,17 @@ class ToursService {
       currency: data.currency,
       destinationCountry: data.destinationCountry !== undefined ? data.destinationCountry : undefined,
       hotelName: data.hotelName !== undefined ? data.hotelName : (data.destinationCountry || undefined),
-      hotelCategory: data.hotelCategory !== undefined ? data.hotelCategory : undefined
+      hotelCategory: data.hotelCategory !== undefined ? data.hotelCategory : undefined,
+      guideId: data.guideId !== undefined ? (data.guideId || null) : undefined,
+      driverName: data.driverName !== undefined ? data.driverName : undefined,
+      driverPhone: data.driverPhone !== undefined ? data.driverPhone : undefined,
+      busPlateNumber: data.busPlateNumber !== undefined ? data.busPlateNumber : undefined,
+      departureNotes: data.departureNotes !== undefined ? data.departureNotes : undefined,
+      allowInstallments: data.allowInstallments !== undefined ? !!data.allowInstallments : undefined,
+      maxInstallmentMonths: data.maxInstallmentMonths !== undefined ? parseInt(data.maxInstallmentMonths, 10) : undefined,
+      allowDeposit: data.allowDeposit !== undefined ? !!data.allowDeposit : undefined,
+      depositPercentage: data.depositPercentage !== undefined ? parseFloat(data.depositPercentage) : undefined,
+      depositDueDaysBefore: data.depositDueDaysBefore !== undefined ? parseInt(data.depositDueDaysBefore, 10) : undefined
     };
 
     if (tour.type === 'DOMESTIC') {
@@ -404,6 +469,116 @@ class ToursService {
       }
     });
     return true;
+  }
+
+  async cloneTour(id, newStartDate, newEndDate = null, newTitle = null, companyId = null) {
+    const tour = await prisma.tour.findUnique({
+      where: { id },
+      include: { regions: true }
+    });
+    if (!tour) throw ApiError.notFound('Klonlanacaq tur tapılmadı.');
+    if (companyId && tour.companyId !== companyId) {
+      throw ApiError.forbidden('Bu turu klonlamaq üçün icazəniz yoxdur.');
+    }
+
+    const newId = await generateUniqueId('T', 'tour');
+    const startDate = newStartDate ? new Date(newStartDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    let endDate = null;
+    if (newEndDate) {
+      endDate = new Date(newEndDate);
+    } else if (tour.endDate && tour.startDate) {
+      const durationMs = new Date(tour.endDate).getTime() - new Date(tour.startDate).getTime();
+      endDate = new Date(startDate.getTime() + durationMs);
+    }
+
+    const clonedTitle = newTitle || `${tour.title} (Nüsxə)`;
+
+    await prisma.tour.create({
+      data: {
+        id: newId,
+        companyId: tour.companyId,
+        type: tour.type,
+        title: clonedTitle,
+        description: tour.description,
+        phoneNumber: tour.phoneNumber || '',
+        email: tour.email || '',
+        images: tour.images,
+        minParticipants: tour.minParticipants || 1,
+        maxParticipants: tour.maxParticipants || 48,
+        startDate,
+        endDate,
+        includedServices: tour.includedServices,
+        excludedServices: tour.excludedServices,
+        itinerary: tour.itinerary,
+        status: 'Active',
+        transportType: tour.transportType,
+        busCapacity: tour.busCapacity,
+        meetingPointAddress: tour.meetingPointAddress,
+        meetingPointLat: tour.meetingPointLat,
+        meetingPointLng: tour.meetingPointLng,
+        destinationCountry: tour.destinationCountry,
+        hotelName: tour.hotelName,
+        hotelCategory: tour.hotelCategory,
+        currency: tour.currency || 'AZN',
+        price: tour.price,
+        flightIncluded: tour.flightIncluded,
+        passportVisaRequired: tour.passportVisaRequired,
+        allowInstallments: tour.allowInstallments,
+        maxInstallmentMonths: tour.maxInstallmentMonths,
+        allowDeposit: tour.allowDeposit,
+        depositPercentage: tour.depositPercentage,
+        depositDueDaysBefore: tour.depositDueDaysBefore,
+        dynamicPricingActive: tour.dynamicPricingActive,
+        surgeThreshold: tour.surgeThreshold,
+        surgePercent: tour.surgePercent,
+        lastMinuteHours: tour.lastMinuteHours,
+        lastMinuteDiscount: tour.lastMinuteDiscount,
+        lastMinuteMinOccupancy: tour.lastMinuteMinOccupancy,
+        earlyBirdDays: tour.earlyBirdDays,
+        earlyBirdDiscount: tour.earlyBirdDiscount
+      }
+    });
+
+    if (tour.regions && tour.regions.length > 0) {
+      await prisma.tourRegion.createMany({
+        data: tour.regions.map((r) => ({
+          tourId: newId,
+          name: r.name
+        }))
+      });
+    }
+
+    cacheService.clear();
+    return this.getById(newId);
+  }
+
+  async bulkToggleStatus(tourIds, targetStatus, companyId = null) {
+    if (!Array.isArray(tourIds) || tourIds.length === 0) {
+      throw ApiError.badRequest('Ən azı bir tur seçilməlidir.');
+    }
+
+    const normalizedStatus = targetStatus?.toLowerCase() === 'active' 
+      ? 'Active' 
+      : (targetStatus?.toLowerCase() === 'archived' ? 'Archived' : 'Deactive');
+
+    const where = {
+      id: { in: tourIds },
+      deletedAt: null
+    };
+    if (companyId) {
+      where.companyId = companyId;
+    }
+
+    const updateResult = await prisma.tour.updateMany({
+      where,
+      data: { status: normalizedStatus }
+    });
+
+    cacheService.clear();
+    return {
+      count: updateResult.count,
+      status: normalizedStatus
+    };
   }
 
   // --- WAITING LIST (Gözləmə Siyahısı) MƏNTİQİ ---

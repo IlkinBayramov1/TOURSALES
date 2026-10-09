@@ -121,3 +121,26 @@
   background: #f1f5f9;
   color: #94a3b8;
 }
+
+.col-role.active-col {
+  background: rgba(37, 99, 235, 0.08) !important;
+  border-left: 2px solid #2563eb !important;
+  border-right: 2px solid #2563eb !important;
+}
+
+th.col-role.active-col {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-top: 2px solid #2563eb !important;
+}
+
+.active-dot {
+  display: block;
+  font-size: 10px;
+  color: #2563eb;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-top: 4px;
+  letter-spacing: 0.03em;
+}
+

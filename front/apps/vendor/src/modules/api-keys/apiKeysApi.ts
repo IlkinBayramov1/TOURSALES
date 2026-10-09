@@ -7,6 +7,16 @@ export interface CreateKeyResponse {
   rawSecretKey: string;
 }
 
+export interface SimulateRequestResult {
+  status: number;
+  responseTimeMs: number;
+  keyUsed: string;
+  environment: string;
+  endpoint: string;
+  method: string;
+  data: any;
+}
+
 export const apiKeysApi = {
   // API Açarları
   getKeys: async (): Promise<ApiKey[]> => {
@@ -26,13 +36,42 @@ export const apiKeysApi = {
     return res.data?.data || res.data;
   },
 
+  updateKey: async (
+    keyId: string,
+    data: {
+      name?: string;
+      scopes?: string[];
+      ipWhitelist?: string;
+      rateLimitPerMinute?: number;
+    }
+  ): Promise<ApiKey> => {
+    const res = await vendorAxiosClient.patch(VENDOR_ENDPOINTS.API_KEYS.UPDATE(keyId), data);
+    return res.data?.data || res.data;
+  },
+
   revokeKey: async (keyId: string): Promise<ApiKey> => {
     const res = await vendorAxiosClient.patch(VENDOR_ENDPOINTS.API_KEYS.REVOKE(keyId));
     return res.data?.data || res.data;
   },
 
+  regenerateKey: async (keyId: string): Promise<CreateKeyResponse> => {
+    const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.API_KEYS.REGENERATE(keyId));
+    return res.data?.data || res.data;
+  },
+
   deleteKey: async (keyId: string): Promise<{ success: boolean; message: string }> => {
     const res = await vendorAxiosClient.delete(VENDOR_ENDPOINTS.API_KEYS.DELETE(keyId));
+    return res.data?.data || res.data;
+  },
+
+  // Canlı API Test Konsolu Simulyasiyası
+  simulateRequest: async (data: {
+    rawSecretKey: string;
+    endpoint?: string;
+    method?: string;
+    payload?: any;
+  }): Promise<SimulateRequestResult> => {
+    const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.API_KEYS.SIMULATE, data);
     return res.data?.data || res.data;
   },
 
@@ -54,6 +93,18 @@ export const apiKeysApi = {
     events?: string[];
   }): Promise<WebhookConfig> => {
     const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.API_KEYS.WEBHOOKS.CREATE, data);
+    return res.data?.data || res.data;
+  },
+
+  updateWebhook: async (
+    webhookId: string,
+    data: {
+      name?: string;
+      url?: string;
+      events?: string[];
+    }
+  ): Promise<WebhookConfig> => {
+    const res = await vendorAxiosClient.patch(VENDOR_ENDPOINTS.API_KEYS.WEBHOOKS.UPDATE(webhookId), data);
     return res.data?.data || res.data;
   },
 

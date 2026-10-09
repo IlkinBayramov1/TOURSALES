@@ -10,6 +10,7 @@ import { PromoCodesTable } from '../../components/PromoCodesTable/PromoCodesTabl
 import { AdPackagesGrid } from '../../components/AdPackagesGrid/AdPackagesGrid';
 import { CreateAdModal } from '../../components/CreateAdModal/CreateAdModal';
 import { CreatePromoModal } from '../../components/CreatePromoModal/CreatePromoModal';
+import { AdDetailModal } from '../../components/AdDetailModal/AdDetailModal';
 import './AdsDashboardPage.css';
 
 type AdsTab = 'ADS' | 'PROMOS' | 'PACKAGES';
@@ -29,6 +30,8 @@ export const AdsDashboardPage: React.FC = () => {
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [preselectedPackageId, setPreselectedPackageId] = useState<string | null>(null);
+  const [selectedAdForDetail, setSelectedAdForDetail] = useState<Ad | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Filters state
   const [searchQuery, setSearchQuery] = useState('');
@@ -125,6 +128,20 @@ export const AdsDashboardPage: React.FC = () => {
     } catch (err: any) {
       alert(err?.response?.data?.msg || err?.message || 'Promokod silinərkən xəta baş verdi');
     }
+  };
+
+  const handleTogglePromoStatus = async (id: string) => {
+    try {
+      await vendorAdsApi.togglePromoStatus(id);
+      await loadData();
+    } catch (err: any) {
+      alert(err?.response?.data?.msg || err?.message || 'Promokod statusu dəyişdirilərkən xəta baş verdi');
+    }
+  };
+
+  const handleViewAdDetails = (ad: Ad) => {
+    setSelectedAdForDetail(ad);
+    setIsDetailModalOpen(true);
   };
 
   const handleSelectPackageFromGrid = (pkg: AdPackage) => {
@@ -257,6 +274,7 @@ export const AdsDashboardPage: React.FC = () => {
           loading={loading}
           onToggleStatus={handleToggleAdStatus}
           onDelete={handleDeleteAd}
+          onViewDetails={handleViewAdDetails}
         />
       )}
 
@@ -265,6 +283,7 @@ export const AdsDashboardPage: React.FC = () => {
           promos={filteredPromos}
           loading={loading}
           onDelete={handleDeletePromo}
+          onToggleStatus={handleTogglePromoStatus}
         />
       )}
 
@@ -290,6 +309,22 @@ export const AdsDashboardPage: React.FC = () => {
         isOpen={isPromoModalOpen}
         onClose={() => setIsPromoModalOpen(false)}
         onSuccess={loadData}
+      />
+
+      <AdDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedAdForDetail(null);
+        }}
+        ad={selectedAdForDetail}
+        onToggleStatus={async (id) => {
+          await handleToggleAdStatus(id);
+          const updatedAds = await vendorAdsApi.getAds();
+          const target = updatedAds.find((a) => a.id === id);
+          if (target) setSelectedAdForDetail(target);
+        }}
+        onDelete={handleDeleteAd}
       />
     </div>
   );

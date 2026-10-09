@@ -1,0 +1,120 @@
+/* ==========================================================================
+   2026 SAAS VENDOR PORTAL - HOTEL BOOKINGS STYLES
+   ========================================================================== */
+
+.vendor-bookings-page-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 8px 0 40px;
+}
+
+.vendor-bookings-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.vendor-booking-stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.vendor-booking-stat-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.vendor-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff6ff;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.vendor-stat-val {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.vendor-stat-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.vendor-bookings-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.vendor-booking-number-pill {
+  font-weight: 800;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  padding: 5px 9px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  display: inline-block;
+  letter-spacing: 0.02em;
+}
+
+.vendor-booking-status-tag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.vendor-booking-status-tag.confirmed {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.vendor-booking-status-tag.pending {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.vendor-whatsapp-btn {
+  background: #25d366;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+}
+
+.vendor-whatsapp-btn:hover {
+  background: #1ebc57;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 211, 102, 0.35);
+}

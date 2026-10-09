@@ -133,3 +133,161 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Sessions card section */
+.sessions-header-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.revoke-others-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.revoke-others-btn:hover:not(:disabled) {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.revoke-others-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sessions-loading {
+  font-size: 0.875rem;
+  color: #64748b;
+  padding: 12px 0;
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.session-item-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  transition: border-color 0.2s;
+}
+
+.session-item-row.is-current {
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
+}
+
+.session-device-icon {
+  font-size: 1.5rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.session-info-col {
+  flex: 1;
+}
+
+.session-device-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.session-device-name {
+  font-size: 0.9375rem;
+  color: #0f172a;
+}
+
+.current-device-badge {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.active-device-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.session-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+/* Two-Factor Auth Preview */
+.twofa-card-section {
+  background: #ffffff;
+}
+
+.twofa-content-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.twofa-icon-col {
+  font-size: 1.75rem;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.twofa-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.coming-soon-badge {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+

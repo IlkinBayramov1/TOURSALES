@@ -6,3 +6,7 @@ export * from './finance.types';
 export * from './company.types';
 export * from './common.types';
 export * from './loyalty.types';
+export * from './hotel.types';
+export * from './chat.types';
+export * from './custom-tour.types';
+export * from './analytics.types';

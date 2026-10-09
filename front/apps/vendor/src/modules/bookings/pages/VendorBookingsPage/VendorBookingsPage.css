@@ -226,3 +226,19 @@
   color: #16a34a;
   border-color: #bbf7d0;
 }
+
+.vendor-whatsapp-reminder-btn {
+  background: rgba(37, 211, 102, 0.08) !important;
+  color: #16a34a !important;
+  border: 1px solid rgba(37, 211, 102, 0.3) !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+.vendor-whatsapp-reminder-btn:hover {
+  background: #25d366 !important;
+  color: #ffffff !important;
+  border-color: #25d366 !important;
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.35) !important;
+}
+

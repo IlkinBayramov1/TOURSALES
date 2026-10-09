@@ -1,0 +1,360 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - HOTEL DETAILS PAGE STYLES
+   ========================================================================== */
+
+.web-hotel-details-page {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 32px 32px 100px 32px;
+  color: #0f172a;
+}
+
+/* Header Area */
+.web-hotel-header-wrap {
+  margin-bottom: 24px;
+}
+
+.web-hotel-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.web-hotel-details-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.web-hotel-details-address {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+/* Gallery Grid */
+.web-hotel-gallery-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 220px 220px;
+  gap: 14px;
+  border-radius: 24px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.web-hotel-gallery-main {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+  position: relative;
+  overflow: hidden;
+}
+
+.web-hotel-gallery-item {
+  position: relative;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.web-hotel-gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.web-hotel-gallery-item:hover .web-hotel-gallery-img {
+  transform: scale(1.04);
+}
+
+/* 2-Column Content Layout */
+.web-hotel-content-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+/* Date Range Bar */
+.web-hotel-date-filter-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 18px 24px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.web-hotel-dates-inputs {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.web-hotel-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.web-hotel-date-field label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.web-hotel-date-field input {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.web-hotel-nights-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+/* Room Types Section */
+.web-hotel-rooms-section {
+  margin-bottom: 40px;
+}
+
+.web-hotel-section-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.web-hotel-rooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.web-room-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 24px;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.web-room-card:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.web-room-photo-wrap {
+  width: 200px;
+  height: 140px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.web-room-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.web-room-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.web-room-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.web-room-meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.web-room-tag {
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.web-room-tag-meal {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.web-room-desc {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.web-room-pricing-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  min-width: 180px;
+}
+
+.web-room-price-total {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: right;
+}
+
+.web-room-price-nightly {
+  font-size: 0.8rem;
+  color: #64748b;
+  text-align: right;
+}
+
+.web-room-yield-tag {
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.web-room-book-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.web-room-book-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+/* Sidebar Info Card */
+.web-hotel-sidebar-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 28px;
+  position: sticky;
+  top: 100px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.web-hotel-sidebar-box {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.web-hotel-sidebar-box:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.web-hotel-sidebar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.web-hotel-amenities-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.web-hotel-amenity-pill {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.web-hotel-policy-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  color: #475569;
+}
+
+.web-hotel-policy-item strong {
+  color: #0f172a;
+}
+
+@media (max-width: 1024px) {
+  .web-hotel-content-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .web-hotel-gallery-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+
+  .web-room-card {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .web-room-photo-wrap {
+    width: 100%;
+    height: 200px;
+  }
+
+  .web-room-pricing-actions {
+    align-items: flex-start;
+  }
+}

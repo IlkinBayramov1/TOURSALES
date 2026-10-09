@@ -15,6 +15,7 @@ export interface AgencyMember {
   status: string; // 'Active' | 'Suspended' | 'Invited'
   lastLoginAt?: string | null;
   createdAt: string;
+  assignedToursCount?: number;
 }
 
 export interface TeamKpis {
@@ -45,6 +46,8 @@ export interface TeamActivityLog {
   action: string;
   performedBy: string;
   details: string;
+  oldValues?: string | null;
+  newValues?: string | null;
   createdAt: string;
 }
 
@@ -85,6 +88,21 @@ export const teamApi = {
     return res.data?.data || res.data;
   },
 
+  resetPassword: async (
+    id: string,
+    password?: string
+  ): Promise<{ success: boolean; message: string; tempPassword?: string }> => {
+    const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.TEAM.RESET_PASSWORD(id), { password });
+    return res.data?.data || res.data;
+  },
+
+  toggleStatus: async (
+    id: string
+  ): Promise<{ success: boolean; status: string; message: string }> => {
+    const res = await vendorAxiosClient.patch(VENDOR_ENDPOINTS.TEAM.TOGGLE_STATUS(id));
+    return res.data?.data || res.data;
+  },
+
   removeMember: async (memberId: string): Promise<void> => {
     await vendorAxiosClient.delete(VENDOR_ENDPOINTS.TEAM.REMOVE(memberId));
   },
@@ -94,8 +112,8 @@ export const teamApi = {
     return res.data?.data || res.data || [];
   },
 
-  getActivityLogs: async (): Promise<TeamActivityLog[]> => {
-    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.TEAM.ACTIVITY_LOGS);
+  getActivityLogs: async (query?: { action?: string; search?: string }): Promise<TeamActivityLog[]> => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.TEAM.ACTIVITY_LOGS, { params: query });
     return res.data?.data || res.data || [];
   },
 };

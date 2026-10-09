@@ -55,12 +55,33 @@ class TeamsController {
     return res.json({ status: 'success', msg: 'İcazələr matrisi gətirildi.', data: matrix });
   });
 
+  resetPassword = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId;
+    const { id } = req.params;
+    const { password } = req.body;
+    if (!companyId || !id) {
+      return res.status(400).json({ status: 'fail', msg: 'Parametrlər tam deyil.' });
+    }
+    const result = await teamsService.resetMemberPassword(companyId, req.user, id, password);
+    return res.json({ status: 'success', msg: result.message, data: result });
+  });
+
+  toggleStatus = asyncHandler(async (req, res) => {
+    const companyId = req.user.companyId;
+    const { id } = req.params;
+    if (!companyId || !id) {
+      return res.status(400).json({ status: 'fail', msg: 'Parametrlər tam deyil.' });
+    }
+    const result = await teamsService.toggleMemberStatus(companyId, req.user, id);
+    return res.json({ status: 'success', msg: result.message, data: result });
+  });
+
   getActivityLogs = asyncHandler(async (req, res) => {
     const companyId = req.user.companyId;
     if (!companyId) {
       return res.status(400).json({ status: 'fail', msg: 'Şirkət ID tapılmadı.' });
     }
-    const logs = await teamsService.getActivityLogs(companyId);
+    const logs = await teamsService.getActivityLogs(companyId, req.query);
     return res.json({ status: 'success', msg: 'Fəaliyyət jurnalı gətirildi.', data: logs });
   });
 }

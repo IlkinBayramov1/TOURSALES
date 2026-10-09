@@ -6,6 +6,7 @@ import { GeneralInfoTab } from '../../components/GeneralInfoTab/GeneralInfoTab';
 import { BankingTab } from '../../components/BankingTab/BankingTab';
 import { SecurityTab } from '../../components/SecurityTab/SecurityTab';
 import { NotificationsTab } from '../../components/NotificationsTab/NotificationsTab';
+import { CompanyPublicPreviewModal } from '../../components/CompanyPublicPreviewModal/CompanyPublicPreviewModal';
 import './VendorProfilePage.css';
 
 export const VendorProfilePage: React.FC = () => {
@@ -18,6 +19,7 @@ export const VendorProfilePage: React.FC = () => {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'banking' | 'security' | 'notifications'>('general');
   const [globalMessage, setGlobalMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const loadData = async () => {
     try {
@@ -133,6 +135,17 @@ export const VendorProfilePage: React.FC = () => {
             Turizm agentliyinizin brend vizualını, hüquqi rekvizitlərini, bank hesablarını və təhlükəsizliyini idarə edin
           </p>
         </div>
+        <div className="profile-page-header-actions">
+          <button
+            type="button"
+            className="public-preview-trigger-btn"
+            onClick={() => setShowPreviewModal(true)}
+            title="Şirkət profilinizin müştərilərə necə göründüyünü canlı önizləyin"
+          >
+            <span className="preview-btn-icon">👁️</span>
+            <span>Müştəri Gözü ilə Bax</span>
+          </button>
+        </div>
       </div>
 
       {globalMessage && (
@@ -224,6 +237,15 @@ export const VendorProfilePage: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Live Client View Preview Modal */}
+      {showPreviewModal && company && (
+        <CompanyPublicPreviewModal
+          company={company}
+          isOpen={showPreviewModal}
+          onClose={() => setShowPreviewModal(false)}
+        />
+      )}
     </div>
   );
 };

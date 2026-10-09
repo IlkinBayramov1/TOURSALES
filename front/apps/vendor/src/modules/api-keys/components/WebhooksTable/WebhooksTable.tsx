@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Webhook, Send, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Webhook, Send, Trash2, CheckCircle2, AlertCircle, Edit2, Copy, Check, ShieldCheck } from 'lucide-react';
 import { WebhookConfig } from '@toursales/types';
 
 interface WebhooksTableProps {
@@ -7,16 +7,19 @@ interface WebhooksTableProps {
   loading?: boolean;
   onTestWebhook: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onEdit?: (webhook: WebhookConfig) => void;
 }
 
 export const WebhooksTable: React.FC<WebhooksTableProps> = ({
   webhooks,
   loading,
   onTestWebhook,
-  onDelete
+  onDelete,
+  onEdit
 }) => {
   const [testingId, setTestingId] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<{ id: string; msg: string; success: boolean } | null>(null);
+  const [copiedWhId, setCopiedWhId] = useState<string | null>(null);
 
   const handleTest = async (id: string) => {
     try {
@@ -29,6 +32,14 @@ export const WebhooksTable: React.FC<WebhooksTableProps> = ({
     } finally {
       setTestingId(null);
       setTimeout(() => setTestResult(null), 4000);
+    }
+  };
+
+  const handleCopySecret = (wh: WebhookConfig) => {
+    if (wh.secretKey) {
+      navigator.clipboard.writeText(wh.secretKey);
+      setCopiedWhId(wh.id);
+      setTimeout(() => setCopiedWhId(null), 2000);
     }
   };
 
@@ -80,7 +91,7 @@ export const WebhooksTable: React.FC<WebhooksTableProps> = ({
       <table className="ads-table">
         <thead>
           <tr>
-            <th>Webhook Adı</th>
+            <th>Webhook Adı & İmza Açar</th>
             <th>Endpoint URL</th>
             <th>Abunə Olunan Hadisələr</th>
             <th>Son Çatdırılma</th>
@@ -92,22 +103,41 @@ export const WebhooksTable: React.FC<WebhooksTableProps> = ({
           {webhooks.map((wh) => {
             const events = Array.isArray(wh.events) ? wh.events : [];
             const isTesting = testingId === wh.id;
+            const isCopied = copiedWhId === wh.id;
 
             return (
               <tr key={wh.id}>
-                {/* Name */}
+                {/* Name & Signing secret */}
                 <td>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                    {wh.name}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                    Yaradılıb: {new Date(wh.createdAt).toLocaleDateString('az-AZ')}
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                      {wh.name}
+                    </div>
+                    {wh.secretKey && (
+                      <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: '#64748b' }}>
+                        <ShieldCheck size={12} color="#16a34a" />
+                        <span style={{ fontFamily: 'monospace' }}>
+                          {wh.secretKey.slice(0, 10)}••••
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopySecret(wh)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#6b7280' }}
+                          title="İmza Gizli Açarını Kopyala"
+                        >
+                          {isCopied ? <Check size={12} color="#059669" /> : <Copy size={12} />}
+                        </button>
+                      </div>
+                    )}
+                    <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 2 }}>
+                      Yaradılıb: {new Date(wh.createdAt).toLocaleDateString('az-AZ')}
+                    </div>
                   </div>
                 </td>
 
                 {/* URL */}
                 <td>
-                  <code style={{ background: '#f8fafc', padding: '0.25rem 0.5rem', borderRadius: 6, fontSize: '0.8125rem', border: '1px solid #e2e8f0' }}>
+                  <code style={{ background: '#f8fafc', padding: '0.25rem 0.5rem', borderRadius: 6, fontSize: '0.8125rem', border: '1px solid #e2e8f0', wordBreak: 'break-all' }}>
                     {wh.url}
                   </code>
                 </td>
@@ -151,7 +181,18 @@ export const WebhooksTable: React.FC<WebhooksTableProps> = ({
 
                 {/* Actions */}
                 <td>
-                  <div className="ad-actions-cell" style={{ justifyContent: 'flex-end' }}>
+                  <div className="ad-actions-cell" style={{ justifyContent: 'flex-end', display: 'flex', gap: '0.375rem' }}>
+                    {onEdit && (
+                      <button
+                        type="button"
+                        className="ad-action-btn"
+                        title="Webhook-u Redaktə Et"
+                        onClick={() => onEdit(wh)}
+                      >
+                        <Edit2 size={14} color="#2563eb" />
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       className="ad-action-btn"

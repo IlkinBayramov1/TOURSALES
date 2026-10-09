@@ -9,6 +9,7 @@ interface EditMemberModalProps {
   onClose: () => void;
   member: AgencyMember | null;
   onSuccess: () => void;
+  onOpenResetPassword?: (member: AgencyMember) => void;
 }
 
 export const EditMemberModal: React.FC<EditMemberModalProps> = ({
@@ -16,6 +17,7 @@ export const EditMemberModal: React.FC<EditMemberModalProps> = ({
   onClose,
   member,
   onSuccess,
+  onOpenResetPassword,
 }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -133,6 +135,27 @@ export const EditMemberModal: React.FC<EditMemberModalProps> = ({
               <option value="Suspended">Dondurulub (Giriş müvəqqəti qadağandır)</option>
             </select>
           </div>
+
+          {/* Quick Password Reset Shortcut */}
+          {onOpenResetPassword && (
+            <div className="edit-pass-shortcut">
+              <div>
+                <strong>Giriş Şifrəsi</strong>
+                <p>Əməkdaş şifrəsini unudubsa, buradan sıfırlaya bilərsiniz</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onClose();
+                  onOpenResetPassword(member);
+                }}
+              >
+                Şifrəni Sıfırla
+              </Button>
+            </div>
+          )}
 
           <div className="edit-actions">
             <Button variant="secondary" onClick={onClose} disabled={loading}>

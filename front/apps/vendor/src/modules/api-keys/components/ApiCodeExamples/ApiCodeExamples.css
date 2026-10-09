@@ -9,6 +9,51 @@
   gap: 1.5rem;
 }
 
+.docs-top-banner {
+  background: #fff7ed;
+  border: 1px solid #ffedd5;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.docs-section-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 0.75rem;
+}
+
+.docs-section-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.docs-section-btn:hover {
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.docs-section-btn.active {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
 .code-header-row {
   display: flex;
   align-items: center;

@@ -8,11 +8,25 @@ class VendorController {
       throw ApiError.badRequest('Bu istifadəçi hər hansı şirkətə bağlı deyil.');
     }
     const period = req.query.period || 'month';
-    const result = await vendorService.getDashboardStats(req.user.companyId, period);
+    const result = await vendorService.getDashboardStats(req.user.companyId, period, req.user);
     return res.json({
       success: true,
       status: 'success',
       msg: 'Vendor idarəetmə paneli məlumatları uğurla gətirildi',
+      data: result
+    });
+  });
+
+  getManifestSummary = asyncHandler(async (req, res) => {
+    if (!req.user.companyId) {
+      throw ApiError.badRequest('Bu istifadəçi hər hansı şirkətə bağlı deyil.');
+    }
+    const tourId = req.params.tourId || req.query.tourId || null;
+    const result = await vendorService.getManifestSummary(req.user.companyId, tourId, req.user);
+    return res.json({
+      success: true,
+      status: 'success',
+      msg: 'Sərnişin manifesti uğurla gətirildi',
       data: result
     });
   });
@@ -22,7 +36,7 @@ class VendorController {
       throw ApiError.badRequest('Bu istifadəçi hər hansı şirkətə bağlı deyil.');
     }
     const period = req.query.period || 'month';
-    const excelBuffer = await vendorService.exportDashboardExcel(req.user.companyId, period);
+    const excelBuffer = await vendorService.exportDashboardExcel(req.user.companyId, period, req.user);
 
     res.setHeader(
       'Content-Type',

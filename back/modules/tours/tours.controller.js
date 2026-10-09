@@ -52,6 +52,26 @@ class ToursController {
     return res.json({ status: 'success', msg: 'Tur uğurla ləğv edildi' });
   });
 
+  clone = asyncHandler(async (req, res) => {
+    const companyId = req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId;
+    const { startDate, endDate, title } = req.body;
+    const result = await toursService.cloneTour(req.params.id, startDate, endDate, title, companyId);
+    return res.status(201).json({ status: 'success', msg: 'Tur uğurla nüsxələndi və yaradıldı', data: result });
+  });
+
+  bulkToggleStatus = asyncHandler(async (req, res) => {
+    const companyId = req.user.role === ROLES.SUPERADMIN ? null : req.user.companyId;
+    const { tourIds, status } = req.body;
+    const result = await toursService.bulkToggleStatus(tourIds, status, companyId);
+    return res.json({ status: 'success', msg: `${result.count} turun statusu yeniləndi`, data: result });
+  });
+
+  toggleSeatLock = asyncHandler(async (req, res) => {
+    const { seatNumber, reason = 'Xidməti Yer' } = req.body;
+    const result = await seatService.toggleVendorSeatLock(req.params.id, seatNumber, reason, req.user);
+    return res.json({ status: 'success', msg: result.message, data: result });
+  });
+
   // Gözləmə Siyahısı metodları
   joinWaitingList = asyncHandler(async (req, res) => {
     const result = await toursService.joinWaitingList(req.params.id, req.user.id);
@@ -108,21 +128,39 @@ class ToursController {
   });
 
   lockSeat = asyncHandler(async (req, res) => {
-    const { seatNumber, seatNumbers } = req.body;
-    const targetSeat = seatNumber || (Array.isArray(seatNumbers) ? seatNumbers[0] : null);
-    if (!targetSeat) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
+    const { seatNumber, seatNumbers, durationSeconds = 300 } = req.body;
+    const seatsToLock = Array.isArray(seatNumbers) && seatNumbers.length > 0 
+      ? seatNumbers 
+      : (seatNumber !== undefined && seatNumber !== null ? [seatNumber] : []);
+
+    if (seatsToLock.length === 0) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
     const userId = req.user?.id || req.headers['x-guest-id'] || req.ip || 'guest';
-    const result = await seatService.lockSeat(req.params.id, targetSeat, userId);
-    return res.json({ status: 'success', msg: 'Oturacaq uğurla kilidləndi', data: result });
+    const result = await seatService.lockSeats(req.params.id, seatsToLock, userId, Number(durationSeconds));
+    return res.json({ status: 'success', msg: 'Oturacaqlar uğurla kilidləndi', data: result });
   });
 
   releaseSeat = asyncHandler(async (req, res) => {
     const { seatNumber, seatNumbers } = req.body;
-    const targetSeat = seatNumber || (Array.isArray(seatNumbers) ? seatNumbers[0] : null);
-    if (!targetSeat) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
+    const seatsToRelease = Array.isArray(seatNumbers) && seatNumbers.length > 0 
+      ? seatNumbers 
+      : (seatNumber !== undefined && seatNumber !== null ? [seatNumber] : []);
+
+    if (seatsToRelease.length === 0) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
     const userId = req.user?.id || req.headers['x-guest-id'] || req.ip || 'guest';
-    const result = await seatService.releaseSeat(req.params.id, targetSeat, userId);
+    const result = await seatService.releaseSeats(req.params.id, seatsToRelease, userId);
     return res.json({ status: 'success', msg: 'Oturacaq kilidi azad edildi', data: result });
+  });
+
+  extendSeatLock = asyncHandler(async (req, res) => {
+    const { seatNumber, seatNumbers, extensionSeconds = 300 } = req.body;
+    const targetSeats = Array.isArray(seatNumbers) && seatNumbers.length > 0
+      ? seatNumbers
+      : (seatNumber !== undefined && seatNumber !== null ? [seatNumber] : []);
+
+    if (targetSeats.length === 0) throw ApiError.badRequest('Oturacaq nömrəsi daxil edilməlidir.');
+    const userId = req.user?.id || req.headers['x-guest-id'] || req.ip || 'guest';
+    const result = await seatService.extendSeatLock(req.params.id, targetSeats, userId, Number(extensionSeconds));
+    return res.json({ status: 'success', msg: 'Oturacaq kilid müddəti uzadıldı', data: result });
   });
 
   // Dinamik Qiymət Hesablama (Pricing Engine)

@@ -22,6 +22,13 @@ import companyRoutes from '../../modules/company/company.routes.js';
 import crmRoutes from '../../modules/crm/crm.routes.js';
 import teamsRoutes from '../../modules/teams/teams.routes.js';
 import apiKeysRoutes from '../../modules/apikeys/apikeys.routes.js';
+import hotelsRoutes from '../../modules/hotels/hotels.routes.js';
+import chatRoutes from '../../modules/chat/chat.routes.js';
+import ticketsRoutes from '../../modules/tickets/tickets.routes.js';
+import customToursRoutes from '../../modules/custom-tours/custom-tours.routes.js';
+import analyticsRoutes from '../../modules/analytics/analytics.routes.js';
+import yieldPricingRoutes from '../../modules/yield-pricing/yield-pricing.routes.js';
+import aiConciergeRoutes from '../../modules/ai-concierge/ai-concierge.routes.js';
 
 const router = express.Router();
 
@@ -32,6 +39,7 @@ router.use('/subscriptions', subscriptionsRoutes);
 router.use('/companies', companiesRoutes);
 router.use('/tours', toursRoutes);
 router.use('/bookings', bookingsRoutes);
+router.use('/hotels', hotelsRoutes);
 router.use('/finance', financeRoutes);
 router.use('/campaigns', campaignsRoutes);
 router.use('/ads', adsRoutes);
@@ -48,6 +56,12 @@ router.use('/common', commonRoutes);
 router.use('/company', companyRoutes);
 router.use('/crm', crmRoutes);
 router.use('/api-keys', apiKeysRoutes);
+router.use('/chat', chatRoutes);
+router.use('/tickets', ticketsRoutes);
+router.use('/custom-tours', customToursRoutes);
+router.use('/analytics', analyticsRoutes);
+router.use('/yield-pricing', yieldPricingRoutes);
+router.use('/ai-concierge', aiConciergeRoutes);
 
 // Admin Portal compatibility aliases
 router.use('/admin/auth', authRoutes);

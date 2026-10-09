@@ -21,7 +21,8 @@ import {
   ShieldCheck,
   Building2,
   Utensils,
-  Users
+  Users,
+  CreditCard
 } from 'lucide-react';
 import { Card, Button, Input } from '@toursales/ui';
 import { ItineraryItem } from '@toursales/types';
@@ -239,6 +240,23 @@ export const TourFormWizard: React.FC<TourFormWizardProps> = ({
   const [showManualUrl, setShowManualUrl] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // FinTech & Installment Settings (Faza 2)
+  const [allowInstallments, setAllowInstallments] = useState<boolean>(
+    initialData?.allowInstallments ?? true
+  );
+  const [maxInstallmentMonths, setMaxInstallmentMonths] = useState<number>(
+    initialData?.maxInstallmentMonths ?? 12
+  );
+  const [allowDeposit, setAllowDeposit] = useState<boolean>(
+    initialData?.allowDeposit ?? true
+  );
+  const [depositPercentage, setDepositPercentage] = useState<number>(
+    initialData?.depositPercentage ?? 30
+  );
+  const [depositDueDaysBefore, setDepositDueDaysBefore] = useState<number>(
+    initialData?.depositDueDaysBefore ?? 5
+  );
+
   useEffect(() => {
     if (initialData) {
       if (initialData.title !== undefined) setTitle(initialData.title);
@@ -260,6 +278,11 @@ export const TourFormWizard: React.FC<TourFormWizardProps> = ({
       if (initialData.inclusions && initialData.inclusions.length > 0) setInclusionsText(initialData.inclusions.join('\n'));
       if (initialData.exclusions && initialData.exclusions.length > 0) setExclusionsText(initialData.exclusions.join('\n'));
       if (initialData.images && initialData.images[0]) setImageUrl(initialData.images[0]);
+      if (initialData.allowInstallments !== undefined) setAllowInstallments(initialData.allowInstallments);
+      if (initialData.maxInstallmentMonths !== undefined) setMaxInstallmentMonths(initialData.maxInstallmentMonths);
+      if (initialData.allowDeposit !== undefined) setAllowDeposit(initialData.allowDeposit);
+      if (initialData.depositPercentage !== undefined) setDepositPercentage(initialData.depositPercentage);
+      if (initialData.depositDueDaysBefore !== undefined) setDepositDueDaysBefore(initialData.depositDueDaysBefore);
     }
   }, [initialData]);
 
@@ -440,6 +463,11 @@ export const TourFormWizard: React.FC<TourFormWizardProps> = ({
       exclusions: exclusionsText.split('\n').filter((s) => s.trim().length > 0),
       itinerary,
       isKarabakh: !isForeign && (region.toLowerCase().includes('shusha') || region.toLowerCase().includes('lachin') || region.toLowerCase().includes('khankendi')),
+      allowInstallments,
+      maxInstallmentMonths: allowInstallments ? maxInstallmentMonths : undefined,
+      allowDeposit,
+      depositPercentage: allowDeposit ? depositPercentage : undefined,
+      depositDueDaysBefore: allowDeposit ? depositDueDaysBefore : undefined,
     };
     await onSubmit(payload);
   };
@@ -648,6 +676,101 @@ export const TourFormWizard: React.FC<TourFormWizardProps> = ({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
+            </div>
+
+            {/* FinTech & Taksit Parametrləri (Faza 2) */}
+            <div className="vendor-grid-full vendor-fintech-config-box">
+              <div className="vendor-fintech-header">
+                <div className="vendor-fintech-icon-wrap">
+                  <CreditCard size={20} />
+                </div>
+                <div>
+                  <h4 className="vendor-fintech-title">FinTech və Ödəniş Modelləri</h4>
+                  <p className="vendor-fintech-desc">
+                    Müştərilər üçün bank taksit kartları (Birkart, Tamkart, Bolkart) və 30/70 depozit sistemini tənzimləyin.
+                  </p>
+                </div>
+              </div>
+
+              <div className="vendor-fintech-settings-grid">
+                {/* Taksit Tənzimləməsi */}
+                <div className="vendor-fintech-setting-card">
+                  <div className="vendor-fintech-toggle-row">
+                    <label className="vendor-fintech-switch-label">
+                      <input
+                        type="checkbox"
+                        checked={allowInstallments}
+                        onChange={(e) => setAllowInstallments(e.target.checked)}
+                      />
+                      <span className="vendor-fintech-switch-slider" />
+                    </label>
+                    <div className="vendor-fintech-text-group">
+                      <strong>Taksitlə Satış (Birkart / Tamkart / Bolkart)</strong>
+                      <small>Müştərilərə faizsiz 2-12 ay taksit imkanı verin</small>
+                    </div>
+                  </div>
+
+                  {allowInstallments && (
+                    <div className="vendor-fintech-subfield">
+                      <label className="vendor-field-label">Maksimum Taksit Müddəti</label>
+                      <select
+                        className="vendor-select-field"
+                        value={maxInstallmentMonths}
+                        onChange={(e) => setMaxInstallmentMonths(parseInt(e.target.value, 10))}
+                      >
+                        <option value={3}>3 Ay</option>
+                        <option value={6}>6 Ay</option>
+                        <option value={12}>12 Ay</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* 30/70 Depozit Tənzimləməsi */}
+                <div className="vendor-fintech-setting-card">
+                  <div className="vendor-fintech-toggle-row">
+                    <label className="vendor-fintech-switch-label">
+                      <input
+                        type="checkbox"
+                        checked={allowDeposit}
+                        onChange={(e) => setAllowDeposit(e.target.checked)}
+                      />
+                      <span className="vendor-fintech-switch-slider" />
+                    </label>
+                    <div className="vendor-fintech-text-group">
+                      <strong>30/70 Depozit Modeli</strong>
+                      <small>İlkin depozit ödənişi, qalan hissə tura bir neçə gün qalmış</small>
+                    </div>
+                  </div>
+
+                  {allowDeposit && (
+                    <div className="vendor-fintech-subfield-grid">
+                      <div>
+                        <label className="vendor-field-label">İlkin Depozit (%)</label>
+                        <input
+                          type="number"
+                          className="vendor-select-field"
+                          min={10}
+                          max={90}
+                          value={depositPercentage}
+                          onChange={(e) => setDepositPercentage(parseInt(e.target.value, 10) || 30)}
+                        />
+                      </div>
+                      <div>
+                        <label className="vendor-field-label">Qalıq Ödəniş (gün əvvəl)</label>
+                        <input
+                          type="number"
+                          className="vendor-select-field"
+                          min={1}
+                          max={30}
+                          value={depositDueDaysBefore}
+                          onChange={(e) => setDepositDueDaysBefore(parseInt(e.target.value, 10) || 5)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </Card>

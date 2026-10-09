@@ -1445,3 +1445,284 @@
   }
 }
 
+/* CUSTOM TOUR BUILDER & B2B TENDER PROMO BANNER */
+.web-custom-tour-promo-section {
+  max-width: 1320px;
+  margin: 48px auto;
+  padding: 0 24px;
+}
+
+.web-custom-tour-promo-card {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%);
+  border-radius: 28px;
+  padding: 48px;
+  color: #ffffff;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 40px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 24px 48px -12px rgba(49, 46, 129, 0.35);
+}
+
+.web-custom-tour-promo-card::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.web-custom-tour-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 16px;
+}
+
+.web-custom-tour-title {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.web-custom-tour-desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin-bottom: 24px;
+  max-width: 540px;
+}
+
+.web-custom-tour-features {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.web-ct-feat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #f1f5f9;
+}
+
+.web-btn-create-custom-tour {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.5);
+  width: fit-content;
+}
+
+.web-btn-create-custom-tour:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 24px -5px rgba(245, 158, 11, 0.6);
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+}
+
+.web-custom-tour-visual {
+  display: flex;
+  justify-content: center;
+}
+
+.web-custom-tour-preview-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.web-ct-badge {
+  display: inline-block;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.web-custom-tour-preview-card h4 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #ffffff;
+}
+
+.web-ct-preview-sub {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
+.web-ct-bids-pill {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.web-ct-bid-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.web-ct-bid-price {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+.web-ct-preview-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 14px;
+  text-align: center;
+}
+
+.web-ct-preview-stats div strong {
+  display: block;
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.web-ct-preview-stats div span {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+@media (max-width: 900px) {
+  .web-custom-tour-promo-card {
+    grid-template-columns: 1fr;
+    padding: 32px 24px;
+  }
+}
+
+/* AI CONCIERGE PROMPT BAR IN HERO */
+.web-hero-ai-bar {
+  max-width: 860px;
+  margin: -24px auto 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 12px 30px -6px rgba(109, 40, 217, 0.15), 0 0 0 1px rgba(139, 92, 246, 0.1);
+  border-radius: 100px;
+  padding: 8px 10px 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  position: relative;
+  z-index: 20;
+  transition: all 0.25s ease;
+}
+
+.web-hero-ai-bar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -6px rgba(109, 40, 217, 0.25), 0 0 0 2px rgba(139, 92, 246, 0.25);
+  border-color: #8b5cf6;
+}
+
+.web-ai-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.web-ai-bar-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.web-ai-bar-text {
+  font-size: 13px;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-style: italic;
+}
+
+.web-ai-bar-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f5f3ff;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.web-hero-ai-bar:hover .web-ai-bar-action {
+  background: #6d28d9;
+  color: #ffffff;
+  border-color: #6d28d9;
+}
+
+@media (max-width: 640px) {
+  .web-hero-ai-bar {
+    margin: -16px 16px 12px;
+    border-radius: 16px;
+  }
+  .web-ai-bar-text {
+    display: none;
+  }
+}
+
+

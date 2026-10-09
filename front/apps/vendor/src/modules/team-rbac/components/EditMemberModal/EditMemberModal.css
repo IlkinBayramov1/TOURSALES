@@ -111,6 +111,30 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
+.edit-pass-shortcut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.edit-pass-shortcut strong {
+  display: block;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.edit-pass-shortcut p {
+  margin: 2px 0 0 0;
+  font-size: 11.5px;
+  color: #64748b;
+}
+
 .edit-actions {
   display: flex;
   justify-content: flex-end;

@@ -5,8 +5,13 @@ import { CompanyBalance, PayoutRequest, LedgerEntry, SubscriptionPlan } from '@t
 export interface VendorCompanyBalance extends CompanyBalance {
   totalTurnover?: number;
   totalCommissions?: number;
+  netEarnings?: number;
+  totalRefunds?: number;
   iban?: string;
   bankName?: string;
+  voen?: string;
+  swiftBic?: string;
+  bankCode?: string;
 }
 
 export interface CurrentSubscriptionInfo {
@@ -21,6 +26,11 @@ export interface CurrentSubscriptionInfo {
   features: string[];
   maxTours: number;
   activeToursCount: number;
+  maxMembers?: number;
+  activeMembersCount?: number;
+  maxApiKeys?: number;
+  activeApiKeysCount?: number;
+  daysLeft?: number;
   autoRenewSubscription?: boolean;
   nextBillingDate?: string | null;
   availableBalance?: number;
@@ -76,6 +86,39 @@ export interface SubscriptionInvoice {
   paymentMethod: string;
 }
 
+export interface EscrowTourItem {
+  bookingId: string;
+  tourTitle: string;
+  tourStartDate: string | null;
+  tourEndDate: string | null;
+  passengerName: string;
+  amount: number;
+  daysLeft: number;
+  releaseDate: string;
+  status: string;
+}
+
+export interface BankDetailsPayload {
+  iban?: string;
+  bankName?: string;
+  voen?: string;
+  swiftBic?: string;
+  bankCode?: string;
+}
+
+export interface ExtendedLedgerEntry extends LedgerEntry {
+  bookingId?: string | null;
+  tourTitle?: string | null;
+  passengerName?: string | null;
+  passengerPhone?: string | null;
+  passengerPassport?: string | null;
+  amount: number;
+  type: string;
+  status: string;
+  commission?: number;
+  netAmount?: number;
+}
+
 export const vendorFinanceApi = {
   getBalance: async (): Promise<VendorCompanyBalance> => {
     const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.FINANCE.OVERVIEW);
@@ -92,9 +135,51 @@ export const vendorFinanceApi = {
     return res.data?.data || res.data;
   },
 
-  getLedger: async (params?: { type?: string; status?: string; search?: string }): Promise<LedgerEntry[]> => {
+  cancelPayoutRequest: async (payoutId: string): Promise<any> => {
+    const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.FINANCE.CANCEL_PAYOUT(payoutId));
+    return res.data?.data || res.data;
+  },
+
+  getEscrowDetails: async (): Promise<EscrowTourItem[]> => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.FINANCE.ESCROW_DETAILS);
+    return res.data?.data || res.data || [];
+  },
+
+  updateBankDetails: async (data: BankDetailsPayload): Promise<any> => {
+    const res = await vendorAxiosClient.put(VENDOR_ENDPOINTS.FINANCE.BANK_DETAILS, data);
+    return res.data?.data || res.data;
+  },
+
+  getLedger: async (params?: { type?: string; status?: string; search?: string; startDate?: string; endDate?: string }): Promise<ExtendedLedgerEntry[]> => {
     const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.FINANCE.TRANSACTIONS, { params });
     return res.data?.data || res.data || [];
+  },
+
+  downloadEQaimeXML: async (bookingId: string) => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.FINANCE.EQAIME(bookingId));
+    const xmlContent = res.data?.data?.xml || res.data?.xml;
+    if (!xmlContent) throw new Error('e-Qaimə XML məlumatı tapılmadı');
+    const blob = new Blob([xmlContent], { type: 'application/xml' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `e-Qaime_${bookingId}.xml`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  },
+
+  downloadInvoicePdf: async (bookingId: string) => {
+    const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.FINANCE.INVOICE_PDF(bookingId), {
+      responseType: 'blob',
+    });
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Faktura_${bookingId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   },
 
   getCurrentSubscription: async (): Promise<CurrentSubscriptionInfo> => {
@@ -119,7 +204,12 @@ export const vendorFinanceApi = {
     }));
   },
 
-  changeSubscriptionPlan: async (payload: { planId: string; billingCycle?: 'MONTHLY' | 'YEARLY'; payFromBalance?: boolean } | string): Promise<any> => {
+  changeSubscriptionPlan: async (payload: {
+    planId: string;
+    billingCycle?: 'MONTHLY' | 'YEARLY';
+    paymentMethod?: 'BALANCE' | 'CARD' | 'BANK_TRANSFER';
+    payFromBalance?: boolean;
+  } | string): Promise<any> => {
     const body = typeof payload === 'string' ? { planId: payload } : payload;
     const res = await vendorAxiosClient.post(VENDOR_ENDPOINTS.SUBSCRIPTION.CHANGE_PLAN, body);
     return res.data?.data || res.data;
@@ -140,7 +230,7 @@ export const vendorFinanceApi = {
     return res.data?.data || res.data;
   },
 
-  exportTransactionsExcel: async (params?: { type?: string; status?: string }) => {
+  exportTransactionsExcel: async (params?: { type?: string; status?: string; startDate?: string; endDate?: string }) => {
     const res = await vendorAxiosClient.get(VENDOR_ENDPOINTS.FINANCE.EXPORT, {
       params,
       responseType: 'blob',

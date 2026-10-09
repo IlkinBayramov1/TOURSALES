@@ -245,10 +245,85 @@
   color: #334155;
 }
 
+.guide-tour-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Status Pill Toggle */
+.status-pill-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.status-pill-toggle:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.status-pill-toggle.active {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.status-pill-toggle.active:not(:disabled):hover {
+  background: #d1fae5;
+  box-shadow: 0 1px 4px rgba(4, 120, 87, 0.15);
+}
+
+.status-pill-toggle.suspended {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.status-pill-toggle.suspended:not(:disabled):hover {
+  background: #fee2e2;
+  box-shadow: 0 1px 4px rgba(185, 28, 28, 0.15);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Actions Row Buttons */
 .member-actions-row {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.btn-pass-action {
+  color: #0284c7;
+  border-color: #bae6fd;
+}
+
+.btn-pass-action:hover {
+  background: #f0f9ff;
+  border-color: #7dd3fc;
+  color: #0369a1;
 }
 
 @media (max-width: 768px) {

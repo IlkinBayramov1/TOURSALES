@@ -1,0 +1,248 @@
+/* ==========================================================================
+   2026 SAAS MARKETPLACE - FLOATING CONTEXTUAL CHAT WIDGET
+   ========================================================================== */
+
+.web-floating-chat-wrap {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 998;
+  font-family: inherit;
+}
+
+/* Floating Launcher Button */
+.web-chat-launcher-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.web-chat-launcher-btn:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.5);
+}
+
+.web-chat-unread-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+}
+
+/* Chat Popup Window */
+.web-chat-window {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  width: 380px;
+  height: 520px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: chatPopupFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes chatPopupFade {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Chat Header */
+.web-chat-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  color: #ffffff;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.web-chat-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.web-chat-company-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.web-chat-close-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  opacity: 0.8;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.web-chat-close-btn:hover {
+  opacity: 1;
+}
+
+/* Pinned Context Banner */
+.web-chat-pinned-meta {
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+
+.web-chat-pinned-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.web-chat-pinned-info strong {
+  color: #1e3a8a;
+  display: block;
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+
+.web-chat-pinned-info span {
+  color: #64748b;
+}
+
+/* Messages Area */
+.web-chat-messages-area {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f8fafc;
+}
+
+.web-chat-bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-break: break-word;
+  position: relative;
+}
+
+.web-chat-bubble.user {
+  align-self: flex-end;
+  background: #2563eb;
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.web-chat-bubble.vendor {
+  align-self: flex-start;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.web-chat-time {
+  font-size: 0.65rem;
+  margin-top: 4px;
+  text-align: right;
+  opacity: 0.7;
+}
+
+/* Chat Input Bar */
+.web-chat-input-bar {
+  padding: 12px 14px;
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.web-chat-input-bar input {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.web-chat-input-bar input:focus {
+  border-color: #2563eb;
+}
+
+.web-chat-send-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.web-chat-send-btn:hover {
+  background: #1d4ed8;
+}
+
+@media (max-width: 480px) {
+  .web-chat-window {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+}
